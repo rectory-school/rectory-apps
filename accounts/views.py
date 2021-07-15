@@ -2,13 +2,17 @@
 
 from typing import Dict, Any
 
+
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
+from django.http.response import HttpResponseBadRequest, HttpResponseRedirect, HttpResponseBase
+from django.http import HttpRequest
 from django.contrib.auth.views import LoginView
 from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model, login
 from django.http import JsonResponse
+from django.urls import reverse
 
 from django.conf import settings
 
@@ -16,7 +20,18 @@ from django.conf import settings
 class SocialLoginView(TemplateView):
     """Handle social login"""
 
-    template_name = "accounts/login.html"
+    template_name = "accounts/login_social.html"
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        if not settings.GOOGLE_OAUTH_CLIENT_ID:
+            next_parameter = request.GET.get("next")
+            url = reverse('accounts:login-native')
+            if next_parameter:
+                url = f"{url}?next={next_parameter}"
+
+            return HttpResponseRedirect(url)
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -38,7 +53,12 @@ class SocialLoginView(TemplateView):
         last_name = id_info["family_name"]
         email = id_info["email"]
 
+        if settings.GOOGLE_HOSTED_DOMAIN:
+            if id_info["hd"] != settings.GOOGLE_HOSTED_DOMAIN:
+                return HttpResponseBadRequest()
+
         try:
+            #  pylint: disable=invalid-name
             UserModel = get_user_model()
             user = UserModel.objects.get(email=email)
 
