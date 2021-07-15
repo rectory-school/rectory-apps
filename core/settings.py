@@ -10,38 +10,31 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 import environ
 
-# Set up the environment
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False)
-)
+env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-environ.Env.read_env(env_file=(BASE_DIR / ".env").as_posix())
+# If we don't have a .env file, then this throws a warning up every time it's initialized.
+# Because that annoys me in the logs of the hosted environments,
+# we use this key to suppress it
+if not "HOSTED_ENVIRONMENT" in os.environ:
+    environ.Env.read_env(env_file=(BASE_DIR / ".env").as_posix())
 
-DEBUG = env('DEBUG')
+DEBUG = env.bool('DEBUG', default=False)
 SECRET_KEY = env('SECRET_KEY')
 
-
-DATABASES = {
-    'default': env.db(default='sqlite:///' + (BASE_DIR / 'db.sqlite3').absolute().as_posix()),
-}
-
-CACHES = {
-    'default': env.cache(default="locmemcache://"),
-}
-
+DATABASES = {'default': env.db(default='sqlite:///' + (BASE_DIR / 'db.sqlite3').absolute().as_posix()), }
+CACHES = {'default': env.cache(default="locmemcache://")}
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
 
 # Application definition
 
 AUTH_USER_MODEL = 'accounts.User'
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
