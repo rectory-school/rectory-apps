@@ -211,8 +211,10 @@ class CalendarGenerator:
         self.canvas.setFillColor(self.style.letter_color)
         self.canvas.setFont(self.style.letter_font_name, font_size)
 
+        _, descent = pdfmetrics.getAscentDescent(self.style.letter_font_name, font_size)
+
         for row_index, row in enumerate(self.grid.grid):
-            y_pos = self._get_element_y_pos_from_top(font_size*1.1 + row_height*row_index)
+            y_pos = self._get_element_y_pos_from_top(font_size + row_height*row_index) - descent/2
 
             for col_index, col in enumerate(row):
                 if not col or not col.letter:
@@ -362,7 +364,7 @@ class CalendarGenerator:
         row_height = self._internal_remaining_height / self._row_count
 
         # Maximum of 80% of the row height, if we have a really weirdly shaped calendar here
-        current_size = row_height*.8
+        current_size = row_height
         for letter in all_letters:
             possible_size = _get_font_size_maximum_width(letter, maximum_width, self.style.date_font_name)
 
