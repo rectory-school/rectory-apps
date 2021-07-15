@@ -14,6 +14,8 @@ uvicorn = "*"
 gunicorn = "*"
 django-safemigrate = "*"
 django-bootstrap4 = "*"
+google-auth = "*"
+requests = "*"
 
 [dev-packages]
 autopep8 = "*"
