@@ -21,11 +21,14 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
 import accounts.urls
+import calendar_generator.urls
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name="home.html")),
     path('accounts/', include(accounts.urls)),
     path('admin/', admin.site.urls),
+
+    path('calendars/', include(calendar_generator.urls))
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,32 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="{% static 'calendar_generator/calendar.css' %}">
+
+    <title>Calendars</title>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>Calendar List</h1>
+        <p>
+            <ul>
+                {% for calendar in calendar_list %}
+                    <li><a href="{% url 'calendar_generator:calendar' pk=calendar.pk %}">{{ calendar }}</a></li>
+                {% endfor %}    
+            </ul>
+        </p>
+    </div>
+</body>
+

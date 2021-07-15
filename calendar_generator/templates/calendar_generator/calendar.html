@@ -1,0 +1,91 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="{% static 'calendar_generator/calendar.css' %}">
+
+    <title>Calendar: {{ object.title }}</title>
+
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>
+            Calendar: {{ calendar.title }}
+        </h1>
+
+        <h2 class="noprint">PDF Links</h2>
+        <ul class="noprint">
+            <li>One-page calendar</li>
+            <li>Color one-page calendar</li>
+            <li>Monthly calendar</li>
+            <li>Color monthly calendar</li>
+            <li>All calendar files</li>
+        </ul>
+
+        {% if today_letter %}
+        <h2 class="noprint">Today</h2>
+        <p class="noprint"><strong>{{ today }}: {{ today_letter }}</strong></p>
+        {% endif %}
+
+        <h2>Day Listing</h2>
+        <ul class="day-list">
+            {% for day, letter in days %}
+            <li>{{day}}: {{letter}}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Calendars</h2>
+
+        {% for calendar in calendars %}
+        <div class="calendar">
+            <h3>{{ calendar.first_date|date:"F Y" }}</h3>
+            <p class="noprint">
+                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk year=calendar.year month=calendar.month preset_slug='black' %}">
+                        Black &amp; White PDF
+                </a> &bullet;
+                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk year=calendar.year month=calendar.month preset_slug='color' %}">
+                    Color PDF
+                </a>
+            </p>
+
+            <table class="table table-bordered">
+                <thead>
+                    {% for header in calendar.grid.headers %}
+                        <th scope="col">{{ header }}</th>
+                    {% endfor %}
+                </thead>
+                <tbody>
+                    {% for week in calendar.grid.grid %}
+                    <tr>
+                        {% for day in week %}
+                        <td>
+                            {% if day %}
+                                <span class="date">{{ day.date.day }}</span>
+
+                                {% if day.letter %}
+                                    <span class="letter">{{ day.letter }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+
+</html>
