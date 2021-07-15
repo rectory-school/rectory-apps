@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "~=3.2"
+django-environ = "*"
+django-admin-sortable2 = "*"
+pillow = "*"
+psycopg2 = "*"
+whitenoise = "*"
+uvicorn = "*"
+gunicorn = "*"
+django-safemigrate = "*"
+django-bootstrap4 = "*"
+
+[dev-packages]
+autopep8 = "*"
+rope = "*"
+pylint = "*"
+pytest = "*"
+pytest-django = "*"
+django-debug-toolbar = "*"
+
+[requires]
+python_version = "3.9"
