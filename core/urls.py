@@ -23,9 +23,14 @@ from django.views.generic import TemplateView
 import accounts.urls
 import calendar_generator.urls
 
+import accounts.views
+
 urlpatterns = [
     path('', TemplateView.as_view(template_name="home.html")),
     path('accounts/', include(accounts.urls)),
+
+    # I want admin to use my login page - intercept it's call
+    path('admin/login/', accounts.views.SocialLoginView.as_view()),
     path('admin/', admin.site.urls),
 
     path('calendars/', include(calendar_generator.urls))
