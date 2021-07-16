@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'adminsortable2',
     'django_safemigrate.apps.SafeMigrateConfig',
     'bootstrap4',
+    'health_check',
+    'health_check.db',
 
     'accounts',
     'icons',
