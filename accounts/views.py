@@ -36,8 +36,11 @@ class SocialLoginView(TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        context["google_oauth_client_id"] = settings.GOOGLE_OAUTH_CLIENT_ID
-        context["google_hosted_domain"] = settings.GOOGLE_HOSTED_DOMAIN
+        context["auth_data"] = {
+            'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+            'hosted_domain': settings.GOOGLE_HOSTED_DOMAIN,
+        }
+
         if "next" in self.request.GET:
             context["next"] = self.request.GET["next"]
 
