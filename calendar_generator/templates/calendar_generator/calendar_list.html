@@ -6,9 +6,9 @@
 {% block content %}
 <h1>Calendar List</h1>
 <p>
-    <ul>
+    <ul class="list-group">
         {% for calendar in calendar_list %}
-            <li><a href="{% url 'calendar_generator:calendar' pk=calendar.pk %}">{{ calendar }}</a></li>
+            <li class="list-group-item"><a href="{% url 'calendar_generator:calendar' pk=calendar.pk %}">{{ calendar }}</a></li>
         {% endfor %}    
     </ul>
 </p>
