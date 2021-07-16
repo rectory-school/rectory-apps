@@ -92,18 +92,7 @@ def test_day_generation_empty():
 
     c.save()
 
-    expected = {
-        date(2021, 1, 4): None,
-        date(2021, 1, 5): None,
-        date(2021, 1, 6): None,
-        date(2021, 1, 7): None,
-        date(2021, 1, 8): None,
-        date(2021, 1, 11): None,
-        date(2021, 1, 12): None,
-        date(2021, 1, 13): None,
-        date(2021, 1, 14): None,
-        date(2021, 1, 15): None,
-    }
+    expected = {}
 
     actual = c.get_date_letter_map()
 

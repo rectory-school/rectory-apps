@@ -55,6 +55,9 @@ class Calendar(models.Model):
         day_rotation = list(self.days.all())
         day_rotation.sort(key=lambda obj: obj.position)
 
+        if not day_rotation:
+            return {}
+
         out = {}
 
         for i, date in enumerate(self.get_all_dates()):
