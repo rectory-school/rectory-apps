@@ -4,6 +4,8 @@ from django import template
 from django.utils.html import mark_safe
 from django.urls import reverse, NoReverseMatch
 
+from accounts.admin_staff_monkeypatch import patched_has_permission
+
 register = template.Library()
 
 
@@ -30,7 +32,7 @@ def nav_item(context, title: str, url_name: str, required_permission: str = None
 
     if required_permission:
         if required_permission == "special:staff":
-            if not request.user.is_staff:
+            if not patched_has_permission(request):
                 return ""
 
         elif not request.user.has_perm(required_permission):

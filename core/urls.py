@@ -22,6 +22,7 @@ from django.views.generic import TemplateView
 
 import accounts.urls
 import accounts.views
+from accounts.admin_staff_monkeypatch import patched_has_permission
 
 import calendar_generator.urls
 
@@ -42,3 +43,6 @@ if settings.DEBUG:
 
     urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+
+# This is bad. Do not do this. See the comments in the file with the patch to know why this is done
+admin.site.has_permission = patched_has_permission

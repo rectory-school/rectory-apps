@@ -13,8 +13,8 @@
     </ul>
 </p>
 
-{% if request.user.is_staff and perms.calendar_generator.can_add_calendar %}
-    <p><a href="{% url 'admin:calendar_generator_calendar_changelist' %}">Administer Calendars</a></p>
+{% if has_admin_access and perms.calendar_generator.add_calendar %}
+    <p><a href="{% url 'admin:calendar_generator_calendar_changelist' %}">Add/Remove/Update Calendars</a></p>
 {% endif %}
 
 </div>
