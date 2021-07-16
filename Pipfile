@@ -24,6 +24,7 @@ pylint = "*"
 pytest = "*"
 pytest-django = "*"
 django-debug-toolbar = "*"
+ipython = "*"
 
 [requires]
 python_version = "3.9"

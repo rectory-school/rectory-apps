@@ -4,6 +4,8 @@ from django import template
 from django.utils.html import mark_safe
 from django.urls import reverse, NoReverseMatch
 
+from accounts.admin_staff_monkeypatch import patched_has_permission
+
 register = template.Library()
 
 
@@ -22,16 +24,25 @@ def auth_button(context):
 
 
 @register.simple_tag(takes_context=True)
-def nav_item(context, title: str, url_name: str):
+def nav_item(context, title: str, url_name: str, required_permission: str = None):
     """Determine if the active URL is the current URL"""
+
+    request = context['request']
+    current_path = request.path
+
+    if required_permission:
+        if required_permission == "special:staff":
+            if not patched_has_permission(request):
+                return ""
+
+        elif not request.user.has_perm(required_permission):
+            return ""
 
     try:
         url = reverse(url_name)
     except NoReverseMatch:
         url = url_name
         return available_nav_item(title, url)
-
-    current_path = context['request'].path
 
     if url == current_path:
         return active_nav_item(title, url)

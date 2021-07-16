@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title%}Calendar List{% endblock %}
+
+{% block content %}
+<h1>Calendar List</h1>
+<p>
+    <ul>
+        {% for calendar in calendar_list %}
+            <li><a href="{% url 'calendar_generator:calendar' pk=calendar.pk %}">{{ calendar }}</a></li>
+        {% endfor %}    
+    </ul>
+</p>
+
+{% if has_admin_access and perms.calendar_generator.add_calendar %}
+    <p><a href="{% url 'admin:calendar_generator_calendar_changelist' %}">Add/Remove/Update Calendars</a></p>
+{% endif %}
+
+</div>
+
+{% endblock %}

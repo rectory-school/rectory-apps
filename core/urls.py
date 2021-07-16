@@ -22,6 +22,10 @@ from django.views.generic import TemplateView
 
 import accounts.urls
 import accounts.views
+from accounts.admin_staff_monkeypatch import patched_has_permission
+
+import calendar_generator.urls
+
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name="home.html")),
@@ -30,6 +34,8 @@ urlpatterns = [
     # I want admin to use my login page - intercept it's call
     path('admin/login/', accounts.views.SocialLoginView.as_view()),
     path('admin/', admin.site.urls),
+
+    path('calendars/', include(calendar_generator.urls))
 ]
 
 if settings.DEBUG:
@@ -37,3 +43,6 @@ if settings.DEBUG:
 
     urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+
+# This is bad. Do not do this. See the comments in the file with the patch to know why this is done
+admin.site.has_permission = patched_has_permission
