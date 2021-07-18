@@ -37,13 +37,15 @@
         <p class="noprint"><strong>{{ today }}: {{ today_letter }}</strong></p>
         {% endif %}
 
-        <h2>Day Listing</h2>
-        <ul class="day-list">
-            {% for day, letter in days %}
-            <li>{{day}}: {{letter}}</li>
-            {% endfor %}
-        </ul>
-
+        {% if days %}
+            <h2>Day Listing</h2>
+            <ul class="day-list">
+                {% for day, letter in days %}
+                    <li>{{day}}: {{letter}}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        
         <h2>Calendars</h2>
 
         {% for calendar in calendars %}
