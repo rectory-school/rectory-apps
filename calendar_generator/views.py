@@ -10,6 +10,7 @@ from io import BytesIO
 from django.views.generic import DetailView, ListView, View
 from django.http import FileResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
 from reportlab.pdfgen import canvas
 from reportlab.lib import pagesizes
@@ -19,6 +20,12 @@ from . import models
 from . import grids
 from . import pdf_presets
 from . import pdf
+
+
+class ViewPermissionRequired(PermissionRequiredMixin):
+    """Require the view calendar permission"""
+
+    permission_required = "calendar_generator.view_calendar"
 
 
 @dataclass
@@ -36,13 +43,13 @@ class MonthGrid:
         return date(self.year, self.month, 1)
 
 
-class Calendars(ListView):
+class Calendars(ViewPermissionRequired, ListView):
     """List of all the calendars"""
 
     model = models.Calendar
 
 
-class Calendar(DetailView):
+class Calendar(ViewPermissionRequired, DetailView):
     """Calendar pages with everything about the calendar"""
 
     model = models.Calendar
@@ -81,7 +88,7 @@ class Calendar(DetailView):
         return context
 
 
-class PDFMonth(View):
+class PDFMonth(ViewPermissionRequired, View):
     """PDF views of a single calendar month"""
 
     def get(self, request, calendar_id: int, year: int, month: int, preset_slug='black'):
