@@ -162,3 +162,25 @@ class PDFMonth(CalendarStylePDFBaseView):
         month = self.kwargs["month"]
 
         return f"{self._calendar.title} - {year}-{month}.pdf"
+
+
+class PDFMonths(CalendarStylePDFBaseView):
+    """All the month calendars in one PDF"""
+
+    def draw_pdf(self, draw_on: canvas.Canvas):
+        all_months = set()
+
+        for day in self._letter_map:
+            all_months.add((day.year, day.month))
+
+        for year, month in sorted(all_months):
+            grid_generator = grids.CalendarGridGenerator(self._letter_map, year, month, 6)
+            grid = grid_generator.get_grid()
+
+            gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=self._style, left_offset=.5*inch,
+                                        bottom_offset=.5*inch, width=10*inch, height=7.5*inch)
+            gen.draw()
+            draw_on.showPage()
+
+    def get_filename(self) -> str:
+        return f"{self._calendar.title}.pdf"

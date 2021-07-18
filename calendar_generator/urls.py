@@ -11,4 +11,7 @@ urlpatterns = [
     path('<int:pk>/', views.Calendar.as_view(), name='calendar'),
     path('<int:calendar_id>/pdf/<int:year>/<int:month>/', views.PDFMonth.as_view(), name='month-pdf'),
     path('<int:calendar_id>/pdf/<str:preset_slug>/<int:year>/<int:month>/', views.PDFMonth.as_view(), name='month-pdf'),
+
+    path('<int:calendar_id>/pdf/all_months/', views.PDFMonths.as_view(), name='months-pdf'),
+    path('<int:calendar_id>/pdf/<str:preset_slug>/all_months/', views.PDFMonths.as_view(), name='months-pdf'),
 ]

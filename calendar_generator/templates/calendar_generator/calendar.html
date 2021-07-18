@@ -28,8 +28,8 @@
         <ul class="noprint">
             <li>One-page calendar</li>
             <li>Color one-page calendar</li>
-            <li>Monthly calendar</li>
-            <li>Color monthly calendar</li>
+            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk %}">Monthly calendar</a></li>
+            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk preset_slug='color' %}">Color monthly calendar</a></li>
             <li>All calendar files</li>
         </ul>
 
