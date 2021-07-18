@@ -161,4 +161,4 @@ class PDFMonth(CalendarStylePDFBaseView):
         year = self.kwargs["year"]
         month = self.kwargs["month"]
 
-        return f"{year}-{month}.pdf"
+        return f"{self._calendar.title} - {year}-{month}.pdf"
