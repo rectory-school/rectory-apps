@@ -100,7 +100,7 @@ class CalendarStylePDFBaseView(View):
         del request
 
         calendar_id = self.kwargs["calendar_id"]
-        style_slug = self.kwargs.get("style_slug", "black")
+        style_slug = self.kwargs.get("preset_slug", "black")
 
         try:
             calendar = models.Calendar.objects.get(pk=calendar_id)
