@@ -6,7 +6,7 @@ from datetime import date
 from typing import Dict, Any
 
 from io import BytesIO
-from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.http.response import HttpResponse
 
 from django.views.generic import DetailView, ListView, View
 from django.http import FileResponse, HttpResponseNotFound
@@ -56,7 +56,7 @@ class Calendar(DetailView):
         months = set()
 
         days_dict = self.object.get_date_letter_map()
-        days_list = [(date, letter) for date, letter in days_dict.items()]
+        days_list = [(date, letter) for date, letter in days_dict.items() if letter]
 
         for date_key in days_dict:
             months.add((date_key.year, date_key.month))
@@ -64,7 +64,7 @@ class Calendar(DetailView):
         month_grids = []
         # Shove all the HTML calendars in
         for year, month in sorted(months):
-            gen = grids.CalendarGridGenerator(days_dict, year, month, 6)
+            gen = grids.CalendarGridGenerator(date_letter_map=days_dict, year=year, month=month)
             month_grids.append(MonthGrid(year=year, month=month, grid=gen.get_grid()))
 
         today = date.today()
@@ -108,9 +108,6 @@ class CalendarStylePDFBaseView(View):
             self._calendar = calendar
             self._letter_map = calendar.get_date_letter_map()
 
-            if not self._letter_map:
-                return HttpResponseBadRequest()
-
         except models.Calendar.DoesNotExist:
             return HttpResponseNotFound()
 
@@ -148,7 +145,7 @@ class PDFMonth(CalendarStylePDFBaseView):
         year = self.kwargs["year"]
         month = self.kwargs["month"]
 
-        grid_generator = grids.CalendarGridGenerator(self._letter_map, year, month, 6)
+        grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map, year=year, month=month)
         grid = grid_generator.get_grid()
 
         gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=self._style, left_offset=.5*inch,
@@ -174,7 +171,7 @@ class PDFMonths(CalendarStylePDFBaseView):
             all_months.add((day.year, day.month))
 
         for year, month in sorted(all_months):
-            grid_generator = grids.CalendarGridGenerator(self._letter_map, year, month, 6)
+            grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map, year=year, month=month)
             grid = grid_generator.get_grid()
 
             gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=self._style, left_offset=.5*inch,
