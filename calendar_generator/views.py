@@ -6,11 +6,10 @@ from datetime import date
 from typing import Dict, Any
 
 from io import BytesIO
-from django.http.response import HttpResponseBadRequest
+from django.http.response import HttpResponse, HttpResponseBadRequest
 
 from django.views.generic import DetailView, ListView, View
 from django.http import FileResponse, HttpResponseNotFound
-from django.shortcuts import get_object_or_404
 
 from reportlab.pdfgen import canvas
 from reportlab.lib import pagesizes
@@ -82,38 +81,84 @@ class Calendar(DetailView):
         return context
 
 
-class PDFMonth(View):
-    """PDF views of a single calendar month"""
+class CalendarStylePDFBaseView(View):
+    """Base view that will have both a calendar and a style"""
 
-    def get(self, request, calendar_id: int, year: int, month: int, preset_slug='black'):
-        """Get method for the calendar PDF"""
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
 
-        del request  # Make the linter happy
+        self._calendar = None
+        self._style = None
+        self._letter_map = None
+
+    def get(self, request, *args, **kwargs) -> HttpResponse:
+        """Get proxy to the handler"""
+
+        # These can be accessed via self
+        del args
+        del kwargs
+        del request
+
+        calendar_id = self.kwargs["calendar_id"]
+        style_slug = self.kwargs.get("style_slug", "black")
 
         try:
-            style = pdf_presets.PRESET_MAP[preset_slug]
-        except KeyError:
+            calendar = models.Calendar.objects.get(pk=calendar_id)
+            assert isinstance(calendar, models.Calendar)
+            self._calendar = calendar
+            self._letter_map = calendar.get_date_letter_map()
+
+            if not self._letter_map:
+                return HttpResponseBadRequest()
+
+        except models.Calendar.DoesNotExist:
             return HttpResponseNotFound()
 
-        calendar = get_object_or_404(models.Calendar, pk=calendar_id)
-        assert isinstance(calendar, models.Calendar)
+        style = pdf_presets.PRESET_MAP.get(style_slug)
 
-        letter_map = calendar.get_date_letter_map()
+        if not style:
+            return HttpResponseNotFound()
 
-        if not letter_map:
-            return HttpResponseBadRequest()
-
-        grid_generator = grids.CalendarGridGenerator(letter_map, year, month, 6)
-        grid = grid_generator.get_grid()
+        self._style = style
 
         buf = BytesIO()
-
         draw_on = canvas.Canvas(buf, pagesize=pagesizes.landscape(pagesizes.letter))
-        gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=style, left_offset=.5*inch,
+
+        self.draw_pdf(draw_on)
+        draw_on.save()
+        buf.seek(0)
+
+        return FileResponse(buf, filename=self.get_filename())
+
+    def draw_pdf(self, draw_on: canvas.Canvas):
+        """Draw the actual PDF"""
+
+        raise NotImplementedError
+
+    def get_filename(self) -> str:
+        """Return the filename for the PDF"""
+
+        raise NotImplementedError
+
+
+class PDFMonth(CalendarStylePDFBaseView):
+    """PDF views of a single calendar month"""
+
+    def draw_pdf(self, draw_on: canvas.Canvas):
+        year = self.kwargs["year"]
+        month = self.kwargs["month"]
+
+        grid_generator = grids.CalendarGridGenerator(self._letter_map, year, month, 6)
+        grid = grid_generator.get_grid()
+
+        gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=self._style, left_offset=.5*inch,
                                     bottom_offset=.5*inch, width=10*inch, height=7.5*inch)
+
         gen.draw()
         draw_on.showPage()
-        draw_on.save()
 
-        buf.seek(0)
-        return FileResponse(buf, filename=f"{year}-{month}.pdf")
+    def get_filename(self) -> str:
+        year = self.kwargs["year"]
+        month = self.kwargs["month"]
+
+        return f"{year}-{month}.pdf"
