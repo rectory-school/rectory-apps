@@ -6,6 +6,7 @@ from datetime import date
 from typing import Dict, Any
 
 from io import BytesIO
+from django.http.response import HttpResponseBadRequest
 
 from django.views.generic import DetailView, ListView, View
 from django.http import FileResponse, HttpResponseNotFound
@@ -97,7 +98,12 @@ class PDFMonth(View):
         calendar = get_object_or_404(models.Calendar, pk=calendar_id)
         assert isinstance(calendar, models.Calendar)
 
-        grid_generator = grids.CalendarGridGenerator(calendar.get_date_letter_map(), year, month, 6)
+        letter_map = calendar.get_date_letter_map()
+
+        if not letter_map:
+            return HttpResponseBadRequest()
+
+        grid_generator = grids.CalendarGridGenerator(letter_map, year, month, 6)
         grid = grid_generator.get_grid()
 
         buf = BytesIO()
