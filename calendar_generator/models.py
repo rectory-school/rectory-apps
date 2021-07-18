@@ -30,6 +30,8 @@ class Calendar(models.Model):
             raise ValidationError("End date must be after start date")
 
     def get_absolute_url(self):
+        """Absolute URL for Django admin"""
+
         return reverse_lazy('calendar_generator:calendar', kwargs={'pk': self.id})
 
     @property
@@ -66,17 +68,25 @@ class Calendar(models.Model):
         day_rotation = list(self.days.all())
         day_rotation.sort(key=lambda obj: obj.position)
 
+        # Short circuit - if we aren't rotating, just shove None into everything
+        # instead of having to have another loop
+        if not day_rotation:
+            return {d: None for d in self.get_all_days()}
+
+        skip_days = self.get_all_skip_days()
         out = {}
 
-        for i, date in enumerate(self.get_all_date_with_letters()):
-            day = None
-            if day_rotation:
-                day = day_rotation[i % len(day_rotation)]
+        i = 0
 
-            if day:
-                out[date] = day.letter
-            else:
+        for date in self.get_all_days():
+            day = day_rotation[i % len(day_rotation)]
+
+            if date in skip_days:
                 out[date] = None
+                continue
+
+            i += 1
+            out[date] = day.letter
 
         return out
 
@@ -91,17 +101,6 @@ class Calendar(models.Model):
                 out.add(date)
 
         return out
-
-    def get_all_date_with_letters(self) -> Iterable[datetime.date]:
-        """Get all non-skipped dates that are in scope"""
-
-        skip_dates = self.get_all_skip_days()
-
-        for day in self.get_all_days():
-            if day in skip_dates:
-                continue
-
-            yield day
 
     def get_all_days(self) -> Iterable[datetime.date]:
         """
