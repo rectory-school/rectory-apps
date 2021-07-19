@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'health_check',
     'health_check.db',
+    'django_bootstrap_breadcrumbs',
 
     'accounts',
     'icons',
