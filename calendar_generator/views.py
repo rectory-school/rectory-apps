@@ -13,6 +13,8 @@ import math
 from django.http.response import HttpResponse
 from django.views.generic import DetailView, ListView, View
 from django.http import FileResponse, HttpResponseNotFound
+from django.contrib.auth.mixins import PermissionRequiredMixin
+
 from reportlab.pdfgen import canvas
 from reportlab.lib import pagesizes
 from reportlab.lib.units import inch
@@ -40,13 +42,19 @@ class MonthGrid:
         return date(self.year, self.month, 1)
 
 
-class Calendars(ListView):
+class CalendarViewPermissionRequired(PermissionRequiredMixin):
+    """Require view permission for calendars"""
+
+    permission_required = 'calendar_generator.view_calendar'
+
+
+class Calendars(CalendarViewPermissionRequired, ListView):
     """List of all the calendars"""
 
     model = models.Calendar
 
 
-class Calendar(DetailView):
+class Calendar(CalendarViewPermissionRequired, DetailView):
     """Calendar pages with everything about the calendar"""
 
     model = models.Calendar
@@ -88,7 +96,7 @@ class Calendar(DetailView):
         return context
 
 
-class CalendarStylePDFBaseView(View):
+class PDFBaseView(CalendarViewPermissionRequired, View):
     """Base view that will have both a calendar and a style"""
 
     default_page_size = pagesizes.landscape(pagesizes.letter)
