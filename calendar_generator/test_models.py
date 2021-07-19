@@ -77,8 +77,9 @@ def test_day_generation():
     cal.save()
 
     models.SkipDate.objects.create(calendar=cal, date=date(2021, 1, 6))
-    models.Day.objects.create(calendar=cal, letter="A", position=0)
-    models.Day.objects.create(calendar=cal, letter="B", position=1)
+    a_day = models.Day.objects.create(calendar=cal, letter="A", position=0)
+    b_day = models.Day.objects.create(calendar=cal, letter="B", position=1)
+    models.ResetDay.objects.create(calendar=cal, date=date(2021, 1, 12), day=a_day)
 
     expected = {
         date(2021, 1, 4): "A",
@@ -87,10 +88,11 @@ def test_day_generation():
         date(2021, 1, 7): "A",
         date(2021, 1, 8): "B",
         date(2021, 1, 11): "A",
-        date(2021, 1, 12): "B",
-        date(2021, 1, 13): "A",
-        date(2021, 1, 14): "B",
-        date(2021, 1, 15): "A",
+        # We had a reset here
+        date(2021, 1, 12): "A",
+        date(2021, 1, 13): "B",
+        date(2021, 1, 14): "A",
+        date(2021, 1, 15): "B",
     }
 
     actual = cal.get_date_letter_map()
