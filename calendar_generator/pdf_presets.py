@@ -45,16 +45,16 @@ rectory_colors = pdf.CalendarStyle(
 )
 
 blues = pdf.CalendarStyle(
-    outline_color=colors.ReportLabBlue,
-    grid_line_color=colors.ReportLabBlue,
-    title_color=colors.ReportLabBlue,
+    outline_color=colors.darkblue,
+    grid_line_color=colors.darkblue,
+    title_color=colors.darkblue,
 
-    header_background_color=colors.ReportLabBlue,
+    header_background_color=colors.darkblue,
     header_divider_color=colors.white,
 
     header_text_color=colors.white,
     letter_color=colors.black,
-    date_color=colors.darkgray,
+    date_color=colors.mediumblue,
 )
 
 AVAILABLE_COLOR_PRESETS = (
