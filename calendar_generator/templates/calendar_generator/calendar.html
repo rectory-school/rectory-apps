@@ -23,17 +23,31 @@
             Calendar: {{ calendar.title }}
         </h1>
 
+        <p><em>{{ calendar.start_date }} to {{ calendar.end_date }}</em>
+
         {% if has_admin_access and perms.calendar_generator.add_calendar %}
-            <p><a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a></p>
+            <p class="noprint"><a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a></p>
         {% endif %}
 
         <h2 class="noprint">PDF Links</h2>
         <ul class="noprint">
-            <li><a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk preset_slug='black' %}">One-page calendar</a></li>
-            <li><a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk preset_slug='color' %}">Color One-page calendar</a></li>
-            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk preset_slug='black' %}">Monthly calendar</a></li>
-            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk preset_slug='color' %}">Color monthly calendar</a></li>
-            <li>All calendar files</li>
+            <li>Full year calendar: 
+                {% for i, name in style_presets %}
+                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk style_index=i %}">{{ name }}</a>
+                    {% if not forloop.last %}
+                        &bullet;
+                    {% endif %}
+                {% endfor %}
+            </li>
+
+            <li>Monthly calendars:
+                {% for i, name in style_presets %}
+                    <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk style_index=i %}">{{ name }}</a>
+                    {% if not forloop.last %}
+                        &bullet;
+                    {% endif %}
+                {% endfor %}
+            </li>
         </ul>
 
         {% if today_letter %}
@@ -61,18 +75,16 @@
             {% endfor %}
         </p>
 
-        <h2>Calendars</h2>
-
         {% for calendar in calendars %}
         <div class="calendar">
-            <h3>{{ calendar.first_date|date:"F Y" }}</h3>
+            <h2>{{ calendar.first_date|date:"F Y" }}</h2>
             <p class="noprint">
-                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk year=calendar.year month=calendar.month preset_slug='black' %}">
-                        Black &amp; White PDF
-                </a> &bullet;
-                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk year=calendar.year month=calendar.month preset_slug='color' %}">
-                    Color PDF
-                </a>
+                {% for i, name in style_presets %}
+                    <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=i year=calendar.year month=calendar.month %}">{{ name }}</a>
+                    {% if not forloop.last %}
+                        &bullet;
+                    {% endif %}
+                {% endfor %}
             </p>
 
             <table class="table table-bordered">

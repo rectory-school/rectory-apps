@@ -75,6 +75,8 @@ class Calendar(DetailView):
         context["today_letter"] = None
         context["today"] = today
 
+        context["style_presets"] = [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_COLOR_PRESETS)]
+
         if today in days_dict:
             context["today_letter"] = days_dict[today]
 
@@ -153,7 +155,6 @@ class CalendarStylePDFBaseView(View):
         del request
 
         calendar_id = self.kwargs["calendar_id"]
-        style_slug = self.kwargs.get("preset_slug", "black")
 
         try:
             calendar = models.Calendar.objects.get(pk=calendar_id)
@@ -164,10 +165,10 @@ class CalendarStylePDFBaseView(View):
         except models.Calendar.DoesNotExist:
             return HttpResponseNotFound()
 
-        style = pdf_presets.PRESET_MAP.get(style_slug)
-
-        if not style:
-            return HttpResponseNotFound()
+        try:
+            style = pdf_presets.AVAILABLE_COLOR_PRESETS[self.kwargs['style_index']][1]
+        except IndexError:
+            return HttpResponseNotFound("That color preset could not be found")
 
         self._style = style
 
@@ -288,7 +289,8 @@ class PDFOnePage(CalendarStylePDFBaseView):
 
                 left_offset = self.left_margin + col_index * (col_width + col_pad)
 
-                # We index the months from top to bottom, but we draw the page from bottom to top. Flip the row draw positions
+                # We index the months from top to bottom, but we draw the page from bottom to top.
+                # Flip the row draw positions
                 bottom_offset = self.page_size[0] + self.top_margin - (self.bottom_margin + row_index * (row_height))
 
                 gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=style,
