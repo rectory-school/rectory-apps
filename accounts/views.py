@@ -50,6 +50,8 @@ class SocialLoginView(TemplateView):
         else:
             context[REDIRECT_FIELD_NAME] = LOGIN_REDIRECT_URL
 
+        context["redirect_field_name"] = REDIRECT_FIELD_NAME
+
         return context
 
     def post(self, request):

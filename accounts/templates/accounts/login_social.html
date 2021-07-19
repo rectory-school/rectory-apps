@@ -7,6 +7,7 @@
     <script src="https://apis.google.com/js/api:client.js"></script>
 
     {{ auth_data|json_script:"auth_data" }}
+    {{ next|json_script:"next" }}
 
     <script src="{% static 'accounts/social_login.js' %}"></script
 {% endblock %}
@@ -34,8 +35,10 @@
                 <button type="button" class="btn btn-primary btn-block google-sign-in hide-during-sign-in">Log in with your Google account</button>
             {% endif %}
 
-            
-            <a class="btn btn-secondary btn-block hide-during-sign-in" href="{% url 'accounts:login-native' %}">Administrative Login (use only as directed)</a>
+            <a class="btn btn-secondary btn-block hide-during-sign-in" 
+                href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
+                    Administrative Login (use only as directed)
+            </a>
         </div>
 
         <div class="show-during-sign-in" style="display:none">Hang tight, we are signing you in</div></div>
