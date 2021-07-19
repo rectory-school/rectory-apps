@@ -29,7 +29,7 @@
 
         <h2 class="noprint">PDF Links</h2>
         <ul class="noprint">
-            <li>One-page calendar</li>
+            <li><a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk preset_slug='black' %}">One-page calendar</a></li>
             <li>Color one-page calendar</li>
             <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk %}">Monthly calendar</a></li>
             <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk preset_slug='color' %}">Color monthly calendar</a></li>

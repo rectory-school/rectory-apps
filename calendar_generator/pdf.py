@@ -304,7 +304,7 @@ class CalendarGenerator:
             return self.style.title_font_size
 
         max_size = self.width * .5
-        return _get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
+        return get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
 
     def _get_header_font_size(self) -> float:
         maximum_width = self._column_width * .8
@@ -315,7 +315,7 @@ class CalendarGenerator:
         current_size = self._column_width  # Set an upper bound to keep the column header at most squarish
 
         for header in self.grid.headers:
-            possible_size = _get_font_size_maximum_width(header, maximum_width, self.style.header_font_name)
+            possible_size = get_font_size_maximum_width(header, maximum_width, self.style.header_font_name)
             if possible_size < current_size:
                 current_size = possible_size
 
@@ -340,7 +340,7 @@ class CalendarGenerator:
         # Maximum of 80% of the row height, if we have a really weirdly shaped calendar here
         current_size = row_height*.8
         for used_date in all_dates:
-            possible_size = _get_font_size_maximum_width(used_date, maximum_width, self.style.date_font_name)
+            possible_size = get_font_size_maximum_width(used_date, maximum_width, self.style.date_font_name)
 
             if possible_size < current_size:
                 current_size = possible_size
@@ -366,7 +366,7 @@ class CalendarGenerator:
         # Maximum of 80% of the row height, if we have a really weirdly shaped calendar here
         current_size = row_height
         for letter in all_letters:
-            possible_size = _get_font_size_maximum_width(letter, maximum_width, self.style.date_font_name)
+            possible_size = get_font_size_maximum_width(letter, maximum_width, self.style.date_font_name)
 
             if possible_size < current_size:
                 current_size = possible_size
@@ -374,7 +374,7 @@ class CalendarGenerator:
         return current_size
 
 
-def _get_font_size_maximum_width(text: str, maximum: float, font: str) -> float:
+def get_font_size_maximum_width(text: str, maximum: float, font: str) -> float:
     """Get the maximum font size to fit some given text into a given width"""
 
     font_size = 12
