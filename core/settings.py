@@ -39,6 +39,8 @@ GOOGLE_HOSTED_DOMAIN = env("GOOGLE_HOSTED_DOMAIN", default=None)
 AUTH_USER_MODEL = 'accounts.User'
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
