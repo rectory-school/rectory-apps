@@ -282,7 +282,7 @@ class PDFMonth(PDFBaseView):
         year = self.kwargs["year"]
         month = self.kwargs["month"]
 
-        return f"{self._calendar.title} - {year}-{month}.pdf"
+        return f"{self._calendar.title} - {year}-{month:02d}.pdf"
 
     def get_title(self) -> Optional[str]:
         sample_date = date(self.kwargs["year"], self.kwargs["month"], 1)
@@ -310,7 +310,7 @@ class PDFMonths(PDFBaseView):
             self._canvas.showPage()
 
     def get_filename(self) -> str:
-        return f"{self._calendar.title}.pdf"
+        return f"{self._calendar.title} - All Months.pdf"
 
     def get_title(self) -> Optional[str]:
         return f"{self._calendar.title}: Full Calendar"
@@ -380,4 +380,4 @@ class PDFOnePage(PDFBaseView):
         return f"{self._calendar.title}: One Page View"
 
     def get_filename(self) -> str:
-        return f"{self._calendar.title}.pdf"
+        return f"{self._calendar.title} - One Page.pdf"
