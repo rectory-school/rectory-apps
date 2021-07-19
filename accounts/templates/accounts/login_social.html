@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load bootstrap4 static %}
+{% load bootstrap4 static django_bootstrap_breadcrumbs %}
 
 {% block title %}Log in{% endblock %}
 
@@ -10,6 +10,12 @@
     {{ next|json_script:"next" }}
 
     <script src="{% static 'accounts/social_login.js' %}"></script
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Log in with Google" "accounts.login" %}
 {% endblock %}
 
 {% block content %}
