@@ -25,6 +25,9 @@ class Calendar(models.Model):
     friday = models.BooleanField(default=True)
     saturday = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['-start_date']
+
     def clean(self):
         if self.start_date > self.end_date:
             raise ValidationError("End date must be after start date")
