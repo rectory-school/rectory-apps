@@ -69,17 +69,20 @@
     {% endfor %}
 </p>
 
-<h2>Days Out of Rotation</h2>
-<p>
-    {% for start, end in skipped_days %}
-        {% if start and end %}
-            {{ start }} to {{ end }}
-        {% else %}
+{% if skipped_days %}
+    <h2>Days Out of Rotation</h2>
+    <ul>
+
+        {% for start, end in skipped_days %}
+        <li>
             {{ start }}
-        {% endif %}
-        {% if not forloop.last %} &bullet; {% endif %}
-    {% endfor %}
-</p>
+            {% if end %}
+                through {{ end }}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %}
 
 {% for calendar in calendars %}
 <div class="calendar">
