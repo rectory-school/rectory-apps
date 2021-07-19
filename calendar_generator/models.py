@@ -77,11 +77,17 @@ class Calendar(models.Model):
             return {d: None for d in self.get_all_days()}
 
         skip_days = self.get_all_skip_days()
+        reset_days = self.get_all_reset_days()
+
         out = {}
 
         i = 0
 
         for date in self.get_all_days():
+            if date in reset_days:
+                # If we're resetting on this date, override the index to that day
+                i = day_rotation.index(reset_days[date])
+
             day = day_rotation[i % len(day_rotation)]
 
             if date in skip_days:
@@ -104,6 +110,13 @@ class Calendar(models.Model):
                 out.add(date)
 
         return out
+
+    def get_all_reset_days(self) -> Dict[datetime.date, 'Day']:
+        """Get all the reset days"""
+
+        return {
+            obj.date: obj.day for obj in self.reset_days.filter(day__calendar=self)
+        }
 
     def get_all_days(self) -> Iterable[datetime.date]:
         """
@@ -185,4 +198,22 @@ class SkipDate(models.Model):
     def __str__(self):
         return self.date.strftime("%Y-%m-%d")
 
-# Reset date was never used and was removed
+
+class ResetDay(models.Model):
+    """Reset the calendar to a specific day"""
+
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='reset_days')
+    day = models.ForeignKey(Day, on_delete=models.DO_NOTHING)
+    date = models.DateField()
+
+    class Meta:
+        unique_together = (
+            ('calendar', 'date'),
+        )
+
+    def clean(self):
+        assert isinstance(self.day, Day)
+        assert isinstance(self.calendar, Calendar)
+
+        if self.day.calendar != self.calendar:
+            raise ValidationError("Reset day must be in a linked calendar")
