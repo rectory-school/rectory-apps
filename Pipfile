@@ -18,6 +18,7 @@ google-auth = "*"
 requests = "*"
 django-health-check = "*"
 reportlab = "*"
+django-bootstrap-breadcrumbs = "*"
 
 [dev-packages]
 autopep8 = "*"
