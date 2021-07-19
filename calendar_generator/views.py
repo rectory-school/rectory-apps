@@ -4,7 +4,7 @@ import dataclasses
 from dataclasses import dataclass
 from datetime import date
 
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Optional, Tuple
 
 from io import BytesIO
 
@@ -105,12 +105,16 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
     default_top_margin = .5*inch
     default_bottom_margin = .5*inch
 
+    default_creator = "Rectory Apps System"
+    default_subject = None
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
 
         self._calendar = None
         self._style = None
         self._letter_map = None
+        self._canvas = None
 
     @property
     def is_embedded(self) -> bool:
@@ -204,15 +208,49 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         self._style = style
 
         buf = BytesIO()
-        draw_on = canvas.Canvas(buf, pagesize=self.page_size)
+        self._canvas = canvas.Canvas(buf, pagesize=self.page_size)
 
-        self.draw_pdf(draw_on)
-        draw_on.save()
+        self.draw_pdf()
+
+        if author := self.get_author():
+            self._canvas.setAuthor(author)
+
+        if title := self.get_title():
+            self._canvas.setTitle(title)
+
+        if creator := self.get_creator():
+            self._canvas.setCreator(creator)
+
+        if subject := self.get_subject():
+            self._canvas.setSubject(subject)
+
+        self._canvas.save()
         buf.seek(0)
 
         return FileResponse(buf, filename=self.get_filename())
 
-    def draw_pdf(self, draw_on: canvas.Canvas):
+    def get_title(self) -> Optional[str]:
+        """Get the title to use for the PDF"""
+
+        return self._calendar.title
+
+    def get_author(self) -> Optional[str]:
+        """Get the author to use for the PDF"""
+
+        if self.request.user.is_authenticated:
+            return str(self.request.user)
+
+    def get_creator(self) -> Optional[str]:
+        """Get the creator to use for the PDF"""
+
+        return self.default_creator
+
+    def get_subject(self) -> Optional[str]:
+        """Get the subject to use for the PDf"""
+
+        return self.default_subject
+
+    def draw_pdf(self):
         """Draw the actual PDF"""
 
         raise NotImplementedError
@@ -223,22 +261,22 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         raise NotImplementedError
 
 
-class PDFMonth(CalendarStylePDFBaseView):
+class PDFMonth(PDFBaseView):
     """PDF views of a single calendar month"""
 
-    def draw_pdf(self, draw_on: canvas.Canvas):
+    def draw_pdf(self):
         year = self.kwargs["year"]
         month = self.kwargs["month"]
 
         grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map, year=year, month=month)
         grid = grid_generator.get_grid()
 
-        gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=self._style,
+        gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=self._style,
                                     left_offset=self.left_margin, bottom_offset=self.bottom_margin,
                                     width=self.inner_width, height=self.inner_height)
 
         gen.draw()
-        draw_on.showPage()
+        self._canvas.showPage()
 
     def get_filename(self) -> str:
         year = self.kwargs["year"]
@@ -246,11 +284,16 @@ class PDFMonth(CalendarStylePDFBaseView):
 
         return f"{self._calendar.title} - {year}-{month}.pdf"
 
+    def get_title(self) -> Optional[str]:
+        sample_date = date(self.kwargs["year"], self.kwargs["month"], 1)
 
-class PDFMonths(CalendarStylePDFBaseView):
+        return f"{self._calendar.title}: {sample_date.strftime('%B %Y')}"
+
+
+class PDFMonths(PDFBaseView):
     """All the month calendars in one PDF"""
 
-    def draw_pdf(self, draw_on: canvas.Canvas):
+    def draw_pdf(self):
         all_months = set()
 
         for day in self._letter_map:
@@ -260,22 +303,25 @@ class PDFMonths(CalendarStylePDFBaseView):
             grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map, year=year, month=month)
             grid = grid_generator.get_grid()
 
-            gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=self._style,
+            gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=self._style,
                                         left_offset=self.left_margin, bottom_offset=self.bottom_margin,
                                         width=self.inner_width, height=self.inner_height)
             gen.draw()
-            draw_on.showPage()
+            self._canvas.showPage()
 
     def get_filename(self) -> str:
         return f"{self._calendar.title}.pdf"
 
+    def get_title(self) -> Optional[str]:
+        return f"{self._calendar.title}: Full Calendar"
 
-class PDFOnePage(CalendarStylePDFBaseView):
+
+class PDFOnePage(PDFBaseView):
     """All the month calendars in one PDF"""
 
     page_size = pagesizes.letter
 
-    def draw_pdf(self, draw_on: canvas.Canvas):
+    def draw_pdf(self):
         all_months = set()
 
         for day in self._letter_map:
@@ -324,11 +370,14 @@ class PDFOnePage(CalendarStylePDFBaseView):
                 # Flip the row draw positions
                 bottom_offset = self.page_size[0] + self.top_margin - (self.bottom_margin + row_index * (row_height))
 
-                gen = pdf.CalendarGenerator(canvas=draw_on, grid=grid, style=style,
+                gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=style,
                                             left_offset=left_offset, bottom_offset=bottom_offset,
                                             width=(col_width - col_pad), height=(row_height - row_pad))
 
                 gen.draw()
+
+    def get_title(self) -> Optional[str]:
+        return f"{self._calendar.title}: One Page View"
 
     def get_filename(self) -> str:
         return f"{self._calendar.title}.pdf"
