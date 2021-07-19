@@ -48,6 +48,15 @@
                     {% endif %}
                 {% endfor %}
             </li>
+
+            <li>Monthly calendars for embedding:
+                {% for i, name in style_presets %}
+                    <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk style_index=i %}?embedded">{{ name }}</a>
+                    {% if not forloop.last %}
+                        &bullet;
+                    {% endif %}
+                {% endfor %}
+            </li>
         </ul>
 
         {% if today_letter %}
