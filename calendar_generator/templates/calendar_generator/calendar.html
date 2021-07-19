@@ -31,7 +31,7 @@
         <ul class="noprint">
             <li><a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk preset_slug='black' %}">One-page calendar</a></li>
             <li><a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk preset_slug='color' %}">Color One-page calendar</a></li>
-            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk preset_slug='color' %}">Monthly calendar</a></li>
+            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk preset_slug='black' %}">Monthly calendar</a></li>
             <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk preset_slug='color' %}">Color monthly calendar</a></li>
             <li>All calendar files</li>
         </ul>
