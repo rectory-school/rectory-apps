@@ -17,6 +17,7 @@ django-bootstrap4 = "*"
 google-auth = "*"
 requests = "*"
 django-health-check = "*"
+reportlab = "*"
 
 [dev-packages]
 autopep8 = "*"
