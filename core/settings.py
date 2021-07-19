@@ -22,7 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Because that annoys me in the logs of the hosted environments,
 # we use this key to suppress it
 if not "HOSTED_ENVIRONMENT" in os.environ:
-    environ.Env.read_env(env_file=(BASE_DIR / ".env").as_posix())
+    env_file = os.environ.get("ENV_FILE", ".env")
+
+    environ.Env.read_env(env_file=(BASE_DIR / env_file).as_posix())
 
 DEBUG = env.bool('DEBUG', default=False)
 SECRET_KEY = env('SECRET_KEY')
@@ -53,6 +55,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'health_check',
     'health_check.db',
+    'django_bootstrap_breadcrumbs',
 
     'accounts',
     'icons',
@@ -160,3 +163,5 @@ INTERNAL_IPS = [
     '127.0.0.1',
     '[::1]',
 ]
+
+LOGIN_REDIRECT_URL = "/"

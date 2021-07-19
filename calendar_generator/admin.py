@@ -1,6 +1,7 @@
 """Admin for calendar"""
 
 from django.contrib import admin
+from django import forms
 
 from adminsortable2.admin import SortableInlineAdminMixin
 
@@ -22,8 +23,41 @@ class SkipDateInline(admin.TabularInline):
     extra = 0
 
 
+class ResetDayAdminFormset(forms.BaseInlineFormSet):
+    """Override reset day admin formset to get a reference to the parent"""
+
+    def get_form_kwargs(self, *args, **kwargs):
+        kwargs = super().get_form_kwargs(*args, **kwargs)
+        kwargs['parent_object'] = self.instance
+
+        return kwargs
+
+
+class ResetDayAdminInlineForm(forms.ModelForm):
+    """Form that accepts the parent object form arg"""
+
+    def __init__(self, *args, parent_object: models.Calendar, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Restrict the days to those in this calendar
+        self.fields["day"].choices = ((obj.pk, obj.letter) for obj in parent_object.days.all())
+
+    class Meta:
+        model = models.ResetDay
+        fields = ['date', 'day']
+
+
+class ResetDayAdmin(admin.TabularInline):
+    """Reset the calendar to a given day"""
+
+    formset = ResetDayAdminFormset
+    form = ResetDayAdminInlineForm
+    model = models.ResetDay
+    extra = 0
+
+
 @admin.register(models.Calendar)
 class CalendarAdmin(admin.ModelAdmin):
     """Admin for a calendar"""
 
-    inlines = [DayInline, SkipDateInline]
+    inlines = [DayInline, SkipDateInline, ResetDayAdmin]

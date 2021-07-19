@@ -11,7 +11,8 @@ onAuth = (googleUser) => {
         headers: { 'X-CSRFToken': csrftoken },
         dataType: 'json',
         success: function (data) {
-            let next = getUrlParameter("next");
+            const next = JSON.parse(document.getElementById('next').textContent);
+
             window.location = next;
 
             console.info(data);
