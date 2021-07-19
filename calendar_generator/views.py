@@ -52,6 +52,7 @@ class Calendars(CalendarViewPermissionRequired, ListView):
     """List of all the calendars"""
 
     model = models.Calendar
+    ordering = "-start_date"
 
 
 class Calendar(CalendarViewPermissionRequired, DetailView):
