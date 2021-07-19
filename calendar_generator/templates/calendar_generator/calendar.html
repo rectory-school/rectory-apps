@@ -80,7 +80,11 @@
             <h2>{{ calendar.first_date|date:"F Y" }}</h2>
             <p class="noprint">
                 {% for i, name in style_presets %}
-                    <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=i year=calendar.year month=calendar.month %}">{{ name }} Print</a> &bullet;
+                    <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=i year=calendar.year month=calendar.month %}">{{ name }}</a>
+                    &bullet;
+                {% endfor %}
+
+                {% for i, name in style_presets %}
                     <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=i year=calendar.year month=calendar.month %}?embedded">{{ name }} Embedded</a>
                     
                     {% if not forloop.last %}
