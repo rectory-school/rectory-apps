@@ -28,7 +28,7 @@ color = pdf.CalendarStyle(
 
     header_text_color=colors.white,
     letter_color=colors.black,
-    date_color=colors.black,
+    date_color=color_accent,
 )
 
 PRESET_MAP = {
