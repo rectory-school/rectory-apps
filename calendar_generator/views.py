@@ -193,7 +193,7 @@ class CalendarStylePDFBaseView(View):
             assert isinstance(style, pdf.CalendarStyle)
             style.outline_color = None
 
-            self._style = style
+        self._style = style
 
         buf = BytesIO()
         draw_on = canvas.Canvas(buf, pagesize=self.page_size)
