@@ -7,6 +7,8 @@
         "--experimental"
     ],
     "python.linting.pylintArgs": [
+        "--load-plugins=pylint_django",
+        "--django-settings-module=core.settings",
         "--max-line-length",
         "120"
     ],
