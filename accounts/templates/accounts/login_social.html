@@ -6,41 +6,39 @@
 {% block headextra %}
     <script src="https://apis.google.com/js/api:client.js"></script>
 
-    <meta name="google-signin-client_id" content="{{ google_oauth_client_id }}">
-
-    {% if google_hosted_domain %}
-        <meta name="google-signin-hosted_domain" content="{{ google_hosted_domain }}">
-    {% endif %}
+    {{ auth_data|json_script:"auth_data" }}
 
     <script src="{% static 'accounts/social_login.js' %}"></script
 {% endblock %}
 
 {% block content %}
+<div class="row">
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6">
+        <h1>Rectory Apps Login</h1>
 
-<h1>Rectory Apps Login</h1>
+        {% if next %}
+            {% if user.is_authenticated %}
+                <p>Your account ({{ request.user }}) doesn't have access to this page. To proceed, please log in with an account that has access.</p>
+            {% endif %}
+        {% else %}
+            {% if user.is_authenticated %}
+                <p>You are logged in as {{ request.user }}</p>
+            {% endif %}
+        {% endif %}
 
-{% if form.errors %}
-    <p>Your username and password didn't match. Please try again.</p>
-{% endif %}
+        <div id="signin-section">
+            {% if google_hosted_domain %}
+                <button type="button" class="btn btn-primary btn-block google-sign-in hide-during-sign-in">Log in with your {{ google_hosted_domain|capfirst }} Google account</button>
+            {% else %}
+                <button type="button" class="btn btn-primary btn-block google-sign-in hide-during-sign-in">Log in with your Google account</button>
+            {% endif %}
 
-{% if next %}
-    {% if user.is_authenticated %}
-        <p>Your account doesn't have access to this page. To proceed, please log in with an account that has access.</p>
-    {% else %}
-        <p>Please log in to see this page.</p>
-    {% endif %}
-{% endif %}
+            
+            <a class="btn btn-secondary btn-block hide-during-sign-in" href="{% url 'accounts:login-native' %}">Administrative Login (use only as directed)</a>
+        </div>
 
-<div id="signin-section">
-    {% if google_hosted_domain %}
-        <button type="button" class="btn btn-primary google-sign-in hide-during-sign-in">Log in with your {{ google_hosted_domain|capfirst }} Google account</button>
-    {% else %}
-        <button type="button" class="btn btn-primary google-sign-in hide-during-sign-in">Log in with your Google account</button>
-    {% endif %}
-
-    <p class="hide-during-sign-in"><a href="{% url 'accounts:login-native' %}">Administrative Login</a></p>
+        <div class="show-during-sign-in" style="display:none">Hang tight, we are signing you in</div></div>
+    <div class="col-lg-3"></div>
 </div>
-
-<div class="show-during-sign-in" style="display:none">Hang tight, we are signing you in</div>
-
 {% endblock %}
