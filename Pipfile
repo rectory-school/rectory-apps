@@ -16,6 +16,7 @@ django-safemigrate = "*"
 django-bootstrap4 = "*"
 google-auth = "*"
 requests = "*"
+django-health-check = "*"
 
 [dev-packages]
 autopep8 = "*"

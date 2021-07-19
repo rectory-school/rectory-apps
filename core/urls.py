@@ -20,15 +20,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
+import health_check.urls
+
 import accounts.urls
 import accounts.views
 from accounts.admin_staff_monkeypatch import patched_has_permission
 
 import calendar_generator.urls
 
-
 urlpatterns = [
     path('', TemplateView.as_view(template_name="home.html")),
+    path('ht/', include(health_check.urls)),
     path('accounts/', include(accounts.urls)),
 
     # I want admin to use my login page - intercept it's call
