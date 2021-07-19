@@ -9,12 +9,15 @@ from google.auth.transport import requests
 from django.http.response import HttpResponseBadRequest, HttpResponseRedirect, HttpResponseBase
 from django.http import HttpRequest
 from django.contrib.auth.views import LoginView
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model, login
 from django.http import JsonResponse
 from django.urls import reverse
 
 from django.conf import settings
+
+LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 
 
 class SocialLoginView(TemplateView):
@@ -24,10 +27,11 @@ class SocialLoginView(TemplateView):
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
         if not settings.GOOGLE_OAUTH_CLIENT_ID:
-            next_parameter = request.GET.get("next")
+            next_parameter = request.GET.get(REDIRECT_FIELD_NAME)
             url = reverse('accounts:login-native')
+
             if next_parameter:
-                url = f"{url}?next={next_parameter}"
+                url = f"{url}?{REDIRECT_FIELD_NAME}={next_parameter}"
 
             return HttpResponseRedirect(url)
 
@@ -41,8 +45,12 @@ class SocialLoginView(TemplateView):
             'hosted_domain': settings.GOOGLE_HOSTED_DOMAIN,
         }
 
-        if "next" in self.request.GET:
-            context["next"] = self.request.GET["next"]
+        if REDIRECT_FIELD_NAME in self.request.GET:
+            context[REDIRECT_FIELD_NAME] = self.request.GET[REDIRECT_FIELD_NAME]
+        else:
+            context[REDIRECT_FIELD_NAME] = LOGIN_REDIRECT_URL
+
+        context["redirect_field_name"] = REDIRECT_FIELD_NAME
 
         return context
 
