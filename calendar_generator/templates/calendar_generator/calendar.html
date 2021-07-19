@@ -23,6 +23,10 @@
             Calendar: {{ calendar.title }}
         </h1>
 
+        {% if has_admin_access and perms.calendar_generator.add_calendar %}
+            <p><a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a></p>
+        {% endif %}
+
         <h2 class="noprint">PDF Links</h2>
         <ul class="noprint">
             <li>One-page calendar</li>
@@ -33,19 +37,30 @@
         </ul>
 
         {% if today_letter %}
-        <h2 class="noprint">Today</h2>
-        <p class="noprint"><strong>{{ today }}: {{ today_letter }}</strong></p>
+            <h2 class="noprint">Today</h2>
+            <p class="noprint"><strong>{{ today }}: {{ today_letter }}</strong></p>
         {% endif %}
 
-        {% if days %}
-            <h2>Day Listing</h2>
-            <ul class="day-list">
-                {% for day, letter in days %}
-                    <li>{{day}}: {{letter}}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        
+        <h2>Day Rotation</h2>
+        <p>
+            {% for letter in day_rotation %}
+                {{ letter }}
+                {% if not forloop.last %} &bullet; {% endif %}
+            {% endfor %}
+        </p>
+
+        <h2>Days Out of Rotation</h2>
+        <p>
+            {% for start, end in skipped_days %}
+                {% if start and end %}
+                    {{ start }} to {{ end }}
+                {% else %}
+                    {{ start }}
+                {% endif %}
+                {% if not forloop.last %} &bullet; {% endif %}
+            {% endfor %}
+        </p>
+
         <h2>Calendars</h2>
 
         {% for calendar in calendars %}

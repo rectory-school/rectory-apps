@@ -56,7 +56,6 @@ class Calendar(DetailView):
         months = set()
 
         days_dict = self.object.get_date_letter_map()
-        days_list = [(date, letter) for date, letter in days_dict.items() if letter]
 
         for date_key in days_dict:
             months.add((date_key.year, date_key.month))
@@ -75,7 +74,9 @@ class Calendar(DetailView):
         if today in days_dict:
             context["today_letter"] = days_dict[today]
 
-        context['days'] = days_list
+        context['day_rotation'] = [d.letter for d in self.object.days.all()]
+        context['skipped_days'] = sorted((s.date, s.end_date) for s in self.object.skips.all())
+
         context['calendars'] = month_grids
 
         return context
