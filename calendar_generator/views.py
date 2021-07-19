@@ -367,8 +367,10 @@ class PDFOnePage(PDFBaseView):
                 left_offset = self.left_margin + col_index * (col_width + col_pad)
 
                 # We index the months from top to bottom, but we draw the page from bottom to top.
-                # Flip the row draw positions
-                bottom_offset = self.page_size[0] + self.top_margin - (self.bottom_margin + row_index * (row_height))
+                # Flip the row draw positions. The row_index + 1 is to account for the height of the row itself,
+                # given that we are using a bottom offset but referencing from the top
+                bottom_offset = self.page_size[1] - self.top_margin - row_height * \
+                    (row_index + 1) + ((self.bottom_margin + self.top_margin) / 4)
 
                 gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=style,
                                             left_offset=left_offset, bottom_offset=bottom_offset,
