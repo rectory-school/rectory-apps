@@ -105,6 +105,12 @@ class CalendarStylePDFBaseView(View):
         self._letter_map = None
 
     @property
+    def is_embedded(self) -> bool:
+        """Determine if we've got the embedded flag"""
+
+        return "embedded" in self.request.GET
+
+    @property
     def page_size(self) -> Tuple[float, float]:
         """Return the page size in points for Reportlab"""
 
@@ -114,11 +120,17 @@ class CalendarStylePDFBaseView(View):
     def left_margin(self):
         """Proxy left margin"""
 
+        if self.is_embedded:
+            return 0
+
         return self.default_left_margin
 
     @property
     def right_margin(self):
         """Proxy right margin"""
+
+        if self.is_embedded:
+            return 0
 
         return self.default_right_margin
 
@@ -126,11 +138,17 @@ class CalendarStylePDFBaseView(View):
     def bottom_margin(self):
         """Proxy bottom margin"""
 
+        if self.is_embedded:
+            return 0
+
         return self.default_bottom_margin
 
     @property
     def top_margin(self):
         """Proxy top margin"""
+
+        if self.is_embedded:
+            return 0
 
         return self.default_top_margin
 
@@ -170,7 +188,12 @@ class CalendarStylePDFBaseView(View):
         except IndexError:
             return HttpResponseNotFound("That color preset could not be found")
 
-        self._style = style
+        if self.is_embedded:
+            style = dataclasses.copy.copy(style)
+            assert isinstance(style, pdf.CalendarStyle)
+            style.outline_color = None
+
+            self._style = style
 
         buf = BytesIO()
         draw_on = canvas.Canvas(buf, pagesize=self.page_size)
