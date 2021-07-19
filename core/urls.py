@@ -29,7 +29,7 @@ from accounts.admin_staff_monkeypatch import patched_has_permission
 import calendar_generator.urls
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name="home.html")),
+    path('', TemplateView.as_view(template_name="home.html"), name='home'),
     path('ht/', include(health_check.urls)),
     path('accounts/', include(accounts.urls)),
 
