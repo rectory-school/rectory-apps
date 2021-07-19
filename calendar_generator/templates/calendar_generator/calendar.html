@@ -84,6 +84,15 @@
     </ul>
 {% endif %}
 
+{% if reset_days %}
+    <h2>Days where the rotation is reset</h2>
+    <ul>
+        {% for date, letter in reset_days %}
+            <li>{{ date }} resets to "{{ letter }}"</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
 {% for calendar in calendars %}
 <div class="calendar">
     <h2>{{ calendar.first_date|date:"F Y" }}</h2>

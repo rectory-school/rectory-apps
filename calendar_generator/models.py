@@ -115,7 +115,7 @@ class Calendar(models.Model):
         """Get all the reset days"""
 
         return {
-            obj.date: obj.day for obj in self.reset_days.filter(day__calendar=self)
+            obj.date: obj.day for obj in self.reset_days.filter(day__calendar=self).select_related('day')
         }
 
     def get_all_days(self) -> Iterable[datetime.date]:
@@ -210,6 +210,8 @@ class ResetDay(models.Model):
         unique_together = (
             ('calendar', 'date'),
         )
+
+        ordering = ['date']
 
     def clean(self):
         assert isinstance(self.day, Day)
