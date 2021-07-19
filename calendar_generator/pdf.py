@@ -233,8 +233,10 @@ class CalendarGenerator:
         self.canvas.setFillColor(self.style.date_color)
         self.canvas.setFont(self.style.date_font_name, font_size)
 
+        _, descent = pdfmetrics.getAscentDescent(self.style.date_font_name, font_size)
+
         for row_index, row in enumerate(self.grid.grid):
-            y_pos = self._get_element_y_pos_from_top(font_size*1.1 + row_height*row_index)
+            y_pos = self._get_element_y_pos_from_top(font_size + row_height*row_index) - descent
 
             for col_index, col in enumerate(row):
                 if not col or not col.date:
@@ -304,7 +306,7 @@ class CalendarGenerator:
             return self.style.title_font_size
 
         max_size = self.width * .5
-        return _get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
+        return get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
 
     def _get_header_font_size(self) -> float:
         maximum_width = self._column_width * .8
@@ -315,7 +317,7 @@ class CalendarGenerator:
         current_size = self._column_width  # Set an upper bound to keep the column header at most squarish
 
         for header in self.grid.headers:
-            possible_size = _get_font_size_maximum_width(header, maximum_width, self.style.header_font_name)
+            possible_size = get_font_size_maximum_width(header, maximum_width, self.style.header_font_name)
             if possible_size < current_size:
                 current_size = possible_size
 
@@ -329,23 +331,28 @@ class CalendarGenerator:
                 if col and col.date:
                     all_dates.add(str(col.date.day))
 
-        # Dates get 15% of the cell
-        maximum_width = self._column_width * .15
+        # Calculate how big we can be, up to 50% of the height of the cell
+        # TODO: This gets calculated twice
+        letter_font_size = self._get_letter_font_size()
 
-        if self.style.grid_line_color and self.style.grid_line_width:
-            maximum_width -= self.style.grid_line_width
+        all_letters = set()
+        for row in self.grid.grid:
+            for col in row:
+                if col and col.letter:
+                    all_letters.add(col.letter)
 
-        row_height = self._internal_remaining_height / self._row_count
+        letter_widths = (stringWidth(letter, self.style.letter_font_name, letter_font_size) for letter in all_letters)
+        max_letter_width = max(*letter_widths)
 
-        # Maximum of 80% of the row height, if we have a really weirdly shaped calendar here
-        current_size = row_height*.8
-        for used_date in all_dates:
-            possible_size = _get_font_size_maximum_width(used_date, maximum_width, self.style.date_font_name)
+        # Allow up to the lesser of half the cell, or 60% of the remaining space
+        space_available = min((self._column_width - max_letter_width)*.6, self._column_width / 2)
+        max_day_widths = (get_font_size_maximum_width(day, space_available, self.style.date_font_name)
+                          for day in all_dates if day)
 
-            if possible_size < current_size:
-                current_size = possible_size
+        theoretical_max = min(*max_day_widths)
 
-        return current_size
+        # Allow either the width-based max from above, or half the cell height
+        return min(theoretical_max, (self.height / self._row_count) * .5)
 
     def _get_letter_font_size(self) -> float:
         all_letters = set()
@@ -366,7 +373,7 @@ class CalendarGenerator:
         # Maximum of 80% of the row height, if we have a really weirdly shaped calendar here
         current_size = row_height
         for letter in all_letters:
-            possible_size = _get_font_size_maximum_width(letter, maximum_width, self.style.date_font_name)
+            possible_size = get_font_size_maximum_width(letter, maximum_width, self.style.date_font_name)
 
             if possible_size < current_size:
                 current_size = possible_size
@@ -374,7 +381,7 @@ class CalendarGenerator:
         return current_size
 
 
-def _get_font_size_maximum_width(text: str, maximum: float, font: str) -> float:
+def get_font_size_maximum_width(text: str, maximum: float, font: str) -> float:
     """Get the maximum font size to fit some given text into a given width"""
 
     font_size = 12

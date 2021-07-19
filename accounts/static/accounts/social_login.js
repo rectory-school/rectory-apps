@@ -35,8 +35,12 @@ onAuthError = (error) => {
 
 $(document).ready(function () {
     gapi.load('auth2', function () {
-        // Retrieve the singleton for the GoogleAuth library and set up the client.
-        auth2 = gapi.auth2.init({});
+        const auth_data = JSON.parse(document.getElementById('auth_data').textContent);
+
+        auth2 = gapi.auth2.init({
+            client_id: auth_data["client_id"],
+            hosted_domain: auth_data["hosted_domain"]
+        });
 
         $(".google-sign-in").each(function (i, e) {
             auth2.attachClickHandler(e, {}, onAuth, onAuthError);

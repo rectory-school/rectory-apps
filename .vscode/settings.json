@@ -7,11 +7,15 @@
         "--experimental"
     ],
     "python.linting.pylintArgs": [
+        "--load-plugins=pylint_django",
+        "--django-settings-module=core.settings",
         "--max-line-length",
         "120"
     ],
     "cSpell.words": [
         "asgi",
+        "csrf",
+        "csrftoken",
         "fullmigrate",
         "gapi",
         "helvetica",
@@ -20,6 +24,7 @@
         "pylint",
         "pytest",
         "safemigrate",
+        "token",
         "ttfonts",
         "uvicorn"
     ],

@@ -2,7 +2,7 @@
 
 import datetime
 
-from typing import Dict, Set, List, Iterable
+from typing import Dict, Set, List, Iterable, Optional
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -30,6 +30,8 @@ class Calendar(models.Model):
             raise ValidationError("End date must be after start date")
 
     def get_absolute_url(self):
+        """Absolute URL for Django admin"""
+
         return reverse_lazy('calendar_generator:calendar', kwargs={'pk': self.id})
 
     @property
@@ -49,18 +51,41 @@ class Calendar(models.Model):
             self.sunday,
         ]
 
-    def get_date_letter_map(self) -> Dict[datetime.date, str]:
-        """ A list of date to day mappings for this calendar"""
+    @property
+    def day_numbers(self) -> List[int]:
+        """All the days that are used, with Monday being 0, for calendar weekday generation"""
+
+        # Transform True, True, True, True, True, False, False into 0, 1, 2, 3, 4
+        return [i for i, day in enumerate(self.day_flags) if day]
+
+    def get_date_letter_map(self) -> Dict[datetime.date, Optional[str]]:
+        """
+        A list of date to day mappings for this calendar,
+        including every date that should be on the calendar,
+        even skipped days
+        """
 
         day_rotation = list(self.days.all())
         day_rotation.sort(key=lambda obj: obj.position)
 
+        # Short circuit - if we aren't rotating, just shove None into everything
+        # instead of having to have another loop
+        if not day_rotation:
+            return {d: None for d in self.get_all_days()}
+
+        skip_days = self.get_all_skip_days()
         out = {}
 
-        for i, date in enumerate(self.get_all_dates()):
-            day = day_rotation[i % len(day_rotation)]
-            assert isinstance(day, Day)
+        i = 0
 
+        for date in self.get_all_days():
+            day = day_rotation[i % len(day_rotation)]
+
+            if date in skip_days:
+                out[date] = None
+                continue
+
+            i += 1
             out[date] = day.letter
 
         return out
@@ -77,10 +102,12 @@ class Calendar(models.Model):
 
         return out
 
-    def get_all_dates(self):
-        """Get all non-skipped dates that are in scope"""
-
-        skip_dates = self.get_all_skip_days()
+    def get_all_days(self) -> Iterable[datetime.date]:
+        """
+        Get all days, skipped or not, falling on the enabled days
+        between the start and end. This is what we should use to
+        draw a calendar, should we be drawing a calendar
+        """
 
         # This looks like true, true, true, true, true, false, false for Monday to Friday
         enabled_weekdays = self.day_flags
@@ -98,9 +125,6 @@ class Calendar(models.Model):
             weekday = date.weekday()
 
             if not enabled_weekdays[weekday]:
-                continue
-
-            if date in skip_dates:
                 continue
 
             yield date
@@ -134,8 +158,6 @@ class SkipDate(models.Model):
     def get_all_days(self) -> Iterable[datetime.date]:
         """Return all the dates that should be skipped between the start and end dates"""
 
-        out = set()
-
         assert isinstance(self.date, datetime.date)
 
         total_days = 1
@@ -158,6 +180,6 @@ class SkipDate(models.Model):
             raise ValidationError("End date must be after start date")
 
     def __str__(self):
-        return self.start_date.strftime("%Y-%m-%d")
+        return self.date.strftime("%Y-%m-%d")
 
 # Reset date was never used and was removed
