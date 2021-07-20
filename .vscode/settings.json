@@ -21,9 +21,11 @@
         "helvetica",
         "neue",
         "noprint",
+        "nostatic",
         "pylint",
         "pytest",
         "safemigrate",
+        "sorl",
         "token",
         "ttfonts",
         "uvicorn"
