@@ -15,7 +15,10 @@ from django.contrib.auth import get_user_model, login
 from django.http import JsonResponse
 from django.urls import reverse
 
+from django.utils.translation import gettext_lazy as _
+
 from django.conf import settings
+
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 
@@ -73,6 +76,12 @@ class SocialLoginView(TemplateView):
             UserModel = get_user_model()
             user = UserModel.objects.get(email=email)
 
+            if not user.is_active:
+                return JsonResponse({
+                    'success': False,
+                    'error': _('Your account is not currently active',)
+                })
+
         except UserModel.DoesNotExist:
             user = UserModel(email=email)
 
@@ -97,7 +106,9 @@ class SocialLoginView(TemplateView):
         login(request, user)
 
         # The JS can handle the rest
-        return JsonResponse({})
+        return JsonResponse({
+            'success': True
+        })
 
 
 class NativeLoginView(LoginView):

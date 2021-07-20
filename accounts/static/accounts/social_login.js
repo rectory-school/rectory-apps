@@ -11,11 +11,14 @@ onAuth = (googleUser) => {
         headers: { 'X-CSRFToken': csrftoken },
         dataType: 'json',
         success: function (data) {
-            const next = JSON.parse(document.getElementById('next').textContent);
+            if (data.success) {
+                const next = JSON.parse(document.getElementById('next').textContent);
 
-            window.location = next;
+                window.location = next;
+                return
+            }
 
-            console.info(data);
+            onAuthError(data.error);
         },
         error: onAuthError,
     });
