@@ -1,5 +1,5 @@
 onAuth = (googleUser) => {
-    console.log(googleUser);
+    const csrfToken = JSON.parse(document.getElementById('csrf_token').textContent);
 
     let loc = $(location).attr("href");
     var id_token = googleUser.getAuthResponse().id_token;
@@ -8,7 +8,7 @@ onAuth = (googleUser) => {
         url: loc,
         type: 'post',
         data: { 'token': id_token },
-        headers: { 'X-CSRFToken': csrftoken },
+        headers: { 'X-CSRFToken': csrfToken },
         dataType: 'json',
         success: function (data) {
             if (data.success) {

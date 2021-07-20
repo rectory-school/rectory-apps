@@ -8,8 +8,9 @@
 
     {{ auth_data|json_script:"auth_data" }}
     {{ next|json_script:"next" }}
+    {{ csrf_token|escapejs|json_script:"csrf_token" }}
 
-    <script src="{% static 'accounts/social_login.js' %}"></script
+    <script src="{% static 'accounts/social_login.js' %}"></script>
 {% endblock %}
 
 {% block breadcrumbs %}
