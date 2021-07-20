@@ -19,6 +19,7 @@ requests = "*"
 django-health-check = "*"
 reportlab = "*"
 django-bootstrap-breadcrumbs = "*"
+sorl-thumbnail = "*"
 
 [dev-packages]
 autopep8 = "*"
