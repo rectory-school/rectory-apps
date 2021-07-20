@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
     'django_bootstrap_breadcrumbs',
+    'sorl.thumbnail',
 
     'accounts',
     'icons',
@@ -165,3 +166,5 @@ INTERNAL_IPS = [
 ]
 
 LOGIN_REDIRECT_URL = "/"
+
+THUMBNAIL_PRESERVE_FORMAT = True

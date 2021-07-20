@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% load bootstrap4 static django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb object.title "icons:static-page" slug=page.slug %}
+{% endblock %}
+
+{% block headextra %}
+    <link rel="stylesheet" href="{% static 'icons/css/icons.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% include "icons/partial/icons.html" with icons=icons %}
+{% endblock %}

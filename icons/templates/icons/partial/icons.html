@@ -1,0 +1,11 @@
+{% load thumbnail %}
+
+{% for icon in icons %}
+{% thumbnail icon.icon "90x90" as im %}
+<div class="icon-block">
+    <a href="{{ icon.href }}">
+        <img class="icon" src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}">
+        <p class="icon-title">{{ icon.title }}</p>
+    </a>
+{% endthumbnail %}
+{% endfor %}
