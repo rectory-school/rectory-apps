@@ -1,3 +1,3 @@
-from django.contrib import admin
+"""Icon system admin"""
 
-# Register your models here.
+from django.contrib import admin
