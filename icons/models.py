@@ -83,9 +83,9 @@ class FolderIcon(models.Model):
 class PageItem(models.Model):
     """Display an icon on a page"""
 
-    page = models.ForeignKey(Page, on_delete=models.CASCADE)
-    icon = models.ForeignKey(Icon, on_delete=models.CASCADE, blank=True, null=True)
-    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, blank=True, null=True)
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='items')
+    icon = models.ForeignKey(Icon, on_delete=models.CASCADE, blank=True, null=True, related_name='+')
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, blank=True, null=True, related_name='+')
     position = models.PositiveSmallIntegerField(default=0, blank=True, null=True)
 
     def clean(self):
@@ -94,11 +94,11 @@ class PageItem(models.Model):
 
     class Meta:
         ordering = ['position']
-        unique_together = (
-            ('page', 'icon'),
-        )
 
     def __str__(self):
         # TODO: Put a manager on this that will always select related for the icon title
+        if self.icon:
+            return str(self.icon)
 
-        return str(self.icon)
+        if self.folder:
+            return str(self.folder)
