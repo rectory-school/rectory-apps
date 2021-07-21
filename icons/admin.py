@@ -8,10 +8,15 @@ from adminsortable2.admin import SortableInlineAdminMixin
 from . import models
 
 
-class PageIconInline(SortableInlineAdminMixin, admin.TabularInline):
+@admin.register(models.Icon)
+class IconAdmin(admin.ModelAdmin):
+    """Admin for icons"""
+
+
+class PageItemInline(SortableInlineAdminMixin, admin.TabularInline):
     """Inline for page icons"""
 
-    model = models.PageIconDisplay
+    model = models.PageItem
     extra = 0
 
 
@@ -19,11 +24,20 @@ class PageIconInline(SortableInlineAdminMixin, admin.TabularInline):
 class PageAdmin(admin.ModelAdmin):
     """Admin for icon page"""
 
-    inlines = [PageIconInline]
+    inlines = [PageItemInline]
 
     prepopulated_fields = {"slug": ("title",)}
 
 
-@admin.register(models.Icon)
-class IconAdmin(admin.ModelAdmin):
-    """Admin for icons"""
+class FolderIconInline(SortableInlineAdminMixin, admin.TabularInline):
+    """Inline for folder icons"""
+
+    model = models.FolderIcon
+    extra = 0
+
+
+@admin.register(models.Folder)
+class FolderAdmin(admin.ModelAdmin):
+    """Admin for folders"""
+
+    inlines = [FolderIconInline]
