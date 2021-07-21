@@ -11,12 +11,16 @@
 
 {% block headextra %}
     <link rel="stylesheet" href="{% static 'icons/icons.css' %}">
+    <script src="{% static 'icons/icons.js' %}"></script>
+
+    {{ folder_id_prefix|json_script:"folder_id_prefix" }}
+
 {% endblock %}
 
 {% block content %}
     {% include "icons/partial/icons.html" with icons=icons %}
     {% include "icons/partial/folders.html" with folders=folders %}
-    
+
     {% if has_admin_access and perms.calendar_generator.add_calendar %}
         <p><a href="{% url 'admin:icons_page_change' object_id=object.id %}">Edit this page</a></p>
     {% endif %}
