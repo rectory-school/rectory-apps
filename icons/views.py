@@ -8,20 +8,6 @@ from django.views.generic import DetailView, ListView
 from . import models
 
 
-@dataclass
-class DisplayIcon:
-    """An icon to be displayed on a page"""
-
-    title: str
-    icon: Any
-    href: str
-
-
-CLASS_ICON = 'icon'
-CLASS_FOLDER = 'folder'
-FOLDER_ID_PREFIX = 'folder-'
-
-
 class PageDetail(DetailView):
     """Icon page embedded in site nav"""
 
