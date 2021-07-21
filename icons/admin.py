@@ -2,13 +2,13 @@
 
 from django.contrib import admin
 
-from sorl.thumbnail.admin import AdminImageMixin
+from adminsortable2.admin import SortableInlineAdminMixin
 
 
 from . import models
 
 
-class PageIconInline(admin.TabularInline):
+class PageIconInline(SortableInlineAdminMixin, admin.TabularInline):
     """Inline for page icons"""
 
     model = models.PageIconDisplay
@@ -25,5 +25,5 @@ class PageAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Icon)
-class IconAdmin(AdminImageMixin, admin.ModelAdmin):
+class IconAdmin(admin.ModelAdmin):
     """Admin for icons"""
