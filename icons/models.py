@@ -34,7 +34,9 @@ class Page(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse("icons:static-page", kwargs={"slug": self.slug})
+        """Absolute URL to page detail"""
+
+        return reverse("icons:page", kwargs={"slug": self.slug})
 
 
 class Icon(models.Model):
@@ -43,7 +45,6 @@ class Icon(models.Model):
     title = models.CharField(max_length=255)
     url = models.URLField()
     icon = models.ImageField(upload_to=icon_original_upload_to)
-    # icon = sorl.thumbnail.ImageField()
 
     def __str__(self):
         return self.title
@@ -52,6 +53,14 @@ class Icon(models.Model):
 class PageIconDisplay(models.Model):
     """Display an icon on a page"""
 
+    # TODO: Put a manager on this that will always select related for the icon title
+
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
     icon = models.ForeignKey(Icon, on_delete=models.CASCADE)
-    position = models.PositiveSmallIntegerField(default=0)
+    position = models.PositiveSmallIntegerField(default=0, blank=True, null=True)
+
+    class Meta:
+        ordering = ['position']
+
+    def __str__(self):
+        return str(self.icon)

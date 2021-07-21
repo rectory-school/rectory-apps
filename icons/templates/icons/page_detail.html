@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "icons/base.html" %}
 
 {% load bootstrap4 static django_bootstrap_breadcrumbs %}
 
@@ -7,9 +7,10 @@
 
     {% breadcrumb object.title "icons:static-page" slug=page.slug %}
 {% endblock %}
+{% block title %}{{ page.title }}{% endblock %}
 
 {% block headextra %}
-    <link rel="stylesheet" href="{% static 'icons/css/icons.css' %}">
+    <link rel="stylesheet" href="{% static 'icons/icons.css' %}">
 {% endblock %}
 
 {% block content %}

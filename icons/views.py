@@ -3,13 +3,15 @@
 from dataclasses import dataclass
 from typing import Any, Dict, List, Iterable
 
-from django.views.generic import DetailView
+from django.views.generic import DetailView, ListView
 
 from . import models
 
 
 @dataclass
 class DisplayIcon:
+    """An icon to be displayed on a page"""
+
     position: int
     title: str
     icon: Any
@@ -32,6 +34,12 @@ class PageDetail(DetailView):
         context["icons"] = make_context_icon_set(icons)
 
         return context
+
+
+class PageList(ListView):
+    """List of detail pages"""
+
+    model = models.Page
 
 
 def make_context_icon_set(page_icons: Iterable[models.PageIconDisplay]) -> List[DisplayIcon]:

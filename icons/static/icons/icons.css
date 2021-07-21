@@ -1,0 +1,24 @@
+div.icons a {
+    display: inline-block;
+    color: black;
+    text-align: center;
+
+    width: 150px;
+    height: 150px;
+    margin: 0 10px 10px 10px;
+}
+
+div.icons a img {
+    display: block;
+    margin: 0 auto;
+}
+
+div.icons a p {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+}
+
+div.icons {
+    text-align: center;
+}

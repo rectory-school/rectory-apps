@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% load bootstrap4 static django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Icon Sets" "icons:page-list" %}
+{% endblock %}

@@ -5,5 +5,15 @@
 {% block breadcrumbs %}
     {{ block.super }}
 
-    {% breadcrumb object.title "icons:static-page" slug=page.slug %}
+    {% breadcrumb "Icon Sets" "icons:static-page-list" %}
+{% endblock %}
+
+{% block content %}
+<ul class="list-group">
+    {% for page in page_list %}
+        <li class="list-group-item">
+            <a href="{% url "icons:page" slug=page.slug %}">{{ page.title }}</a>
+        </li>
+    {% endfor %}
+</ul>
 {% endblock %}

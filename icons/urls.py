@@ -7,5 +7,6 @@ from . import views
 #  pylint: disable=invalid-name
 app_name = 'icons'
 urlpatterns = [
-    path('<slug:slug>/', views.PageDetail.as_view(), name="static-page"),
+    path('', views.PageList.as_view(), name='page-list'),
+    path('<slug:slug>/', views.PageDetail.as_view(), name="page"),
 ]
