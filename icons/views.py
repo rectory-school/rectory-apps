@@ -1,9 +1,7 @@
 """Views for icon system"""
 
-from functools import cached_property
-
 from dataclasses import dataclass
-from typing import Any, Dict, List, Iterable, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from django.views.generic import DetailView, ListView
 
