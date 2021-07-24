@@ -22,6 +22,9 @@ django-bootstrap-breadcrumbs = "*"
 sorl-thumbnail = "*"
 redis = "*"
 django-redis = "*"
+djangorestframework = "*"
+markdown = "*"
+django-filter = "*"
 
 [dev-packages]
 autopep8 = "*"
