@@ -46,7 +46,7 @@ class PageDetail(DetailView):
         for row in page_folder_rows:
             folder_id = row['folder__pk']
             icons = folder_icons_by_folder_id[folder_id]
-            
+
             out.append({
                 'id': folder_id,
                 'title': row['folder__title'],
