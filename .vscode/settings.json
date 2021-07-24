@@ -19,6 +19,8 @@
         "fullmigrate",
         "gapi",
         "helvetica",
+        "kvstore",
+        "kvstores",
         "neue",
         "noprint",
         "nostatic",
@@ -26,6 +28,7 @@
         "pytest",
         "safemigrate",
         "sorl",
+        "thumbnail",
         "token",
         "ttfonts",
         "uvicorn"
