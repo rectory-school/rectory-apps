@@ -1,6 +1,7 @@
 """Views for icon system"""
 
-from typing import Any, Dict
+from collections import defaultdict
+from typing import Any, Dict, List
 
 from django.views.generic import DetailView, ListView
 
@@ -18,10 +19,50 @@ class PageDetail(DetailView):
         page = self.object
         assert isinstance(page, models.Page)
 
+        context['icons'] = self.get_icons()
+        context['folders'] = self.get_folder_modals()
+
+        return context
+
+    def get_folder_modals(self) -> List[Dict]:
+        """Get the folder modals for template render"""
+
+        page_folders = models.PageFolder.objects.filter(page=self.object)
+        page_folder_rows = page_folders.values('folder__pk', 'folder__title')
+        page_folder_ids = {d['folder__pk'] for d in page_folder_rows}
+
+        folder_icons = models.FolderIcon.objects.filter(folder__pk__in=page_folder_ids)
+        folder_icon_rows = folder_icons.values('folder__pk', 'icon__title', 'icon__icon', 'icon__url')
+
+        folder_icons_by_folder_id = defaultdict(list)
+        for row in folder_icon_rows:
+            folder_icons_by_folder_id[row['folder__pk']].append({
+                'title': row['icon__title'],
+                'icon': row['icon__icon'],
+                'url': row['icon__url'],
+            })
+
+        out = []
+        for row in page_folder_rows:
+            folder_id = row['folder__pk']
+            icons = folder_icons_by_folder_id[folder_id]
+            
+            out.append({
+                'id': folder_id,
+                'title': row['folder__title'],
+                'icons': icons
+            })
+
+        return out
+
+    def get_icons(self) -> List[Dict]:
+        """Get the icons for template display"""
+
         # The position of each object, so we can correlate the position with the sub-objects
         page_item_rows = []
 
-        for row in page.page_icons.all().values('position', 'icon__title', 'icon__icon', 'icon__url'):
+        page_icons = models.PageIcon.objects.filter(page=self.object)
+        for row in page_icons.values('position', 'icon__title', 'icon__icon', 'icon__url'):
             page_item_rows.append({
                 'type': 'icon',
                 'position': row['position'],
@@ -30,7 +71,8 @@ class PageDetail(DetailView):
                 'url': row['icon__url'],
             })
 
-        for row in page.page_folders.all().values('position', 'folder__pk', 'folder__title', 'folder__icon'):
+        page_folders = models.PageFolder.objects.filter(page=self.object)
+        for row in page_folders.values('position', 'folder__pk', 'folder__title', 'folder__icon'):
             page_item_rows.append({
                 'type': 'folder',
                 'position': row['position'],
@@ -40,12 +82,7 @@ class PageDetail(DetailView):
             })
 
         page_item_rows.sort(key=lambda obj: obj['position'])
-
-        context['icons'] = page_item_rows
-        context['folders'] = {pf.folder: [fi.icon for fi in pf.folder.folder_icons.all()]
-                              for pf in page.page_folders.all()}
-
-        return context
+        return page_item_rows
 
 
 class PageList(ListView):

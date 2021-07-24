@@ -31,7 +31,7 @@
     {% endif %}
 
     <!-- folder modals-->
-    {% for folder, folder_icons in folders.items %}
-        {% include "icons/partial/folder_modal.html" with folder=folder icons=folder_icons %}
+    {% for folder in folders %}
+        {% include "icons/partial/folder_modal.html" with folder=folder %}
     {% endfor %}
 {% endblock %}
