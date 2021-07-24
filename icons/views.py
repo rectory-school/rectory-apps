@@ -19,18 +19,29 @@ class PageDetail(DetailView):
         assert isinstance(page, models.Page)
 
         # The position of each object, so we can correlate the position with the sub-objects
-        object_positions = {}
+        page_item_rows = []
 
-        for page_folder in page.page_folders.all():
-            object_positions[page_folder.folder] = page_folder.position
+        for row in page.page_icons.all().values('position', 'icon__title', 'icon__icon', 'icon__url'):
+            page_item_rows.append({
+                'type': 'icon',
+                'position': row['position'],
+                'title': row['icon__title'],
+                'icon': row['icon__icon'],
+                'url': row['icon__url'],
+            })
 
-        for page_icon in page.page_icons.all():
-            object_positions[page_icon.icon] = page_icon.position
+        for row in page.page_folders.all().values('position', 'folder__pk', 'folder__title', 'folder__icon'):
+            page_item_rows.append({
+                'type': 'folder',
+                'position': row['position'],
+                'id': row['folder__pk'],
+                'title': row['folder__title'],
+                'icon': row['folder__icon'],
+            })
 
-        # The dictionary keys are the original items
-        all_items = sorted(object_positions, key=lambda obj: object_positions[obj])
+        page_item_rows.sort(key=lambda obj: obj['position'])
 
-        context['icons'] = all_items
+        context['icons'] = page_item_rows
         context['folders'] = {pf.folder: [fi.icon for fi in pf.folder.folder_icons.all()]
                               for pf in page.page_folders.all()}
 

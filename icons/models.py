@@ -29,8 +29,6 @@ def icon_original_upload_to(instance: Any, filename: str) -> str:
 class Icon(models.Model):
     """An icon that can be shown on a page"""
 
-    item_type = 'icon'
-
     title = models.CharField(max_length=255)
     url = models.URLField()
     icon = models.ImageField(upload_to=icon_original_upload_to)
@@ -41,8 +39,6 @@ class Icon(models.Model):
 
 class Folder(models.Model):
     """A reusable folder"""
-
-    item_type = 'folder'
 
     title = models.CharField(max_length=255)
     icon = models.ImageField(upload_to=icon_original_upload_to)
