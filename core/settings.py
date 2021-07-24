@@ -18,14 +18,6 @@ env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# If we don't have a .env file, then this throws a warning up every time it's initialized.
-# Because that annoys me in the logs of the hosted environments,
-# we use this key to suppress it
-if not "HOSTED_ENVIRONMENT" in os.environ:
-    env_file = os.environ.get("ENV_FILE", ".env")
-
-    environ.Env.read_env(env_file=(BASE_DIR / env_file).as_posix())
-
 DEBUG = env.bool('DEBUG', default=False)
 SECRET_KEY = env('SECRET_KEY')
 
