@@ -3,10 +3,11 @@
 import os
 import uuid
 from typing import Any
-from django.core.exceptions import ValidationError
 
 from django.db import models
 from django.urls import reverse
+
+FOLDER_MODAL_ID_PREFIX = "folder-model"
 
 
 def uuid_upload(instance: Any, filename: str, prefix="") -> str:
@@ -25,23 +26,10 @@ def icon_original_upload_to(instance: Any, filename: str) -> str:
     return uuid_upload(instance, filename, "icons/original/")
 
 
-class Page(models.Model):
-    """A page to show icons on"""
-
-    title = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True)
-
-    def __str__(self):
-        return self.title
-
-    def get_absolute_url(self):
-        """Absolute URL to page detail"""
-
-        return reverse("icons:page", kwargs={"slug": self.slug})
-
-
 class Icon(models.Model):
     """An icon that can be shown on a page"""
+
+    item_type = 'icon'
 
     title = models.CharField(max_length=255)
     url = models.URLField()
@@ -53,6 +41,8 @@ class Icon(models.Model):
 
 class Folder(models.Model):
     """A reusable folder"""
+
+    item_type = 'folder'
 
     title = models.CharField(max_length=255)
     icon = models.ImageField(upload_to=icon_original_upload_to)
@@ -75,30 +65,57 @@ class FolderIcon(models.Model):
         )
 
     def __str__(self):
-        # TODO: Put a manager on this that will always select related for the icon title
-
         return str(self.icon)
 
 
-class PageItem(models.Model):
-    """Display an icon on a page"""
+class Page(models.Model):
+    """A page to show icons on"""
 
-    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='items')
-    icon = models.ForeignKey(Icon, on_delete=models.CASCADE, blank=True, null=True, related_name='+')
-    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, blank=True, null=True, related_name='+')
-    position = models.PositiveSmallIntegerField(default=0, blank=True, null=True)
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True)
 
-    def clean(self):
-        if not self.icon and not self.folder:
-            raise ValidationError("Either a folder or an icon is required")
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        """Absolute URL to page detail"""
+
+        return reverse("icons:page", kwargs={"slug": self.slug})
+
+
+class TextLink(models.Model):
+    """Text link on the bottom of a page"""
+
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='text_links')
+    url = models.URLField(blank=True)
+    crosslink = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='+')
+
+
+class PageIcon(models.Model):
+    """An icon on a page"""
+
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='page_icons')
+    icon = models.ForeignKey(Icon, on_delete=models.CASCADE, related_name='+')
+    position = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         ordering = ['position']
+        unique_together = ('page', 'icon')
 
     def __str__(self):
-        # TODO: Put a manager on this that will always select related for the icon title
-        if self.icon:
-            return str(self.icon)
+        return str(self.icon)
 
-        if self.folder:
-            return str(self.folder)
+
+class PageFolder(models.Model):
+    """A folder on a page"""
+
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='page_folders')
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name='+')
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['position']
+        unique_together = ('page', 'folder')
+
+    def __str__(self):
+        return str(self.folder)

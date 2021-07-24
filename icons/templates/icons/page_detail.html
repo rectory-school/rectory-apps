@@ -14,10 +14,24 @@
 {% endblock %}
 
 {% block content %}
-    {% include "icons/partial/icons.html" with icons=icons %}
-    {% include "icons/partial/folders.html" with folders=folders %}
+    <div class="icons">
+        {% for item in icons %}
+            {% if item.item_type == "icon" %}
+                {% include "icons/partial/icon.html" with icon=item %}
+            {% endif %}
+
+            {% if item.item_type == "folder" %}
+                {% include "icons/partial/folder_icon.html" with folder=item %}
+            {% endif %}
+        {% endfor %}
+    </div>
 
     {% if has_admin_access and perms.calendar_generator.add_calendar %}
         <p><a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a></p>
     {% endif %}
+
+    <!-- folder modals-->
+    {% for folder, folder_icons in folders.items %}
+        {% include "icons/partial/folder_modal.html" with folder=folder icons=folder_icons %}
+    {% endfor %}
 {% endblock %}

@@ -13,18 +13,23 @@ class IconAdmin(admin.ModelAdmin):
     """Admin for icons"""
 
 
-class PageItemInline(SortableInlineAdminMixin, admin.TabularInline):
-    """Inline for page icons"""
+class PageIconInline(admin.TabularInline):
+    """Page icon inline"""
 
-    model = models.PageItem
+    model = models.PageIcon
     extra = 0
 
+class PageFolderInline(admin.TabularInline):
+    """Page folder inline"""
+
+    model = models.PageFolder
+    extra = 0
 
 @admin.register(models.Page)
 class PageAdmin(admin.ModelAdmin):
     """Admin for icon page"""
 
-    inlines = [PageItemInline]
+    inlines = [PageIconInline, PageFolderInline]
 
     prepopulated_fields = {"slug": ("title",)}
 
