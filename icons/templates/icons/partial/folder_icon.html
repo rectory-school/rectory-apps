@@ -1,7 +1,7 @@
 {% load thumbnail %}
 
 {% thumbnail folder.icon "90x90" as im %}
-    <a href="#folder-{{ folder.id }}" data-toggle="modal">
+    <a href="#folder-{{ folder.folder_id }}" data-toggle="modal">
         <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}">
         <p class="icon-title">{{ folder.title }}</p>
     </a>

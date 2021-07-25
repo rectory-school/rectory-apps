@@ -1,11 +1,11 @@
 """Views for icon system"""
 
-from collections import defaultdict
 from typing import Any, Dict, List
 
 from django.views.generic import DetailView, ListView
 
 from . import models
+from .view_types import Folder, FolderIcon, LinkIcon, Icon
 
 
 class PageDetail(DetailView):
@@ -24,65 +24,57 @@ class PageDetail(DetailView):
 
         return context
 
-    def get_folder_modals(self) -> List[Dict]:
+    def get_folder_modals(self) -> List[Folder]:
         """Get the folder modals for template render"""
 
-        page_folders = models.PageFolder.objects.filter(page=self.object)
-        page_folder_rows = page_folders.values('folder__pk', 'folder__title')
-        page_folder_ids = {d['folder__pk'] for d in page_folder_rows}
+        folders_by_id = self._get_folder_skeletons()
 
-        folder_icons = models.FolderIcon.objects.filter(folder__pk__in=page_folder_ids)
-        folder_icon_rows = folder_icons.values('folder__pk', 'icon__title', 'icon__icon', 'icon__url')
-
-        folder_icons_by_folder_id = defaultdict(list)
-        for row in folder_icon_rows:
-            folder_icons_by_folder_id[row['folder__pk']].append({
-                'title': row['icon__title'],
-                'icon': row['icon__icon'],
-                'url': row['icon__url'],
-            })
-
-        out = []
-        for row in page_folder_rows:
+        folder_icons = models.FolderIcon.objects.filter(folder__pk__in=folders_by_id.keys())
+        for row in folder_icons.values('folder__pk', 'icon__title', 'icon__icon', 'icon__url'):
             folder_id = row['folder__pk']
-            icons = folder_icons_by_folder_id[folder_id]
 
-            out.append({
-                'id': folder_id,
-                'title': row['folder__title'],
-                'icons': icons
-            })
+            # Note: default sort is position, so we don't need to sort twice. Let the database do it.
+            icon = LinkIcon(None, row['icon__title'], row['icon__icon'], row['icon__url'])
+            folders_by_id[folder_id].icons.append(icon)
 
-        return out
+        return folders_by_id.values()
 
-    def get_icons(self) -> List[Dict]:
+    def get_icons(self) -> List[Icon]:
         """Get the icons for template display"""
 
-        # The position of each object, so we can correlate the position with the sub-objects
-        page_item_rows = []
-
+        out = []
         page_icons = models.PageIcon.objects.filter(page=self.object)
         for row in page_icons.values('position', 'icon__title', 'icon__icon', 'icon__url'):
-            page_item_rows.append({
-                'type': 'icon',
-                'position': row['position'],
-                'title': row['icon__title'],
-                'icon': row['icon__icon'],
-                'url': row['icon__url'],
-            })
+            icon = LinkIcon(position=row['position'],
+                            title=row['icon__title'],
+                            icon=row['icon__icon'],
+                            url=row['icon__url'])
+
+            out.append(icon)
 
         page_folders = models.PageFolder.objects.filter(page=self.object)
         for row in page_folders.values('position', 'folder__pk', 'folder__title', 'folder__icon'):
-            page_item_rows.append({
-                'type': 'folder',
-                'position': row['position'],
-                'id': row['folder__pk'],
-                'title': row['folder__title'],
-                'icon': row['folder__icon'],
-            })
+            icon = FolderIcon(position=row['position'],
+                              folder_id=row['folder__pk'],
+                              title=row['folder__title'],
+                              icon=row['folder__icon'])
 
-        page_item_rows.sort(key=lambda obj: obj['position'])
-        return page_item_rows
+            out.append(icon)
+
+        out.sort(key=lambda obj: obj.position)
+        return out
+
+    def _get_folder_skeletons(self) -> Dict[int, Folder]:
+        """Get the folders without their icons, organized by folder ID"""
+
+        page_folders = models.PageFolder.objects.filter(page=self.object)
+
+        folders_by_id = {}
+        for row in page_folders.values('folder__pk', 'folder__title'):
+            folder = Folder(folder_id=row['folder__pk'], title=row['folder__title'])
+            folders_by_id[folder.folder_id] = folder
+
+        return folders_by_id
 
 
 class PageList(ListView):

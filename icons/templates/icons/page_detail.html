@@ -16,11 +16,11 @@
 {% block content %}
     <div class="icons">
         {% for item in icons %}
-            {% if item.type == "icon" %}
+            {% if item.icon_type == "link" %}
                 {% include "icons/partial/icon.html" with icon=item %}
             {% endif %}
 
-            {% if item.type == "folder" %}
+            {% if item.icon_type == "folder" %}
                 {% include "icons/partial/folder_icon.html" with folder=item %}
             {% endif %}
         {% endfor %}
