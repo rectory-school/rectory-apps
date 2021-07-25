@@ -2,15 +2,19 @@ div.icons a {
     display: inline-block;
     color: black;
     text-align: center;
+    vertical-align: top;
 
     width: 150px;
-    height: 150px;
-    margin: 0 10px 10px 10px;
+    height: 180px;
+    margin: 0 10px 30px 10px;
 }
 
 div.icons a img {
     display: block;
     margin: 0 auto;
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
 }
 
 div.icons a p {
@@ -21,4 +25,8 @@ div.icons a p {
 
 div.icons {
     text-align: center;
+}
+
+div.icons div.img-container {
+    height: 120px;
 }
