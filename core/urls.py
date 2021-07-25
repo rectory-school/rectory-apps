@@ -20,6 +20,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
+# from rest_framework import routers
+import rest_framework.urls
+
 import health_check.urls
 
 import accounts.urls
@@ -40,6 +43,8 @@ urlpatterns = [
 
     path('calendars/', include(calendar_generator.urls)),
     path('icons/', include(icons.urls)),
+
+    path('dj-api/', include(rest_framework.urls))
 ]
 
 if settings.DEBUG:

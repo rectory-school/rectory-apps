@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'health_check.db',
     'django_bootstrap_breadcrumbs',
     'sorl.thumbnail',
+    'rest_framework',
 
     'accounts',
     'icons',
