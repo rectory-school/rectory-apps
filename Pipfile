@@ -25,6 +25,7 @@ django-redis = "*"
 djangorestframework = "*"
 markdown = "*"
 django-filter = "*"
+django-storages = "*"
 
 [dev-packages]
 autopep8 = "*"
