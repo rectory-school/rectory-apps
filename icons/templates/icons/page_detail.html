@@ -26,6 +26,22 @@
         {% endfor %}
     </div>
 
+    <div class="crosslinks">
+        <div class="row">
+            <div class="col-6">
+                {% for page in crosslinks_left %}
+                    <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+                {% endfor %}
+            </div>
+
+            <div class="col-6">
+                {% for page in crosslinks_right %}
+                    <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
     {% if has_admin_access and perms.calendar_generator.add_calendar %}
         <p><a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a></p>
     {% endif %}

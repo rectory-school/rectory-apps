@@ -7,7 +7,12 @@ from typing import Any
 from django.db import models
 from django.urls import reverse
 
-FOLDER_MODAL_ID_PREFIX = "folder-model"
+SIDE_CHOICES = (
+    ('LEFT', 'Left'),
+    ('RIGHT', 'Right'),
+)
+
+SIDE_CHOICES_LEN = max(len(c[0]) for c in SIDE_CHOICES)
 
 
 def uuid_upload(instance: Any, filename: str, prefix="") -> str:
@@ -79,12 +84,20 @@ class Page(models.Model):
         return reverse("icons:page", kwargs={"slug": self.slug})
 
 
-class TextLink(models.Model):
+class CrossLink(models.Model):
     """Text link on the bottom of a page"""
 
-    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='text_links')
-    url = models.URLField(blank=True)
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='crosslinks')
     crosslink = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='+')
+    side = models.CharField(max_length=SIDE_CHOICES_LEN, choices=SIDE_CHOICES)
+
+    class Meta:
+        unique_together = (
+            ('page', 'crosslink')
+        )
+
+    def __str__(self):
+        return self.crosslink.title
 
 
 class PageIcon(models.Model):

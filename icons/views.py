@@ -1,6 +1,6 @@
 """Views for icon system"""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from django.views.generic import DetailView, ListView
 
@@ -21,6 +21,11 @@ class PageDetail(DetailView):
 
         context['icons'] = self.get_icons()
         context['folders'] = self.get_folder_modals()
+
+        crosslink_left, crosslink_right = self.get_crosslinks()
+
+        context['crosslinks_left'] = crosslink_left
+        context['crosslinks_right'] = crosslink_right
 
         return context
 
@@ -63,6 +68,23 @@ class PageDetail(DetailView):
 
         out.sort(key=lambda obj: obj.position)
         return out
+
+    def get_crosslinks(self) -> Tuple[List[models.Page], List[models.Page]]:
+        """Return the left and right crosslinks"""
+
+        left = []
+        right = []
+
+        for crosslink in self.object.crosslinks.all():
+            assert isinstance(crosslink, models.CrossLink)
+
+            if crosslink.side == "LEFT":
+                left.append(crosslink.crosslink)
+
+            if crosslink.side == "RIGHT":
+                right.append(crosslink.crosslink)
+
+        return (left, right)
 
     def _get_folder_skeletons(self) -> Dict[int, Folder]:
         """Get the folders without their icons, organized by folder ID"""
