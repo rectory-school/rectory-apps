@@ -34,7 +34,7 @@
                 {% endfor %}
             </div>
 
-            <div class="col-6">
+            <div class="col-6" style="text-align: right;">
                 {% for page in crosslinks_right %}
                     <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
                 {% endfor %}
