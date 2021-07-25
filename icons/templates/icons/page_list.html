@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% load bootstrap4 static django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Icon Sets" "icons:static-page-list" %}
+{% endblock %}
+
+{% block content %}
+<ul class="list-group">
+    {% for page in page_list %}
+        <li class="list-group-item">
+            <a href="{% url "icons:page" slug=page.slug %}">{{ page.title }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
+{% if has_admin_access and perms.icons.add_page %}
+    <p><a href="{% url 'admin:icons_page_changelist' %}">Modify Icon Configurations</a></p>
+{% endif %}
+
+{% endblock %}

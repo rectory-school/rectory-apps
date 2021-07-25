@@ -1,0 +1,53 @@
+{% extends "icons/base.html" %}
+
+{% load bootstrap4 static django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb page.title "icons:static-page" slug=page.slug %}
+{% endblock %}
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block headextra %}
+    <link rel="stylesheet" href="{% static 'icons/icons.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="icons">
+        {% for item in icons %}
+            {% if item.icon_type == "link" %}
+                {% include "icons/partial/icon.html" with icon=item %}
+            {% endif %}
+
+            {% if item.icon_type == "folder" %}
+                {% include "icons/partial/folder_icon.html" with folder=item %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="crosslinks">
+        <div class="row">
+            <div class="col-6">
+                {% for page in crosslinks_left %}
+                    <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+                {% endfor %}
+            </div>
+
+            <div class="col-6" style="text-align: right;">
+                {% for page in crosslinks_right %}
+                    <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if has_admin_access and perms.calendar_generator.add_calendar %}
+        <p><a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a></p>
+    {% endif %}
+
+    <!-- folder modals-->
+    {% for folder in folders %}
+        {% include "icons/partial/folder_modal.html" with folder=folder %}
+    {% endfor %}
+{% endblock %}

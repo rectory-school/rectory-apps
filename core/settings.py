@@ -10,21 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import os
 from pathlib import Path
 import environ
 
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# If we don't have a .env file, then this throws a warning up every time it's initialized.
-# Because that annoys me in the logs of the hosted environments,
-# we use this key to suppress it
-if not "HOSTED_ENVIRONMENT" in os.environ:
-    env_file = os.environ.get("ENV_FILE", ".env")
-
-    environ.Env.read_env(env_file=(BASE_DIR / env_file).as_posix())
 
 DEBUG = env.bool('DEBUG', default=False)
 SECRET_KEY = env('SECRET_KEY')
@@ -35,6 +26,14 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default=None)
 GOOGLE_HOSTED_DOMAIN = env("GOOGLE_HOSTED_DOMAIN", default=None)
+
+# These are for DigitalOcean Spaces
+AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", default=None)
+AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default=None)
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default=None)
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY", default=None)
+
+DEFAULT_FILE_STORAGE = env("DEFAULT_FILE_STORAGE", default="django.core.files.storage.FileSystemStorage")
 
 # Application definition
 
@@ -56,6 +55,8 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
     'django_bootstrap_breadcrumbs',
+    'sorl.thumbnail',
+    'rest_framework',
 
     'accounts',
     'icons',
@@ -165,3 +166,5 @@ INTERNAL_IPS = [
 ]
 
 LOGIN_REDIRECT_URL = "/"
+
+THUMBNAIL_PRESERVE_FORMAT = True

@@ -19,6 +19,13 @@ requests = "*"
 django-health-check = "*"
 reportlab = "*"
 django-bootstrap-breadcrumbs = "*"
+sorl-thumbnail = "*"
+redis = "*"
+django-redis = "*"
+djangorestframework = "*"
+markdown = "*"
+django-filter = "*"
+django-storages = "*"
 
 [dev-packages]
 autopep8 = "*"

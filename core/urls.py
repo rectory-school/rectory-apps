@@ -20,6 +20,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 
+# from rest_framework import routers
+import rest_framework.urls
+
 import health_check.urls
 
 import accounts.urls
@@ -27,6 +30,7 @@ import accounts.views
 from accounts.admin_staff_monkeypatch import patched_has_permission
 
 import calendar_generator.urls
+import icons.urls
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name="home.html"), name='home'),
@@ -37,7 +41,10 @@ urlpatterns = [
     path('admin/login/', accounts.views.SocialLoginView.as_view()),
     path('admin/', admin.site.urls),
 
-    path('calendars/', include(calendar_generator.urls))
+    path('calendars/', include(calendar_generator.urls)),
+    path('icons/', include(icons.urls)),
+
+    path('dj-api/', include(rest_framework.urls))
 ]
 
 if settings.DEBUG:
