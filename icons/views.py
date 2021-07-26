@@ -95,7 +95,8 @@ class PageDetail(DetailView):
                 icon = folder_icon.icon
                 assert isinstance(icon, models.Icon)
 
-                icons.append(Icon(position=folder_icon.position, title=icon.title, icon=icon.icon))
+                icons.append(LinkIcon(position=folder_icon.position, title=icon.title,
+                             icon=icon.icon, url=icon.url, page_icon_id=None))
 
             out.append(Folder(folder_id=db_folder.pk, title=db_folder.title, icons=icons))
 
