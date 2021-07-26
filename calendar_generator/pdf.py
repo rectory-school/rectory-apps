@@ -340,7 +340,7 @@ class CalendarGenerator:
         all_letters = set()
         for row in self.grid.grid:
             for col in row:
-                if col and col.letter:
+                if col and col.letter and not col.is_label:
                     all_letters.add(col.letter)
 
         letter_widths = (stringWidth(letter, self.style.letter_font_name, letter_font_size) for letter in all_letters)
@@ -361,7 +361,7 @@ class CalendarGenerator:
 
         for row in self.grid.grid:
             for col in row:
-                if col and col.letter:
+                if col and col.letter and not col.is_label:
                     all_letters.add(col.letter)
 
         # Letters get 80% of the cell
