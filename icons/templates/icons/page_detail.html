@@ -10,7 +10,11 @@
 {% block title %}{{ page.title }}{% endblock %}
 
 {% block headextra %}
+    <link rel="stylesheet" href="{% static 'pkg/jquery-ui-1.12.1/jquery-ui.theme.min.css' %}">
     <link rel="stylesheet" href="{% static 'icons/icons.css' %}">
+
+    <script src="{% static 'pkg/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'icons/icons.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -42,8 +46,16 @@
         </div>
     </div>
 
-    {% if has_admin_access and perms.calendar_generator.add_calendar %}
-        <p><a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a></p>
+    {% if has_admin_access and perms.icons.change_page %}
+        <p>
+            <a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a> &bullet;
+            <span class="hide-during-sort">
+                <a href="#" class="enable-icon-sort">Modify icon order</a>
+            </span>
+            <span class="show-during-sort">
+                <a href="#" class="save-icon-order">Save icon order</a>
+            </span>
+        </p>
     {% endif %}
 
     <!-- folder modals-->
