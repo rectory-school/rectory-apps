@@ -25,7 +25,7 @@
         <div class="row">
             <div class="col-6">
                 {% for page in crosslinks_left %}
-                    <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+                    <a href="{% url 'icons:page-sparse' slug=page.slug %}">{{ page.title }}</a>
 
                     {% if not forloop.last %} &bullet; {% endif %}
                 {% endfor %}
@@ -33,7 +33,7 @@
 
             <div class="col-6" style="text-align: right;">
                 {% for page in crosslinks_right %}
-                    <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+                    <a href="{% url 'icons:page-sparse' slug=page.slug %}">{{ page.title }}</a>
 
                     {% if not forloop.last %} &bullet; {% endif %}
                 {% endfor %}
