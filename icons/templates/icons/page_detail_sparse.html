@@ -1,0 +1,48 @@
+{% extends "base_sparse.html" %}
+
+{% load bootstrap4 static %}
+
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block headextra %}
+    <link rel="stylesheet" href="{% static 'icons/icons.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="icons">
+        {% for item in icons %}
+            {% if item.icon_type == "link" %}
+                {% include "icons/partial/icon.html" with icon=item %}
+            {% endif %}
+
+            {% if item.icon_type == "folder" %}
+                {% include "icons/partial/folder_icon.html" with folder=item %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="crosslinks">
+        <div class="row">
+            <div class="col-6">
+                {% for page in crosslinks_left %}
+                    <a href="{% url 'icons:page-sparse' slug=page.slug %}">{{ page.title }}</a>
+
+                    {% if not forloop.last %} &bullet; {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="col-6" style="text-align: right;">
+                {% for page in crosslinks_right %}
+                    <a href="{% url 'icons:page-sparse' slug=page.slug %}">{{ page.title }}</a>
+
+                    {% if not forloop.last %} &bullet; {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- folder modals-->
+    {% for folder in folders %}
+        {% include "icons/partial/folder_modal.html" with folder=folder %}
+    {% endfor %}
+{% endblock %}
