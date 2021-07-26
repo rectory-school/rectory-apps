@@ -30,3 +30,11 @@ div.icons {
 div.icons div.img-container {
     height: 120px;
 }
+
+.show-during-sort {
+    display: none;
+}
+
+.show-during-sort-saving {
+    display: none;
+}

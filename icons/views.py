@@ -2,10 +2,43 @@
 
 from typing import Any, Dict, List, Tuple
 
+from django.http.request import HttpRequest
+from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.views.generic import DetailView, ListView
+from django.contrib.auth.decorators import permission_required
+from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+
+from django.urls import reverse
 
 from . import models
 from .view_types import Folder, FolderIcon, LinkIcon, Icon
+
+
+@require_http_methods(["POST"])
+@permission_required("icons.change_page")
+def set_page_positions(request: HttpRequest):
+    """Update the page positions of icons"""
+
+    sorted_items = request.POST.getlist('sort[]')
+
+    for i, item_key in enumerate(sorted_items):
+        try:
+            item_type, item_id = item_key.split("-")
+            item_id = int(item_id)
+
+            if item_type == "folder":
+                models.PageFolder.objects.filter(pk=item_id).update(position=(i+1)*10)
+            elif item_type == "icon":
+                models.PageIcon.objects.filter(pk=item_id).update(position=(i+1)*10)
+            else:
+                return HttpResponseBadRequest()
+
+        except ValueError:
+            return HttpResponseBadRequest()
+
+    messages.info(request, "Page icon positions saved successfully")
+    return HttpResponse()
 
 
 class PageDetail(DetailView):
@@ -40,6 +73,7 @@ class PageDetail(DetailView):
 
         context['crosslinks_left'] = crosslink_left
         context['crosslinks_right'] = crosslink_right
+        context['sort_url'] = reverse('icons:set-sort-positions')
 
         return context
 
@@ -80,7 +114,8 @@ class PageDetail(DetailView):
             out.append(LinkIcon(position=page_icon.position,
                                 title=icon.title,
                                 icon=icon.icon,
-                                url=icon.url))
+                                url=icon.url,
+                                page_icon_id=page_icon.pk))
 
         for page_folder in self.object.page_folders.all():
             assert isinstance(page_folder, models.PageFolder)
@@ -91,7 +126,8 @@ class PageDetail(DetailView):
             out.append(FolderIcon(position=page_folder.position,
                                   folder_id=folder.id,
                                   title=folder.title,
-                                  icon=folder.icon))
+                                  icon=folder.icon,
+                                  page_folder_id=page_folder.id))
 
         out.sort(key=lambda obj: obj.position)
         return out

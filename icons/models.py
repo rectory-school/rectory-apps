@@ -86,12 +86,23 @@ class Page(models.Model):
         return reverse("icons:page", kwargs={"slug": self.slug})
 
 
+class CrosslinkManager(models.Manager):
+    """Crosslink manager that always selects the related crosslink"""
+
+    def get_queryset(self):
+        """Select the related crosslink"""
+
+        return super().get_queryset().select_related('crosslink')
+
+
 class CrossLink(models.Model):
     """Text link on the bottom of a page"""
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='crosslinks')
     crosslink = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='+')
     side = models.CharField(max_length=SIDE_CHOICES_LEN, choices=SIDE_CHOICES)
+
+    objects = CrosslinkManager()
 
     class Meta:
         unique_together = (
@@ -102,12 +113,24 @@ class CrossLink(models.Model):
         return self.crosslink.title
 
 
+class PageIconManager(models.Manager):
+    """Page icon manager that always selects the related icon for string purposes"""
+
+    def get_queryset(self):
+        """Select the related icons"""
+
+        qs = super().get_queryset()
+        return qs.select_related('icon')
+
+
 class PageIcon(models.Model):
     """An icon on a page"""
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='page_icons')
     icon = models.ForeignKey(Icon, on_delete=models.CASCADE, related_name='+')
     position = models.PositiveSmallIntegerField(default=0)
+
+    objects = PageIconManager()
 
     class Meta:
         ordering = ['position']
@@ -117,12 +140,24 @@ class PageIcon(models.Model):
         return str(self.icon)
 
 
+class PageFolderManager(models.Manager):
+    """Page folder manager that always selects the related icon for string purposes"""
+
+    def get_queryset(self):
+        """Select the related icons"""
+
+        qs = super().get_queryset()
+        return qs.select_related('folder')
+
+
 class PageFolder(models.Model):
     """A folder on a page"""
 
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='page_folders')
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name='+')
     position = models.PositiveSmallIntegerField(default=0)
+
+    objects = PageFolderManager()
 
     class Meta:
         ordering = ['position']

@@ -28,6 +28,7 @@
         "pytest",
         "safemigrate",
         "sorl",
+        "sortid",
         "thumbnail",
         "token",
         "ttfonts",
