@@ -7,6 +7,8 @@ from typing import Any
 from django.db import models
 from django.urls import reverse
 
+from versatileimagefield.fields import VersatileImageField
+
 SIDE_CHOICES = (
     ('LEFT', 'Left'),
     ('RIGHT', 'Right'),
@@ -36,7 +38,7 @@ class Icon(models.Model):
 
     title = models.CharField(max_length=255)
     url = models.URLField()
-    icon = models.ImageField(upload_to=icon_original_upload_to)
+    icon = VersatileImageField(upload_to=icon_original_upload_to)
 
     def __str__(self):
         return self.title
@@ -46,7 +48,7 @@ class Folder(models.Model):
     """A reusable folder"""
 
     title = models.CharField(max_length=255)
-    icon = models.ImageField(upload_to=icon_original_upload_to)
+    icon = VersatileImageField(upload_to=icon_original_upload_to)
 
     def __str__(self):
         return self.title

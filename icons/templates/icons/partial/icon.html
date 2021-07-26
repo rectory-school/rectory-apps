@@ -1,11 +1,7 @@
-{% load thumbnail %}
+<a href="{{ icon.url }}" target="_blank">
+    <div class="img-container">
+        <img src="{{ icon.icon.thumbnail.180x180 }}">
+    </div>
+    <p>{{ icon.title }}</p>
+</a>
 
-{% thumbnail icon.icon "90x90" as im %}
- 
-    <a href="{{ icon.url }}" target="_blank">
-        <div class="img-container">
-            <img src="{{ im.url }}">
-        </div>
-        <p>{{ icon.title }}</p>
-    </a>
-{% endthumbnail %}

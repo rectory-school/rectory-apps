@@ -13,6 +13,20 @@ class PageDetail(DetailView):
 
     model = models.Page
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        qs = qs.prefetch_related('page_folders',
+                                 'page_folders__folder',
+                                 'page_folders__folder__folder_icons',
+                                 'page_folders__folder__folder_icons__icon',
+                                 'page_icons',
+                                 'page_icons__icon',
+                                 'crosslinks',
+                                 'crosslinks__crosslink',)
+
+        return qs
+
     def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
@@ -32,39 +46,52 @@ class PageDetail(DetailView):
     def get_folder_modals(self) -> List[Folder]:
         """Get the folder modals for template render"""
 
-        folders_by_id = self._get_folder_skeletons()
+        out = []
 
-        folder_icons = models.FolderIcon.objects.filter(folder__pk__in=folders_by_id.keys())
-        for row in folder_icons.values('folder__pk', 'icon__title', 'icon__icon', 'icon__url'):
-            folder_id = row['folder__pk']
+        for page_folder in self.object.page_folders.all():
+            assert isinstance(page_folder, models.PageFolder)
 
-            # Note: default sort is position, so we don't need to sort twice. Let the database do it.
-            icon = LinkIcon(None, row['icon__title'], row['icon__icon'], row['icon__url'])
-            folders_by_id[folder_id].icons.append(icon)
+            db_folder = page_folder.folder
+            assert isinstance(db_folder, models.Folder)
 
-        return folders_by_id.values()
+            icons = []
+            for folder_icon in db_folder.folder_icons.all():
+                assert isinstance(folder_icon, models.FolderIcon)
+
+                icon = folder_icon.icon
+                assert isinstance(icon, models.Icon)
+
+                icons.append(Icon(position=folder_icon.position, title=icon.title, icon=icon.icon))
+
+            out.append(Folder(folder_id=db_folder.pk, title=db_folder.title, icons=icons))
+
+        return out
 
     def get_icons(self) -> List[Icon]:
         """Get the icons for template display"""
 
         out = []
-        page_icons = models.PageIcon.objects.filter(page=self.object)
-        for row in page_icons.values('position', 'icon__title', 'icon__icon', 'icon__url'):
-            icon = LinkIcon(position=row['position'],
-                            title=row['icon__title'],
-                            icon=row['icon__icon'],
-                            url=row['icon__url'])
+        for page_icon in self.object.page_icons.all():
+            assert isinstance(page_icon, models.PageIcon)
 
-            out.append(icon)
+            icon = page_icon.icon
+            assert isinstance(icon, models.Icon)
 
-        page_folders = models.PageFolder.objects.filter(page=self.object)
-        for row in page_folders.values('position', 'folder__pk', 'folder__title', 'folder__icon'):
-            icon = FolderIcon(position=row['position'],
-                              folder_id=row['folder__pk'],
-                              title=row['folder__title'],
-                              icon=row['folder__icon'])
+            out.append(LinkIcon(position=page_icon.position,
+                                title=icon.title,
+                                icon=icon.icon,
+                                url=icon.url))
 
-            out.append(icon)
+        for page_folder in self.object.page_folders.all():
+            assert isinstance(page_folder, models.PageFolder)
+
+            folder = page_folder.folder
+            assert isinstance(folder, models.Folder)
+
+            out.append(FolderIcon(position=page_folder.position,
+                                  folder_id=folder.id,
+                                  title=folder.title,
+                                  icon=folder.icon))
 
         out.sort(key=lambda obj: obj.position)
         return out
@@ -85,18 +112,6 @@ class PageDetail(DetailView):
                 right.append(crosslink.crosslink)
 
         return (left, right)
-
-    def _get_folder_skeletons(self) -> Dict[int, Folder]:
-        """Get the folders without their icons, organized by folder ID"""
-
-        page_folders = models.PageFolder.objects.filter(page=self.object)
-
-        folders_by_id = {}
-        for row in page_folders.values('folder__pk', 'folder__title'):
-            folder = Folder(folder_id=row['folder__pk'], title=row['folder__title'])
-            folders_by_id[folder.folder_id] = folder
-
-        return folders_by_id
 
 
 class PageList(ListView):

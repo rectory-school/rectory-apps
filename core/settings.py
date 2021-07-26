@@ -35,6 +35,8 @@ AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY", default=None)
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default=None)
 
 DEFAULT_FILE_STORAGE = env("DEFAULT_FILE_STORAGE", default="django.core.files.storage.FileSystemStorage")
+AWS_DEFAULT_ACL = 'public-read'
+AWS_QUERYSTRING_AUTH = False
 
 # Application definition
 
@@ -56,7 +58,7 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
     'django_bootstrap_breadcrumbs',
-    'sorl.thumbnail',
+    'versatileimagefield',
     'rest_framework',
 
     'accounts',
@@ -168,4 +170,4 @@ INTERNAL_IPS = [
 
 LOGIN_REDIRECT_URL = "/"
 
-THUMBNAIL_PRESERVE_FORMAT = True
+RESULTS_CACHE_SIZE = 2500
