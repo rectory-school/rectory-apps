@@ -82,6 +82,9 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
             end_date = date(year, month, end_day)
 
             gen = grids.CalendarGridGenerator(date_letter_map=days_dict,
+                                              label_map=labels_dict,
+                                              start_date=start_date,
+                                              end_date=end_date)
             month_grids.append(MonthGrid(year=year, month=month, grid=gen.get_grid()))
 
         today = date.today()
@@ -125,6 +128,11 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         self._label_map = None
 
         self._canvas = None
+
+    def get_style_index(self) -> int:
+        """Get the style index to use"""
+
+        return self.kwargs['style_index']
 
     @property
     def is_embedded(self) -> bool:
@@ -207,7 +215,7 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
             return HttpResponseNotFound()
 
         try:
-            style = pdf_presets.AVAILABLE_COLOR_PRESETS[self.kwargs['style_index']][1]
+            style = pdf_presets.AVAILABLE_COLOR_PRESETS[self.get_style_index()][1]
         except IndexError:
             return HttpResponseNotFound("That color preset could not be found")
 
@@ -274,6 +282,47 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
 
 class PDFCustom(PDFBaseView):
     """PDF Custom View"""
+
+    @property
+    def is_embedded(self) -> bool:
+        return self.request.GET.get("size") == "embedded"
+
+    def get_style_index(self) -> int:
+        return int(self.request.GET["style"])
+
+    def draw_pdf(self):
+        title = self.request.GET.get("title")
+        raw_start_date = self.request.GET["start-date"]
+        raw_end_date = self.request.GET["end-date"]
+
+        start_date = date(*map(int, raw_start_date.split("-")))
+        end_date = date(*map(int, raw_end_date.split("-")))
+
+        grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map,
+                                                     label_map=self._label_map,
+                                                     start_date=start_date,
+                                                     end_date=end_date,
+                                                     custom_title=title)
+        grid = grid_generator.get_grid()
+
+        gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=self._style,
+                                    left_offset=self.left_margin, bottom_offset=self.bottom_margin,
+                                    width=self.inner_width, height=self.inner_height)
+
+        gen.draw()
+        self._canvas.showPage()
+
+    def get_filename(self) -> str:
+        if title := self.request.GET.get("title"):
+            return f"{self._calendar.title} - {title}.pdf"
+
+        return f"{self._calendar.title} - Custom.pdf"
+
+    def get_title(self) -> Optional[str]:
+        if title := self.request.GET.get("title"):
+            return title
+
+        return self._calendar.title
 
 
 class PDFMonth(PDFBaseView):
