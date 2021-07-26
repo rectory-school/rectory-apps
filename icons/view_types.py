@@ -20,6 +20,7 @@ class LinkIcon(Icon):
 
     icon_type = 'link'
     url: str
+    page_icon_id: int
 
 
 @dataclass
@@ -28,6 +29,7 @@ class FolderIcon(Icon):
 
     icon_type = 'folder'
     folder_id: int
+    page_folder_id: int
 
 
 @dataclass

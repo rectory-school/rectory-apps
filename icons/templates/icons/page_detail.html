@@ -15,10 +15,13 @@
 
     <script src="{% static 'pkg/jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
     <script src="{% static 'icons/icons.js' %}"></script>
+
+    {{ csrf_token|escapejs|json_script:"csrf_token" }}
+    {{ sort_url|json_script:"sort_url" }}
 {% endblock %}
 
 {% block content %}
-    <div class="icons">
+    <div class="icons sortable hide-during-sort-saving">
         {% for item in icons %}
             {% if item.icon_type == "link" %}
                 {% include "icons/partial/icon.html" with icon=item %}
@@ -30,7 +33,7 @@
         {% endfor %}
     </div>
 
-    <div class="crosslinks">
+    <div class="crosslinks hide-during-sort-saving">
         <div class="row">
             <div class="col-4">
                 {% for page in crosslinks_left %}
@@ -43,7 +46,8 @@
             <div class="col-4" style="text-align: center;">
                 {% if has_admin_access and perms.icons.change_page %}
                     <p>
-                        <a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a> &bullet;
+                        <a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a>
+                        <span class="hide-during-sort-saving">&bullet;</span>
                         <span class="hide-during-sort">
                             <a href="#" class="enable-icon-sort">Modify icon order</a>
                         </span>
@@ -60,6 +64,14 @@
 
                     {% if not forloop.last %} &bullet; {% endif %}
                 {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="show-during-sort-saving">
+        <div class="row">
+            <div class="col-12">
+                <p id="data-save-progerss">Data save in progress</div>
             </div>
         </div>
     </div>

@@ -8,5 +8,6 @@ from . import views
 app_name = 'icons'
 urlpatterns = [
     path('', views.PageList.as_view(), name='page-list'),
-    path('<slug:slug>/', views.PageDetail.as_view(), name="page"),
+    path('set_positions/', views.set_page_positions, name="set-sort-positions"),
+    path('web/<slug:slug>/', views.PageDetail.as_view(), name="page"),
 ]

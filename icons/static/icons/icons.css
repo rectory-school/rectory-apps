@@ -34,3 +34,7 @@ div.icons div.img-container {
 .show-during-sort {
     display: none;
 }
+
+.show-during-sort-saving {
+    display: none;
+}
