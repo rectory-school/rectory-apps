@@ -68,6 +68,7 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         months = set()
 
         days_dict = self.object.get_date_letter_map()
+        labels_dict = self.object.get_arbitrary_labels()
 
         for date_key in days_dict:
             months.add((date_key.year, date_key.month))
@@ -75,7 +76,7 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         month_grids = []
         # Shove all the HTML calendars in
         for year, month in sorted(months):
-            gen = grids.CalendarGridGenerator(date_letter_map=days_dict, year=year, month=month)
+            gen = grids.CalendarGridGenerator(date_letter_map=days_dict, label_map=labels_dict, year=year, month=month)
             month_grids.append(MonthGrid(year=year, month=month, grid=gen.get_grid()))
 
         today = date.today()

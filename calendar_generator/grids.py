@@ -22,6 +22,7 @@ class GridItem:
 
     date: date
     letter: Optional[str]
+    is_label: bool = False
 
 
 @dataclass
@@ -38,9 +39,14 @@ class CalendarGridGenerator:
     """A generator that makes a calendar grid"""
 
     date_letter_map: Dict[date, str]
+    label_map: Dict[date, str]
+
     year: int
     month: int
     week_start: int = 6
+
+    custom_title: Optional[str] = None
+    perform_date_range_check: bool = True
 
     def get_used_weekdays(self) -> Set[int]:
         """The weekdays that have been used by all the dates together"""
@@ -49,6 +55,9 @@ class CalendarGridGenerator:
 
         for letter_date in self.date_letter_map.keys():
             out.add(letter_date.weekday())
+
+        for label_date in self.label_map.keys():
+            out.add(label_date.weekday())
 
         return out
 
@@ -74,11 +83,15 @@ class CalendarGridGenerator:
             Will either be a grid item, or a None if it's out of our month range
             """
 
-            if date_val.year != self.year:
-                return None
+            if self.perform_date_range_check:
+                if date_val.year != self.year:
+                    return None
 
-            if date_val.month != self.month:
-                return None
+                if date_val.month != self.month:
+                    return None
+
+            if date_val in self.label_map:
+                return GridItem(date_val, self.label_map[date_val], is_label=True)
 
             return GridItem(date_val, self.date_letter_map.get(date_val))
 

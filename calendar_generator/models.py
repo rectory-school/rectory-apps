@@ -99,6 +99,18 @@ class Calendar(models.Model):
 
         return out
 
+    def get_arbitrary_labels(self) -> Dict[datetime.date, str]:
+        """Get all the arbitrary labels"""
+
+        out = {}
+
+        for obj in self.labels.all():
+            assert isinstance(obj, ArbitraryLabel)
+
+            out[obj.date] = obj.label
+
+        return out
+
     def get_all_skip_days(self) -> Set[datetime.date]:
         """Return all the dates that should be skipped in the calendar"""
 
