@@ -1,4 +1,4 @@
-<a href="{{ icon.url }}" target="_blank" data-sortid="icon-{{ icon.page_icon_id }}"">
+<a href="{{ icon.url }}" target="_blank" {% if icon.page_icon_id %}data-sortid="icon-{{ icon.page_icon_id }}"{% endif %}>
     <div class="img-container">
         <img src="{{ icon.icon.thumbnail.180x180 }}">
     </div>
