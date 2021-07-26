@@ -34,6 +34,8 @@ class CalendarStyle:
     header_text_color: colors.HexColor
     letter_color: colors.HexColor
     date_color: colors.HexColor
+    label_color: colors.HexColor
+
     title_color: Optional[colors.HexColor] = None
 
     outline_color: Optional[colors.HexColor] = None
@@ -208,8 +210,6 @@ class CalendarGenerator:
 
         font_size = self._get_letter_font_size()
         row_height = self._internal_remaining_height / self._row_count
-        self.canvas.setFillColor(self.style.letter_color)
-        self.canvas.setFont(self.style.letter_font_name, font_size)
 
         _, descent = pdfmetrics.getAscentDescent(self.style.letter_font_name, font_size)
 
@@ -220,9 +220,29 @@ class CalendarGenerator:
                 if not col or not col.letter:
                     continue
 
-                # We have to get the right bound here, thus the +1, and pad it out, thus the - 5%
-                x_pos = self._x_position + (col_index)*self._column_width + self._column_width * 0.05
-                self.canvas.drawString(x_pos, y_pos, col.letter)
+                if col.is_label:
+                    label_font_size = get_font_size_maximum_width(col.letter,
+                                                                  self._column_width*.9,
+                                                                  self.style.letter_font_name)
+
+                    _, label_descent = pdfmetrics.getAscentDescent(self.style.letter_font_name, label_font_size)
+
+                    label_y_pos = self._get_element_y_pos_from_top(label_font_size) \
+                        - (row_height * (row_index + 1)) \
+                        + label_font_size - label_descent
+
+                    x_pos = self._x_position + (col_index)*self._column_width + self._column_width/2
+
+                    self.canvas.setFont(self.style.letter_font_name, label_font_size)
+                    self.canvas.setFillColor(self.style.label_color)
+                    self.canvas.drawCentredString(x_pos, label_y_pos, col.letter)
+
+                else:
+                    self.canvas.setFont(self.style.letter_font_name, font_size)
+                    self.canvas.setFillColor(self.style.letter_color)
+                    # We have to get the right bound here, thus the +1, and pad it out, thus the - 5%
+                    x_pos = self._x_position + (col_index)*self._column_width + self._column_width * 0.05
+                    self.canvas.drawString(x_pos, y_pos, col.letter)
 
     def _draw_dates(self):
         if not self.style.date_color:
@@ -338,7 +358,7 @@ class CalendarGenerator:
         all_letters = set()
         for row in self.grid.grid:
             for col in row:
-                if col and col.letter:
+                if col and col.letter and not col.is_label:
                     all_letters.add(col.letter)
 
         letter_widths = (stringWidth(letter, self.style.letter_font_name, letter_font_size) for letter in all_letters)
@@ -359,7 +379,7 @@ class CalendarGenerator:
 
         for row in self.grid.grid:
             for col in row:
-                if col and col.letter:
+                if col and col.letter and not col.is_label:
                     all_letters.add(col.letter)
 
         # Letters get 80% of the cell

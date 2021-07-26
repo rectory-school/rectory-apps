@@ -78,7 +78,7 @@ def test_day_generation():
 
     models.SkipDate.objects.create(calendar=cal, date=date(2021, 1, 6))
     a_day = models.Day.objects.create(calendar=cal, letter="A", position=0)
-    b_day = models.Day.objects.create(calendar=cal, letter="B", position=1)
+    models.Day.objects.create(calendar=cal, letter="B", position=1)
     models.ResetDay.objects.create(calendar=cal, date=date(2021, 1, 12), day=a_day)
 
     expected = {

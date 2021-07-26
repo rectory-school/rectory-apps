@@ -25,4 +25,9 @@ urlpatterns = [
 
     path('calendar-<int:calendar_id>/pdf/style-<int:style_index>/one-page/',
          views.PDFOnePage.as_view(),
-         name='one-page-pdf'), ]
+         name='one-page-pdf'),
+
+    path('calendar-<int:calendar_id>/pdf/custom/',
+         views.PDFCustom.as_view(),
+         name='custom-pdf'),
+]

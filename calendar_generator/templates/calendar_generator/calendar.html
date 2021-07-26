@@ -54,6 +54,9 @@
             {% endif %}
         {% endfor %}
     </li>
+    <li>
+        <a href="#modal-custom-calendar" data-toggle="modal">Custom PDF</a>
+    </li>
 </ul>
 
 {% if today_letter %}
@@ -126,7 +129,11 @@
                         <span class="date">{{ day.date.day }}</span>
 
                         {% if day.letter %}
-                            <span class="letter">{{ day.letter }}</span>
+                            {% if day.is_label %}
+                                <span class="label">{{ day.letter }}</span>
+                            {% else %}
+                                <span class="letter">{{ day.letter }}</span>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </td>
@@ -137,4 +144,59 @@
     </table>
 </div>
 {% endfor %}
+
+<div class="modal" tabindex="-1" role="dialog" id="modal-custom-calendar">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate a Custom Calendar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="noprint" action="{% url 'calendar_generator:custom-pdf' calendar_id=object.id %}">
+                    <div class="form-group">
+                        <label for="customCalendarSize">Size</label>
+                        
+                        <select class="form-control" name="size" id="customCalendarSize">
+                            <option value="print">Print</option>
+                            <option value="embedded">Embedded</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customCalendarTitle">Title</label>
+                        
+                        <input type="text" class="form-control" name="title" id="customCalendarTitle" value="{{ object.title }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customCalendarColor">Color style</label>
+                        
+                        <select class="form-control" name="style" id="customCalendarColor">
+                            {% for i, name in style_presets %}
+                                <option value="{{ i }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customCalendarStart">Start date</label>
+                        <input type="date" class="form-control" name="start-date" id="customCalendarStart" value={{ object.start_date|date:"Y-m-d" }}>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customCalendarEnd">End date</label>
+                        <input type="date" class="form-control" name="end-date" id="customCalendarEnd" value={{ object.end_date|date:"Y-m-d" }}>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Get calendar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+        
+
 {% endblock %}

@@ -23,6 +23,13 @@ class SkipDateInline(admin.TabularInline):
     extra = 0
 
 
+class DateLabelInline(admin.TabularInline):
+    """Inline for a label in a calendar"""
+
+    model = models.ArbitraryLabel
+    extra = 0
+
+
 class ResetDayAdminFormset(forms.BaseInlineFormSet):
     """Override reset day admin formset to get a reference to the parent"""
 
@@ -60,4 +67,4 @@ class ResetDayAdmin(admin.TabularInline):
 class CalendarAdmin(admin.ModelAdmin):
     """Admin for a calendar"""
 
-    inlines = [DayInline, SkipDateInline, ResetDayAdmin]
+    inlines = [DayInline, SkipDateInline, ResetDayAdmin, DateLabelInline]

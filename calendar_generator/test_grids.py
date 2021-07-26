@@ -70,7 +70,7 @@ def test_grid_generation():
 
     expected = grids.CalendarGrid(title="March 2021", headers=expected_headers, grid=expected_grid)
 
-    generator = grids.CalendarGridGenerator(date_letter_map=days, year=2021, month=3, week_start=6)
+    generator = grids.CalendarGridGenerator(date_letter_map=days, label_map={}, year=2021, month=3, week_start=6)
     actual = generator.get_grid()
 
     assert actual == expected
@@ -147,7 +147,7 @@ def test_last_empty():
 
     expected = grids.CalendarGrid(title="October 2021", headers=expected_headers, grid=expected_grid)
 
-    generator = grids.CalendarGridGenerator(date_letter_map=days, year=2021, month=10, week_start=6)
+    generator = grids.CalendarGridGenerator(date_letter_map=days, label_map={}, year=2021, month=10, week_start=6)
     actual = generator.get_grid()
 
     assert actual == expected
