@@ -32,31 +32,39 @@
 
     <div class="crosslinks">
         <div class="row">
-            <div class="col-6">
+            <div class="col-4">
                 {% for page in crosslinks_left %}
                     <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+
+                    {% if not forloop.last %} &bullet; {% endif %}
                 {% endfor %}
             </div>
 
-            <div class="col-6" style="text-align: right;">
+            <div class="col-4" style="text-align: center;">
+                {% if has_admin_access and perms.icons.change_page %}
+                    <p>
+                        <a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a> &bullet;
+                        <span class="hide-during-sort">
+                            <a href="#" class="enable-icon-sort">Modify icon order</a>
+                        </span>
+                        <span class="show-during-sort">
+                            <a href="#" class="save-icon-order">Save icon order</a>
+                        </span>
+                    </p>
+                {% endif %}
+            </div>
+
+            <div class="col-4" style="text-align: right;">
                 {% for page in crosslinks_right %}
                     <a href="{% url 'icons:page' slug=page.slug %}">{{ page.title }}</a>
+
+                    {% if not forloop.last %} &bullet; {% endif %}
                 {% endfor %}
             </div>
         </div>
     </div>
 
-    {% if has_admin_access and perms.icons.change_page %}
-        <p>
-            <a href="{% url 'admin:icons_page_change' object_id=page.id %}">Edit this page</a> &bullet;
-            <span class="hide-during-sort">
-                <a href="#" class="enable-icon-sort">Modify icon order</a>
-            </span>
-            <span class="show-during-sort">
-                <a href="#" class="save-icon-order">Save icon order</a>
-            </span>
-        </p>
-    {% endif %}
+
 
     <!-- folder modals-->
     {% for folder in folders %}
