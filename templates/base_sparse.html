@@ -37,10 +37,8 @@
 </head>
 
 <body>
-    {% include "nav/nav.html" %}
     <div class="container main">
         {% bootstrap_messages %}
-        {% render_breadcrumbs "django_bootstrap_breadcrumbs/bootstrap4.html" %}
 
         {% block content %}
         {% endblock %}
