@@ -28,3 +28,9 @@ div.calendar table span.letter {
     font-size: 36px;
     float: left;
 }
+
+div.calendar table span.label {
+    display: block;
+    font-size: 14px;
+    float: left;
+}

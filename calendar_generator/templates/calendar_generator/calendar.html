@@ -126,7 +126,11 @@
                         <span class="date">{{ day.date.day }}</span>
 
                         {% if day.letter %}
-                            <span class="letter">{{ day.letter }}</span>
+                            {% if day.is_label %}
+                                <span class="label">{{ day.letter }}</span>
+                            {% else %}
+                                <span class="letter">{{ day.letter }}</span>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </td>
