@@ -217,5 +217,29 @@ class ResetDay(models.Model):
         assert isinstance(self.day, Day)
         assert isinstance(self.calendar, Calendar)
 
+        if self.date not in self.calendar.get_date_letter_map():
+            raise ValidationError("Reset date was not within calendar")
+
         if self.day.calendar != self.calendar:
             raise ValidationError("Reset day must be in a linked calendar")
+
+
+class ArbitraryLabel(models.Model):
+    """An arbitrary label on the calendar"""
+
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='labels')
+    date = models.DateField()
+    label = models.CharField(max_length=64)
+
+    class Meta:
+        unique_together = (
+            ('calendar', 'date'),
+        )
+
+        ordering = ['date']
+
+    def clean(self):
+        assert isinstance(self.calendar, Calendar)
+
+        if self.date not in self.calendar.get_date_letter_map():
+            raise ValidationError("Label date was not within calendar")
