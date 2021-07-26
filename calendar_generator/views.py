@@ -117,6 +117,8 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         self._calendar = None
         self._style = None
         self._letter_map = None
+        self._label_map = None
+        
         self._canvas = None
 
     @property
@@ -194,6 +196,7 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
             assert isinstance(calendar, models.Calendar)
             self._calendar = calendar
             self._letter_map = calendar.get_date_letter_map()
+            self._label_map = calendar.get_arbitrary_labels()
 
         except models.Calendar.DoesNotExist:
             return HttpResponseNotFound()
@@ -271,7 +274,10 @@ class PDFMonth(PDFBaseView):
         year = self.kwargs["year"]
         month = self.kwargs["month"]
 
-        grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map, year=year, month=month)
+        grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map,
+                                                     label_map=self._label_map,
+                                                     year=year,
+                                                     month=month)
         grid = grid_generator.get_grid()
 
         gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=self._style,

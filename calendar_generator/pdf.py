@@ -34,6 +34,8 @@ class CalendarStyle:
     header_text_color: colors.HexColor
     letter_color: colors.HexColor
     date_color: colors.HexColor
+    label_color: colors.HexColor
+
     title_color: Optional[colors.HexColor] = None
 
     outline_color: Optional[colors.HexColor] = None

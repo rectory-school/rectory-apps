@@ -110,5 +110,8 @@ class CalendarGridGenerator:
     def title(self) -> str:
         """Get the title of a calendar with this grid"""
 
+        if self.custom_title:
+            return self.custom_title
+
         sample_date = date(self.year, self.month, 1)
         return sample_date.strftime("%B %Y")
