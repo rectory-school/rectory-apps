@@ -10,7 +10,7 @@ black_and_white = pdf.CalendarStyle(
     outline_color=colors.black,
     grid_line_color=colors.black,
     title_color=colors.black,
-    label_color=colors.gray,
+    label_color=colors.darkgray,
 
     header_background_color=colors.black,
 
@@ -23,7 +23,7 @@ rectory_colors = pdf.CalendarStyle(
     outline_color=rectory_orange,
     grid_line_color=rectory_orange,
     title_color=rectory_orange,
-    label_color=colors.gray,
+    label_color=colors.darkgray,
 
     header_background_color=rectory_orange,
     header_divider_color=colors.white,
@@ -37,7 +37,7 @@ blues = pdf.CalendarStyle(
     outline_color=colors.darkblue,
     grid_line_color=colors.darkblue,
     title_color=colors.darkblue,
-    label_color=colors.gray,
+    label_color=colors.darkgray,
 
     header_background_color=colors.darkblue,
     header_divider_color=colors.white,

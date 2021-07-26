@@ -3,6 +3,7 @@
 import dataclasses
 from dataclasses import dataclass
 from datetime import date
+import calendar
 
 from typing import Dict, Any, Optional, Tuple
 
@@ -118,7 +119,7 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         self._style = None
         self._letter_map = None
         self._label_map = None
-        
+
         self._canvas = None
 
     @property
@@ -192,11 +193,11 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         calendar_id = self.kwargs["calendar_id"]
 
         try:
-            calendar = models.Calendar.objects.get(pk=calendar_id)
-            assert isinstance(calendar, models.Calendar)
-            self._calendar = calendar
-            self._letter_map = calendar.get_date_letter_map()
-            self._label_map = calendar.get_arbitrary_labels()
+            calendar_obj = models.Calendar.objects.get(pk=calendar_id)
+            assert isinstance(calendar_obj, models.Calendar)
+            self._calendar = calendar_obj
+            self._letter_map = calendar_obj.get_date_letter_map()
+            self._label_map = calendar_obj.get_arbitrary_labels()
 
         except models.Calendar.DoesNotExist:
             return HttpResponseNotFound()
@@ -267,6 +268,10 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         raise NotImplementedError
 
 
+class PDFCustom(PDFBaseView):
+    """PDF Custom View"""
+
+
 class PDFMonth(PDFBaseView):
     """PDF views of a single calendar month"""
 
@@ -274,10 +279,12 @@ class PDFMonth(PDFBaseView):
         year = self.kwargs["year"]
         month = self.kwargs["month"]
 
+        _, end_day = calendar.monthrange(year, month)
+
         grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map,
                                                      label_map=self._label_map,
-                                                     year=year,
-                                                     month=month)
+                                                     start_date=date(year, month, 1),
+                                                     end_date=date(year, month, end_day))
         grid = grid_generator.get_grid()
 
         gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=self._style,
@@ -309,7 +316,15 @@ class PDFMonths(PDFBaseView):
             all_months.add((day.year, day.month))
 
         for year, month in sorted(all_months):
-            grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map, year=year, month=month)
+            start_date = date(year, month, 1)
+            _, end_day = calendar.monthrange(year, month)
+            end_date = date(year, month, end_day)
+
+            grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map,
+                                                         label_map=self._label_map,
+                                                         start_date=start_date,
+                                                         end_date=end_date)
+
             grid = grid_generator.get_grid()
 
             gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=self._style,
@@ -370,7 +385,14 @@ class PDFOnePage(PDFBaseView):
                     # This might happen on the last calendar
                     continue
 
-                grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map, year=year, month=month)
+                start_date = date(year, month, 1)
+                _, end_day = calendar.monthrange(year, month)
+                end_date = date(year, month, end_day)
+
+                grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map,
+                                                             label_map=self._label_map,
+                                                             start_date=start_date,
+                                                             end_date=end_date)
                 grid = grid_generator.get_grid()
 
                 left_offset = self.left_margin + col_index * (col_width + col_pad)
