@@ -4,6 +4,7 @@ import dataclasses
 from dataclasses import dataclass
 from datetime import date
 import calendar
+import functools
 
 from typing import Dict, Any, Optional, Tuple
 
@@ -11,10 +12,11 @@ from io import BytesIO
 
 import math
 
-from django.http.response import HttpResponse
-from django.views.generic import DetailView, ListView, View
-from django.http import FileResponse, HttpResponseNotFound
+from django.views.generic import DetailView, ListView, View, FormView
+
+from django.http import FileResponse, HttpResponseNotFound, HttpResponse
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.shortcuts import get_object_or_404
 
 from reportlab.pdfgen import canvas
 from reportlab.lib import pagesizes
@@ -24,6 +26,7 @@ from . import models
 from . import grids
 from . import pdf_presets
 from . import pdf
+from . import forms
 
 ONE_PAGE_PDF_COL_COUNT = 2
 
@@ -103,8 +106,74 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
                                  for obj in self.object.reset_days.select_related('day').all())
 
         context['calendars'] = month_grids
+        context['custom_calendar_form'] = forms.CustomCalendarForm(calendar=self.object)
 
         return context
+
+
+class CustomPDF(FormView):
+    """FormView for custom PDF"""
+
+    template_name = "calendar_generator/custom_pdf.html"
+    form_class = forms.CustomCalendarForm
+
+    def form_valid(self, form: forms.CustomCalendarForm) -> HttpResponse:
+        calendar = self.get_calendar()
+
+        size_index = int(form.cleaned_data["size"])
+        title = form.cleaned_data["title"]
+        style_index = int(form.cleaned_data["style"])
+        start_date = form.cleaned_data["start_date"]
+        end_date = form.cleaned_data["end_date"]
+
+        letter_map = calendar.get_date_letter_map()
+        label_map = calendar.get_arbitrary_labels()
+
+        grid_generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
+                                                     label_map=label_map,
+                                                     start_date=start_date,
+                                                     end_date=end_date,
+                                                     custom_title=title)
+        grid = grid_generator.get_grid()
+
+        _, style = pdf_presets.AVAILABLE_COLOR_PRESETS[style_index]
+        _, size = pdf_presets.AVAILABLE_SIZE_PRESETS[size_index]
+
+        buf = BytesIO()
+        pdf_canvas = canvas.Canvas(buf, pagesize=(size.width, size.height))
+
+        gen = pdf.CalendarGenerator(canvas=pdf_canvas, grid=grid, style=style,
+                                    left_offset=size.left_margin, bottom_offset=size.bottom_margin,
+                                    width=size.inner_width, height=size.inner_height)
+
+        gen.draw()
+        pdf_canvas.showPage()
+        pdf_canvas.save()
+        buf.seek(0)
+
+        file_name = f"{calendar.title} - {start_date} to {end_date}.pdf"
+
+        return FileResponse(buf, filename=file_name)
+
+    def get_form_kwargs(self) -> Dict[str, Any]:
+        kwargs = super().get_form_kwargs()
+
+        kwargs["calendar"] = self.get_calendar()
+
+        return kwargs
+
+    def get_context_data(self, **kwargs: Dict[str, any]) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        context["calendar"] = self.get_calendar()
+
+        return context
+
+    @functools.cache
+    def get_calendar(self) -> models.Calendar:
+        """Get the calendar we are working on"""
+
+        return get_object_or_404(models.Calendar, pk=self.kwargs["calendar_id"])
 
 
 class PDFBaseView(CalendarViewPermissionRequired, View):
@@ -278,51 +347,6 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
         """Return the filename for the PDF"""
 
         raise NotImplementedError
-
-
-class PDFCustom(PDFBaseView):
-    """PDF Custom View"""
-
-    @property
-    def is_embedded(self) -> bool:
-        return self.request.GET.get("size") == "embedded"
-
-    def get_style_index(self) -> int:
-        return int(self.request.GET["style"])
-
-    def draw_pdf(self):
-        title = self.request.GET.get("title")
-        raw_start_date = self.request.GET["start-date"]
-        raw_end_date = self.request.GET["end-date"]
-
-        start_date = date(*map(int, raw_start_date.split("-")))
-        end_date = date(*map(int, raw_end_date.split("-")))
-
-        grid_generator = grids.CalendarGridGenerator(date_letter_map=self._letter_map,
-                                                     label_map=self._label_map,
-                                                     start_date=start_date,
-                                                     end_date=end_date,
-                                                     custom_title=title)
-        grid = grid_generator.get_grid()
-
-        gen = pdf.CalendarGenerator(canvas=self._canvas, grid=grid, style=self._style,
-                                    left_offset=self.left_margin, bottom_offset=self.bottom_margin,
-                                    width=self.inner_width, height=self.inner_height)
-
-        gen.draw()
-        self._canvas.showPage()
-
-    def get_filename(self) -> str:
-        if title := self.request.GET.get("title"):
-            return f"{self._calendar.title} - {title}.pdf"
-
-        return f"{self._calendar.title} - Custom.pdf"
-
-    def get_title(self) -> Optional[str]:
-        if title := self.request.GET.get("title"):
-            return title
-
-        return self._calendar.title
 
 
 class PDFMonth(PDFBaseView):

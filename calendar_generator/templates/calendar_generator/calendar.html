@@ -1,5 +1,5 @@
-{% extends 'calendar_generator/base.html' %}
-{% load static django_bootstrap_breadcrumbs %}
+{% extends 'calendar_generator/calendar_base.html' %}
+{% load static bootstrap4 django_bootstrap_breadcrumbs %}
 
 {% block title %}Calendar: {{ object.title }}{% endblock %}
 
@@ -9,11 +9,7 @@
     <link rel="stylesheet" href="{% static 'calendar_generator/calendar.css' %}">
 {% endblock %}
 
-{% block breadcrumbs %}
-    {{ block.super }}
 
-    {% breadcrumb calendar.title calendar %}    
-{% endblock %}
 
 {% block content %}
 <h1>
@@ -55,7 +51,7 @@
         {% endfor %}
     </li>
     <li>
-        <a href="#modal-custom-calendar" data-toggle="modal">Custom PDF</a>
+        <a href="{% url 'calendar_generator:custom-pdf' calendar_id=calendar.pk %}">Custom PDF</a>
     </li>
 </ul>
 
@@ -155,43 +151,13 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form class="noprint" action="{% url 'calendar_generator:custom-pdf' calendar_id=object.id %}">
-                    <div class="form-group">
-                        <label for="customCalendarSize">Size</label>
-                        
-                        <select class="form-control" name="size" id="customCalendarSize">
-                            <option value="print">Print</option>
-                            <option value="embedded">Embedded</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customCalendarTitle">Title</label>
-                        
-                        <input type="text" class="form-control" name="title" id="customCalendarTitle" value="{{ object.title }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customCalendarColor">Color style</label>
-                        
-                        <select class="form-control" name="style" id="customCalendarColor">
-                            {% for i, name in style_presets %}
-                                <option value="{{ i }}">{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customCalendarStart">Start date</label>
-                        <input type="date" class="form-control" name="start-date" id="customCalendarStart" value={{ object.start_date|date:"Y-m-d" }}>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="customCalendarEnd">End date</label>
-                        <input type="date" class="form-control" name="end-date" id="customCalendarEnd" value={{ object.end_date|date:"Y-m-d" }}>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Get calendar</button>
+                <form action="{% url 'calendar_generator:custom-pdf' calendar_id=object.id %}">
+                    {% bootstrap_form custom_calendar_form %}
+                    {% buttons %}
+                        <button type="submit" class="btn btn-primary">
+                            Generate calendar
+                        </button>
+                    {% endbuttons %}
                 </form>
             </div>
         </div>
