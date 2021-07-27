@@ -103,8 +103,8 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
 
         context['day_rotation'] = [d.letter for d in self.object.days.all()]
         context['skipped_days'] = sorted((s.date, s.end_date) for s in self.object.skips.all())
-        context['reset_days'] = ((obj.date, obj.day.letter)
-                                 for obj in self.object.reset_days.select_related('day').all())
+        context['reset_days'] = [(obj.date, obj.day.letter)
+                                 for obj in self.object.reset_days.select_related('day').all()]
 
         context['calendars'] = month_grids
         context['custom_calendar_form'] = forms.CustomCalendarForm(calendar=self.object)
