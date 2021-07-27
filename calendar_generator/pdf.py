@@ -58,6 +58,30 @@ class CalendarStyle:
 
 
 @dataclass
+class SizeStyle:
+    """Preset for a PDF size"""
+
+    width: float
+    height: float
+    top_margin: float
+    bottom_margin: float
+    left_margin: float
+    right_margin: float
+
+    @property
+    def inner_height(self) -> float:
+        """Calculate the inner height of the PDF"""
+
+        return self.height - self.top_margin - self.bottom_margin
+
+    @property
+    def inner_width(self) -> float:
+        """Calculate the inner width of the PDF"""
+
+        return self.width - self.left_margin - self.right_margin
+
+
+@dataclass
 class CalendarGenerator:
     """A calendar generator draws a calendar on a canvas"""
 

@@ -118,7 +118,7 @@ class CustomPDF(FormView):
     form_class = forms.CustomCalendarForm
 
     def form_valid(self, form: forms.CustomCalendarForm) -> HttpResponse:
-        calendar = self.get_calendar()
+        calendar_obj = self.get_calendar()
 
         size_index = int(form.cleaned_data["size"])
         title = form.cleaned_data["title"]
@@ -126,8 +126,8 @@ class CustomPDF(FormView):
         start_date = form.cleaned_data["start_date"]
         end_date = form.cleaned_data["end_date"]
 
-        letter_map = calendar.get_date_letter_map()
-        label_map = calendar.get_arbitrary_labels()
+        letter_map = calendar_obj.get_date_letter_map()
+        label_map = calendar_obj.get_arbitrary_labels()
 
         grid_generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
                                                      label_map=label_map,
@@ -151,7 +151,7 @@ class CustomPDF(FormView):
         pdf_canvas.save()
         buf.seek(0)
 
-        file_name = f"{calendar.title} - {start_date} to {end_date}.pdf"
+        file_name = f"{calendar_obj.title} - {start_date} to {end_date}.pdf"
 
         return FileResponse(buf, filename=file_name)
 
