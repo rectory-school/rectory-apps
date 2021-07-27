@@ -1,7 +1,5 @@
 """PDF presets"""
 
-from dataclasses import dataclass
-
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 
@@ -66,13 +64,15 @@ letter_embedded = pdf.SizeStyle(width=11*inch, height=8.5*inch,
                                 left_margin=0, right_margin=0)
 
 
-def quick_size_preset(width: float, height: float, margins: float) -> pdf.SizeStyle:
+def _quick(width: float, height: float, margins: float) -> pdf.SizeStyle:
+    """Generate a size preset with equal margins"""
+
     return pdf.SizeStyle(width=width, height=height,
                          top_margin=margins, bottom_margin=margins,
                          left_margin=margins, right_margin=margins)
 
 
 AVAILABLE_SIZE_PRESETS = (
-    ("Letter Landscape: Print", quick_size_preset(11*inch, 8.5*inch, .5*inch)),
-    ("Letter Landscape: Embedded", quick_size_preset(11*inch, 8.5*inch, 0)),
+    ("Letter Landscape: Print", _quick(11*inch, 8.5*inch, .5*inch)),
+    ("Letter Landscape: Embedded", _quick(11*inch, 8.5*inch, 0)),
 )

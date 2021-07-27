@@ -2,6 +2,7 @@
 
 import os
 from dataclasses import dataclass
+import functools
 
 from typing import Optional
 
@@ -376,7 +377,6 @@ class CalendarGenerator:
                     all_dates.add(str(col.date.day))
 
         # Calculate how big we can be, up to 50% of the height of the cell
-        # TODO: This gets calculated twice
         letter_font_size = self._get_letter_font_size()
 
         all_letters = set()
@@ -398,6 +398,7 @@ class CalendarGenerator:
         # Allow either the width-based max from above, or half the cell height
         return min(theoretical_max, (self.height / self._row_count) * .5)
 
+    @functools.cache
     def _get_letter_font_size(self) -> float:
         all_letters = set()
 
