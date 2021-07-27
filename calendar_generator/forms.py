@@ -10,16 +10,16 @@ from django.utils.translation import ugettext as _
 from . import models
 from . import pdf_presets
 
-SIZE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_SIZE_PRESETS)]
-STYLE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_FORMAT_PRESETS)]
+SIZE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_LAYOUT_PRESETS)]
+STYLE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_STYLE_PRESETS)]
 
 
 class CustomCalendarForm(forms.Form):
     """Form to generate a custom calendar"""
 
-    size = forms.ChoiceField(choices=SIZE_CHOICES)
-    title = forms.CharField(max_length=255)
+    layout = forms.ChoiceField(choices=SIZE_CHOICES)
     style = forms.ChoiceField(choices=STYLE_CHOICES)
+    title = forms.CharField(max_length=255)
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
 

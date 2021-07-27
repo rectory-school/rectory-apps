@@ -1,7 +1,7 @@
 """PDF presets"""
 
 from reportlab.lib import colors
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, mm
 
 from . import pdf
 
@@ -48,7 +48,7 @@ blues = pdf.FormatStyle(
     date_color=colors.mediumblue,
 )
 
-AVAILABLE_FORMAT_PRESETS = (
+AVAILABLE_STYLE_PRESETS = (
     ("Black & White", black_and_white),
     ("Rectory Colors", rectory_colors),
     ("Blue", blues),
@@ -72,7 +72,14 @@ def _quick(width: float, height: float, margins: float) -> pdf.SizeStyle:
                          left_margin=margins, right_margin=margins)
 
 
-AVAILABLE_SIZE_PRESETS = (
-    ("Letter Landscape: Print", _quick(11*inch, 8.5*inch, .5*inch)),
-    ("Letter Landscape: Embedded", _quick(11*inch, 8.5*inch, 0)),
+AVAILABLE_LAYOUT_PRESETS = (
+    ("Letter: Print", _quick(11*inch, 8.5*inch, .5*inch)),
+    ("Letter: Embedded", _quick(11*inch, 8.5*inch, 0)),
+    ("Letter Vertical: Print", _quick(8.5*inch, 11*inch, .5*inch)),
+    ("Letter Vertical: Embedded", _quick(8.5*inch, 11*inch, 0)),
+
+    ("A4 Landscape: Print", _quick(297*mm, 210*mm, 17*mm)),
+    ("A4 Landscape: Embedded", _quick(297*mm, 210*mm, 0*mm)),
+    ("A4: Vertical Print", _quick(210*mm, 297*mm, 17*mm)),
+    ("A4: Vertical Embedded", _quick(210*mm, 297*mm, 0*mm)),
 )

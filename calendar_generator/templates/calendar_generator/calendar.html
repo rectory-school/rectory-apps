@@ -23,38 +23,22 @@
 {% endif %}
 
 <h2 class="noprint">PDF Links</h2>
-<ul class="noprint">
-    <li>Full year calendar: 
-        {% for i, name in style_presets %}
-            <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk style_index=i %}">{{ name }}</a>
-            {% if not forloop.last %}
+{% for layout_index, layout_name in layouts %}
+    <h3 class="noprint">{{ layout_name }}</h3>
+    <ul class="noprint">
+        {% for style_index, style_name in styles %}
+            <li>
+                {{ style_name }}: <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">All months</a>
                 &bullet;
-            {% endif %}
+                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">One Page</a>
+            </li>
         {% endfor %}
-    </li>
+    </ul>
+{% endfor %}
 
-    <li>Monthly calendars:
-        {% for i, name in style_presets %}
-            <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk style_index=i %}">{{ name }}</a>
-            {% if not forloop.last %}
-                &bullet;
-            {% endif %}
-        {% endfor %}
-    </li>
-
-    <li>Monthly calendars for embedding:
-        {% for i, name in style_presets %}
-            <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk style_index=i %}?embedded">{{ name }}</a>
-            {% if not forloop.last %}
-                &bullet;
-            {% endif %}
-        {% endfor %}
-    </li>
-    <li>
-        <a href="{% url 'calendar_generator:custom-pdf' calendar_id=calendar.pk %}">Custom PDF</a>
-    </li>
-</ul>
-
+    
+<p class="noprint"><a href="{% url 'calendar_generator:custom-pdf' calendar_id=calendar.pk %}">Custom PDF Generator</a></p>
+    
 {% if today_letter %}
     <h2 class="noprint">Today</h2>
     <p class="noprint"><strong>{{ today }}: {{ today_letter }}</strong></p>
@@ -95,20 +79,15 @@
 {% for calendar in calendars %}
 <div class="calendar">
     <h2>{{ calendar.first_date|date:"F Y" }}</h2>
-    <p class="noprint">
-        {% for i, name in style_presets %}
-            <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=i year=calendar.year month=calendar.month %}">{{ name }}</a>
-            &bullet;
+    <ul class="noprint">
+        {% for style_index, style_name in styles %}
+            {% for layout_index, layout_name in layouts %}
+                <li>
+                    <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ style_name }}: {{ layout_name }}</a>
+                </li>
+            {% endfor %}
         {% endfor %}
-
-        {% for i, name in style_presets %}
-            <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=i year=calendar.year month=calendar.month %}?embedded">{{ name }} Embedded</a>
-            
-            {% if not forloop.last %}
-                &bullet;
-            {% endif %}
-        {% endfor %}
-    </p>
+    </ul>
 
     <table class="table table-bordered">
         <thead>
@@ -139,30 +118,6 @@
         </tbody>
     </table>
 </div>
-{% endfor %}
-
-<div class="modal" tabindex="-1" role="dialog" id="modal-custom-calendar">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Generate a Custom Calendar</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form action="{% url 'calendar_generator:custom-pdf' calendar_id=object.id %}">
-                    {% bootstrap_form custom_calendar_form %}
-                    {% buttons %}
-                        <button type="submit" class="btn btn-primary">
-                            Generate calendar
-                        </button>
-                    {% endbuttons %}
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-        
+{% endfor %}      
 
 {% endblock %}
