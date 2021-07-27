@@ -7,7 +7,7 @@ from . import pdf
 
 rectory_orange = colors.Color(219/255.0, 119/255.0, 52/255.0)
 
-black_and_white = pdf.ColorStyle(
+black_and_white = pdf.FormatStyle(
     outline_color=colors.black,
     grid_line_color=colors.black,
     title_color=colors.black,
@@ -20,7 +20,7 @@ black_and_white = pdf.ColorStyle(
     date_color=colors.black,
 )
 
-rectory_colors = pdf.ColorStyle(
+rectory_colors = pdf.FormatStyle(
     outline_color=rectory_orange,
     grid_line_color=rectory_orange,
     title_color=rectory_orange,
@@ -34,7 +34,7 @@ rectory_colors = pdf.ColorStyle(
     date_color=rectory_orange,
 )
 
-blues = pdf.ColorStyle(
+blues = pdf.FormatStyle(
     outline_color=colors.darkblue,
     grid_line_color=colors.darkblue,
     title_color=colors.darkblue,
@@ -48,7 +48,7 @@ blues = pdf.ColorStyle(
     date_color=colors.mediumblue,
 )
 
-AVAILABLE_COLOR_PRESETS = (
+AVAILABLE_FORMAT_PRESETS = (
     ("Black & White", black_and_white),
     ("Rectory Colors", rectory_colors),
     ("Blue", blues),

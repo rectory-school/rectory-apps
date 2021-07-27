@@ -11,7 +11,7 @@ from . import models
 from . import pdf_presets
 
 SIZE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_SIZE_PRESETS)]
-STYLE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_COLOR_PRESETS)]
+STYLE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_FORMAT_PRESETS)]
 
 
 class CustomCalendarForm(forms.Form):

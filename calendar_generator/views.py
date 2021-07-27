@@ -95,7 +95,7 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         context["today_letter"] = None
         context["today"] = today
 
-        context["style_presets"] = [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_COLOR_PRESETS)]
+        context["style_presets"] = [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_FORMAT_PRESETS)]
 
         if today in days_dict:
             context["today_letter"] = days_dict[today]
@@ -136,7 +136,7 @@ class CustomPDF(FormView):
                                                      custom_title=title)
         grid = grid_generator.get_grid()
 
-        _, style = pdf_presets.AVAILABLE_COLOR_PRESETS[style_index]
+        _, style = pdf_presets.AVAILABLE_FORMAT_PRESETS[style_index]
         _, size = pdf_presets.AVAILABLE_SIZE_PRESETS[size_index]
 
         buf = BytesIO()
@@ -284,13 +284,13 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
             return HttpResponseNotFound()
 
         try:
-            style = pdf_presets.AVAILABLE_COLOR_PRESETS[self.get_style_index()][1]
+            style = pdf_presets.AVAILABLE_FORMAT_PRESETS[self.get_style_index()][1]
         except IndexError:
             return HttpResponseNotFound("That color preset could not be found")
 
         if self.is_embedded:
             style = dataclasses.copy.copy(style)
-            assert isinstance(style, pdf.ColorStyle)
+            assert isinstance(style, pdf.FormatStyle)
             style.outline_color = None
 
         self._style = style
@@ -442,7 +442,7 @@ class PDFOnePage(PDFBaseView):
         col_pad = col_width * .1
 
         style = dataclasses.copy.copy(self._style)
-        assert isinstance(style, pdf.ColorStyle)
+        assert isinstance(style, pdf.FormatStyle)
 
         # Find the longest header to calculate the size
         all_headers = [date(year, month, 1).strftime("%B %Y") for year, month in all_months]

@@ -29,7 +29,7 @@ _register_fonts()
 
 
 @dataclass
-class ColorStyle:
+class FormatStyle:
     """This is it's own class so I can keep them around as presets"""
 
     header_text_color: colors.HexColor
@@ -89,7 +89,7 @@ class CalendarGenerator:
     canvas: canvas.Canvas
     grid: grids.CalendarGrid
 
-    colors: ColorStyle
+    colors: FormatStyle
 
     left_offset: float
     bottom_offset: float
