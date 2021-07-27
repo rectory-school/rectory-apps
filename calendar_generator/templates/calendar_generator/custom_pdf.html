@@ -1,0 +1,22 @@
+{% extends "calendar_generator/calendar_base.html" %}
+{% load static bootstrap4 django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Custom PDF Generation" 'calendar_generator:custom-pdf' %}
+{% endblock %}
+
+{% block content %}
+<h1>Custom PDF generation: <em>{{calendar.title}}</em></h1>
+<p>{{ calendar.start_date }} to {{ calendar.end_date }}</p>
+<form method="POST">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {% buttons %}
+        <button type="submit" class="btn btn-primary">
+            Generate calendar
+        </button>
+    {% endbuttons %}
+</form>
+{% endblock %}

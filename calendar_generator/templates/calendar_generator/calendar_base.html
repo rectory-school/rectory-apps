@@ -1,0 +1,8 @@
+{% extends 'calendar_generator/base.html' %}
+{% load static bootstrap4 django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb calendar.title calendar %}    
+{% endblock %}

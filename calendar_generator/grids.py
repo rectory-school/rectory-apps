@@ -23,7 +23,7 @@ class GridItem:
 
     date: date
     letter: Optional[str]
-    is_label: bool = False
+    label: Optional[str]
 
 
 @dataclass
@@ -111,10 +111,10 @@ class CalendarGridGenerator:
             Will either be a grid item, or a None if it's out of our month range
             """
 
-            if date_val in self.label_map:
-                return GridItem(date_val, self.label_map[date_val], is_label=True)
+            letter = self.date_letter_map.get(date_val)
+            label = self.label_map.get(date_val)
 
-            return GridItem(date_val, self.date_letter_map.get(date_val))
+            return GridItem(date_val, letter, label)
 
         for week in full_grid:
             week_entries = [get_entry(d) for d in week]

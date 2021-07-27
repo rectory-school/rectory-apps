@@ -15,19 +15,19 @@ urlpatterns = [
          views.Calendar.as_view(),
          name='calendar'),
 
-    path('calendar-<int:calendar_id>/pdf/style-<int:style_index>/<int:year>/<int:month>/',
+    path('calendar-<int:calendar_id>/pdf/color-<int:style_index>/size-<int:layout_index>/<int:year>/<int:month>/',
          views.PDFMonth.as_view(),
          name='month-pdf'),
 
-    path('calendar-<int:calendar_id>/pdf/style-<int:style_index>/all_months/',
+    path('calendar-<int:calendar_id>/pdf/style-<int:style_index>/size-<int:layout_index>/all_months/',
          views.PDFMonths.as_view(),
          name='months-pdf'),
 
-    path('calendar-<int:calendar_id>/pdf/style-<int:style_index>/one-page/',
+    path('calendar-<int:calendar_id>/pdf/style-<int:style_index>/size-<int:layout_index>/one-page/',
          views.PDFOnePage.as_view(),
          name='one-page-pdf'),
 
     path('calendar-<int:calendar_id>/pdf/custom/',
-         views.PDFCustom.as_view(),
+         views.CustomPDF.as_view(),
          name='custom-pdf'),
 ]
