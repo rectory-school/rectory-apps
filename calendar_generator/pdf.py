@@ -277,38 +277,25 @@ class CalendarGenerator:
         default_letter_font_size = self._get_letter_font_size()
         row_height = self._internal_remaining_height / self._row_count
 
-        _, default_descent = pdfmetrics.getAscentDescent(self.display_style.letter_font_name, default_letter_font_size)
+        _, default_letter_descent = pdfmetrics.getAscentDescent(
+            self.display_style.letter_font_name, default_letter_font_size)
 
         for row_index, row in enumerate(self.grid.grid):
-            y_pos = self._get_element_y_pos_from_top(
-                default_letter_font_size + row_height*row_index) - default_descent/2
-
             for col_index, col in enumerate(row):
                 if not col:
                     continue
 
-                if col.letter:
-                    self.canvas.setFont(self.display_style.letter_font_name, default_letter_font_size)
-                    self.canvas.setFillColor(self.display_style.letter_color)
-
-                    # We have to get the right bound here, thus the +1, and pad it out, thus the - 5%
-                    x_pos = self._x_position + (col_index)*self._column_width + self._column_width * 0.05
-                    self.canvas.drawString(x_pos, y_pos, col.letter)
+                label_font_size = 0
 
                 if col.label:
                     center_at = self._x_position + (col_index)*self._column_width + self._column_width/2
 
-                    letter_width = 0
-                    if col.letter:
-                        letter_width = stringWidth(
-                            col.letter, self.display_style.letter_font_name, default_letter_font_size)
-
-                    label_font_size = get_font_size_maximum_width(col.label,
-                                                                  (self._column_width - letter_width)*.9,
-                                                                  self.display_style.letter_font_name)
+                    label_font_size = min(get_font_size_maximum_width(col.label, self._column_width*.9,
+                                                                      self.display_style.letter_font_name),
+                                          row_height/3)
 
                     center_at = self._x_position + (col_index)*self._column_width + \
-                        self._column_width/2 + letter_width/2
+                        self._column_width/2
 
                     _, label_descent = pdfmetrics.getAscentDescent(self.display_style.letter_font_name, label_font_size)
 
@@ -319,6 +306,24 @@ class CalendarGenerator:
                     self.canvas.setFont(self.display_style.letter_font_name, label_font_size)
                     self.canvas.setFillColor(self.display_style.label_color)
                     self.canvas.drawCentredString(center_at, label_y_pos, col.label)
+
+                if col.letter:
+                    letter_font_size = default_letter_font_size
+                    letter_descent = default_letter_descent
+
+                    if label_font_size:
+                        letter_font_size = min(default_letter_font_size, row_height - label_font_size)
+                        _, letter_descent = pdfmetrics.getAscentDescent(self.display_style.letter_font_name,
+                                                                        letter_font_size)
+
+                    self.canvas.setFont(self.display_style.letter_font_name, letter_font_size)
+                    self.canvas.setFillColor(self.display_style.letter_color)
+
+                    # We have to get the right bound here, thus the +1, and pad it out, thus the - 5%
+                    x_pos = self._x_position + (col_index)*self._column_width + self._column_width * 0.05
+                    y_pos = self._get_element_y_pos_from_top(letter_font_size + row_height*row_index) - letter_descent/2
+
+                    self.canvas.drawString(x_pos, y_pos, col.letter)
 
     def _draw_dates(self):
         if not self.display_style.date_color:
