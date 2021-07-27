@@ -7,7 +7,7 @@ from . import pdf
 
 rectory_orange = colors.Color(219/255.0, 119/255.0, 52/255.0)
 
-black_and_white = pdf.CalendarStyle(
+black_and_white = pdf.ColorStyle(
     outline_color=colors.black,
     grid_line_color=colors.black,
     title_color=colors.black,
@@ -20,7 +20,7 @@ black_and_white = pdf.CalendarStyle(
     date_color=colors.black,
 )
 
-rectory_colors = pdf.CalendarStyle(
+rectory_colors = pdf.ColorStyle(
     outline_color=rectory_orange,
     grid_line_color=rectory_orange,
     title_color=rectory_orange,
@@ -34,7 +34,7 @@ rectory_colors = pdf.CalendarStyle(
     date_color=rectory_orange,
 )
 
-blues = pdf.CalendarStyle(
+blues = pdf.ColorStyle(
     outline_color=colors.darkblue,
     grid_line_color=colors.darkblue,
     title_color=colors.darkblue,

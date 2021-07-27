@@ -290,7 +290,7 @@ class PDFBaseView(CalendarViewPermissionRequired, View):
 
         if self.is_embedded:
             style = dataclasses.copy.copy(style)
-            assert isinstance(style, pdf.CalendarStyle)
+            assert isinstance(style, pdf.ColorStyle)
             style.outline_color = None
 
         self._style = style
@@ -442,7 +442,7 @@ class PDFOnePage(PDFBaseView):
         col_pad = col_width * .1
 
         style = dataclasses.copy.copy(self._style)
-        assert isinstance(style, pdf.CalendarStyle)
+        assert isinstance(style, pdf.ColorStyle)
 
         # Find the longest header to calculate the size
         all_headers = [date(year, month, 1).strftime("%B %Y") for year, month in all_months]

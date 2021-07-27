@@ -29,7 +29,7 @@ _register_fonts()
 
 
 @dataclass
-class CalendarStyle:
+class ColorStyle:
     """This is it's own class so I can keep them around as presets"""
 
     header_text_color: colors.HexColor
@@ -89,7 +89,7 @@ class CalendarGenerator:
     canvas: canvas.Canvas
     grid: grids.CalendarGrid
 
-    style: CalendarStyle
+    style: ColorStyle
 
     # Referenced top left - backwards from how Reportlab does it, but it's easier for me to contemplate
     left_offset: float
