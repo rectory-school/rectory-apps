@@ -73,13 +73,13 @@ def _quick(width: float, height: float, margins: float) -> pdf.SizeStyle:
 
 
 AVAILABLE_LAYOUT_PRESETS = (
-    ("Letter: Print", _quick(11*inch, 8.5*inch, .5*inch)),
-    ("Letter: Embedded", _quick(11*inch, 8.5*inch, 0)),
-    ("Letter Vertical: Print", _quick(8.5*inch, 11*inch, .5*inch)),
-    ("Letter Vertical: Embedded", _quick(8.5*inch, 11*inch, 0)),
+    ("Letter Landscape (Print)", _quick(11*inch, 8.5*inch, .5*inch)),
+    ("Letter Landscape (Embedded)", _quick(11*inch, 8.5*inch, 0)),
+    ("Letter (Print)", _quick(8.5*inch, 11*inch, .5*inch)),
+    ("Letter (Embedded)", _quick(8.5*inch, 11*inch, 0)),
 
-    ("A4 Landscape: Print", _quick(297*mm, 210*mm, 17*mm)),
-    ("A4 Landscape: Embedded", _quick(297*mm, 210*mm, 0*mm)),
-    ("A4: Vertical Print", _quick(210*mm, 297*mm, 17*mm)),
-    ("A4: Vertical Embedded", _quick(210*mm, 297*mm, 0*mm)),
+    ("A4 Landscape (Print)", _quick(297*mm, 210*mm, 17*mm)),
+    ("A4 Landscape (Embedded)", _quick(297*mm, 210*mm, 0*mm)),
+    ("A4: (Print)", _quick(210*mm, 297*mm, 17*mm)),
+    ("A4: (Embedded)", _quick(210*mm, 297*mm, 0*mm)),
 )
