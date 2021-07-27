@@ -112,7 +112,7 @@ class CalendarGridGenerator:
             """
 
             letter = self.date_letter_map.get(date_val)
-            label = self.date_letter_map.get(date_val)
+            label = self.label_map.get(date_val)
 
             return GridItem(date_val, letter, label)
 
