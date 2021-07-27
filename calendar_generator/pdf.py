@@ -115,7 +115,7 @@ class SizeStyle:
 
             for row_index in range(row_count):
                 # We're indexing from the top but drawing from the bottom, so this has to do some inversion
-                row_offset = self.inner_height - row_index * (row_height + row_pad)
+                row_offset = self.inner_height - row_height * (row_index+1) - row_pad * row_index + self.bottom_margin
 
                 style = SizeStyle(width=col_width, height=row_height,
                                   top_margin=0, bottom_margin=0,
