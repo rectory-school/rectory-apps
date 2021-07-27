@@ -22,20 +22,37 @@
     <p class="noprint"><a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a></p>
 {% endif %}
 
-<h2 class="noprint">PDF Links</h2>
-{% for layout_index, layout_name in layouts %}
-    <h3 class="noprint">{{ layout_name }}</h3>
-    <ul class="noprint">
-        {% for style_index, style_name in styles %}
-            <li>
-                {{ style_name }}: <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">All months</a>
-                &bullet;
-                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">One Page</a>
-            </li>
-        {% endfor %}
-    </ul>
-{% endfor %}
+<h2 class="noprint">Monthly Calendars</h2>
+<ul class="noprint">
+    {% for style_index, style_name in styles %}
+        <li>
+            <strong>{{ style_name }}</strong>: 
+            {% for layout_index, layout_name in layouts %}
+                <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">{{ layout_name }}</a>
 
+                {% if not forloop.last %}
+                    &bullet;
+                {% endif %}
+            {% endfor %}
+        </li>
+    {% endfor %}
+</ul>
+
+<h2 class="noprint">One-page calendar</h2>
+<ul class="noprint">
+    {% for style_index, style_name in styles %}
+        <li>
+            <strong>{{ style_name }}</strong>: 
+            {% for layout_index, layout_name in layouts %}
+                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">{{ layout_name }}</a>
+
+                {% if not forloop.last %}
+                    &bullet;
+                {% endif %}
+            {% endfor %}
+        </li>
+    {% endfor %}
+</ul>
     
 <p class="noprint"><a href="{% url 'calendar_generator:custom-pdf' calendar_id=calendar.pk %}">Custom PDF Generator</a></p>
     
@@ -81,10 +98,11 @@
     <h2>{{ calendar.first_date|date:"F Y" }}</h2>
     <ul class="noprint">
         {% for style_index, style_name in styles %}
+            <li><strong>{{ style_name }}</strong>:  
             {% for layout_index, layout_name in layouts %}
-                <li>
-                    <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ style_name }}: {{ layout_name }}</a>
-                </li>
+                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ layout_name }}</a>
+
+                {% if not forloop.last %}&bullet;{% endif %}
             {% endfor %}
         {% endfor %}
     </ul>
