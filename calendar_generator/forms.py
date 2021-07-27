@@ -39,8 +39,8 @@ class CustomCalendarForm(forms.Form):
         """Make sure the start date is appropriate"""
 
         start_date = self.cleaned_data['start_date']
-        if start_date < self._calendar.start_date:
-            raise ValidationError(_("Start date must not be before the start of the calendar"))
+        if start_date > self._calendar.end_date:
+            raise ValidationError(_("Start date must be before the calendar's end date"))
 
         return start_date
 
@@ -48,8 +48,8 @@ class CustomCalendarForm(forms.Form):
         """Make sure the end date is appropriate"""
 
         end_date = self.cleaned_data['end_date']
-        if end_date > self._calendar.end_date:
-            raise ValidationError(_("End date must not be after the end of the calendar"))
+        if end_date < self._calendar.start_date:
+            raise ValidationError(_("End date must be after the calendar's start date"))
 
         return end_date
 

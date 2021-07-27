@@ -7,7 +7,7 @@ from . import pdf
 
 rectory_orange = colors.Color(219/255.0, 119/255.0, 52/255.0)
 
-black_and_white = pdf.FormatStyle(
+black_and_white = pdf.Style(
     outline_color=colors.black,
     grid_line_color=colors.black,
     title_color=colors.black,
@@ -20,7 +20,7 @@ black_and_white = pdf.FormatStyle(
     date_color=colors.black,
 )
 
-rectory_colors = pdf.FormatStyle(
+rectory_colors = pdf.Style(
     outline_color=rectory_orange,
     grid_line_color=rectory_orange,
     title_color=rectory_orange,
@@ -34,7 +34,7 @@ rectory_colors = pdf.FormatStyle(
     date_color=rectory_orange,
 )
 
-blues = pdf.FormatStyle(
+blues = pdf.Style(
     outline_color=colors.darkblue,
     grid_line_color=colors.darkblue,
     title_color=colors.darkblue,
@@ -55,21 +55,21 @@ AVAILABLE_STYLE_PRESETS = (
 )
 
 
-letter_print = pdf.SizeStyle(width=11*inch, height=8.5*inch,
-                             top_margin=.5*inch, bottom_margin=.5*inch,
-                             left_margin=.5*inch, right_margin=.5*inch)
+letter_print = pdf.Layout(width=11*inch, height=8.5*inch,
+                          top_margin=.5*inch, bottom_margin=.5*inch,
+                          left_margin=.5*inch, right_margin=.5*inch)
 
-letter_embedded = pdf.SizeStyle(width=11*inch, height=8.5*inch,
-                                top_margin=0, bottom_margin=0,
-                                left_margin=0, right_margin=0)
+letter_embedded = pdf.Layout(width=11*inch, height=8.5*inch,
+                             top_margin=0, bottom_margin=0,
+                             left_margin=0, right_margin=0)
 
 
-def _quick(width: float, height: float, margins: float) -> pdf.SizeStyle:
+def _quick(width: float, height: float, margins: float) -> pdf.Layout:
     """Generate a size preset with equal margins"""
 
-    return pdf.SizeStyle(width=width, height=height,
-                         top_margin=margins, bottom_margin=margins,
-                         left_margin=margins, right_margin=margins)
+    return pdf.Layout(width=width, height=height,
+                      top_margin=margins, bottom_margin=margins,
+                      left_margin=margins, right_margin=margins)
 
 
 AVAILABLE_LAYOUT_PRESETS = (

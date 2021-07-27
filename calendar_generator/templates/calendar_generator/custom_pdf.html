@@ -9,7 +9,7 @@
 
 {% block content %}
 <h1>Custom PDF generation: <em>{{calendar.title}}</em></h1>
-
+<p>{{ calendar.start_date }} to {{ calendar.end_date }}</p>
 <form method="POST">
     {% csrf_token %}
     {% bootstrap_form form %}
