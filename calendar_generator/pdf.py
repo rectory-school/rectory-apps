@@ -110,17 +110,17 @@ class Layout:
         space_for_rows = self.inner_height - (row_pad * (row_count - 1))
         row_height = space_for_rows / row_count
 
-        for col_index in range(col_count):
-            col_offset = self.left_margin + col_index * (col_width + col_pad)
+        for row_index in range(row_count):
+            # We're indexing from the top but drawing from the bottom, so this has to do some inversion
+            row_offset = self.inner_height - row_height * (row_index+1) - row_pad * row_index + self.bottom_margin
 
-            for row_index in range(row_count):
-                # We're indexing from the top but drawing from the bottom, so this has to do some inversion
-                row_offset = self.inner_height - row_height * (row_index+1) - row_pad * row_index + self.bottom_margin
+            for col_index in range(col_count):
+                col_offset = self.left_margin + col_index * (col_width + col_pad)
 
                 style = Layout(width=col_width, height=row_height,
-                                  top_margin=0, bottom_margin=0,
-                                  left_margin=0, right_margin=0,
-                                  x_pos=col_offset, y_pos=row_offset)
+                               top_margin=0, bottom_margin=0,
+                               left_margin=0, right_margin=0,
+                               x_pos=col_offset, y_pos=row_offset)
 
                 out.append(style)
 
