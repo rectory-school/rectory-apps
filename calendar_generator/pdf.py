@@ -2,7 +2,6 @@
 
 import os
 from dataclasses import dataclass
-import functools
 
 from typing import Optional, List
 
@@ -72,6 +71,8 @@ class Layout:
     x_pos: float = 0
     y_pos: float = 0
 
+    header_pad: float = 1.5
+
     @property
     def inner_height(self) -> float:
         """Calculate the inner height of the PDF"""
@@ -110,17 +111,17 @@ class Layout:
         space_for_rows = self.inner_height - (row_pad * (row_count - 1))
         row_height = space_for_rows / row_count
 
-        for col_index in range(col_count):
-            col_offset = self.left_margin + col_index * (col_width + col_pad)
+        for row_index in range(row_count):
+            # We're indexing from the top but drawing from the bottom, so this has to do some inversion
+            row_offset = self.inner_height - row_height * (row_index+1) - row_pad * row_index + self.bottom_margin
 
-            for row_index in range(row_count):
-                # We're indexing from the top but drawing from the bottom, so this has to do some inversion
-                row_offset = self.inner_height - row_height * (row_index+1) - row_pad * row_index + self.bottom_margin
+            for col_index in range(col_count):
+                col_offset = self.left_margin + col_index * (col_width + col_pad)
 
                 style = Layout(width=col_width, height=row_height,
-                                  top_margin=0, bottom_margin=0,
-                                  left_margin=0, right_margin=0,
-                                  x_pos=col_offset, y_pos=row_offset)
+                               top_margin=0, bottom_margin=0,
+                               left_margin=0, right_margin=0,
+                               x_pos=col_offset, y_pos=row_offset)
 
                 out.append(style)
 
@@ -137,11 +138,20 @@ class CalendarGenerator:
     style: Style
     layout: Layout
 
-    # Used to track how much vertical space we've used
-    _used_top_space: float = 0
+    minimum_row_count_calculation: float = 0
+
+    _title_font_size: float = None
+    _header_font_size: float = None
+    _date_font_size: float = None
+    _default_letter_font_size: float = None
+    _y_pos_below_header: float = None
+    _row_height: float = None
+    _header_height: float = None
 
     def draw(self):
         """Execute the actual draw"""
+
+        self._calculate_internals()
 
         self._draw_title()
         self._draw_frame()
@@ -154,17 +164,14 @@ class CalendarGenerator:
         if not self.style.title_color:
             return
 
-        font_size = self._get_title_font_size()
-        ascent, descent = pdfmetrics.getAscentDescent(self.style.title_font_name, font_size)
+        _, descent = pdfmetrics.getAscentDescent(self.style.title_font_name, self._title_font_size)
 
-        y_pos = (self.layout.bottom_offset + self.layout.inner_height) - (ascent+descent)
+        y_pos = self._y_pos_below_header + self._header_height - descent
 
-        self.canvas.setFont(self.style.title_font_name, font_size)
+        self.canvas.setFont(self.style.title_font_name, self._title_font_size)
         self.canvas.setFillColor(self.style.title_color)
 
-        # This is outside the frame, so we're going to use the left offset directly
         self.canvas.drawString(self.layout.left_offset, y_pos, self.grid.title)
-        self._used_top_space += font_size  # Bump down with the 20% pad
 
     def _draw_frame(self):
         if not(self.style.frame_background_color
@@ -175,10 +182,10 @@ class CalendarGenerator:
         draw_fill = 0
 
         x_pos = self.layout.left_offset
-        y_pos = self.layout.bottom_offset
+        y_pos = self._y_pos_below_header - self._row_height * len(self.grid.grid)
 
         width = self.layout.inner_width
-        height = self.layout.inner_height - self._used_top_space
+        height = self._row_height * len(self.grid.grid) + self._header_height
 
         # Draw the bounding box
         if self.style.outline_width and self.style.outline_color:
@@ -204,35 +211,35 @@ class CalendarGenerator:
         self.canvas.rect(x_pos, y_pos, width, height, stroke=draw_stroke, fill=draw_fill)
 
     def _draw_header(self):
-        header_font_size = self._get_header_font_size()
-        header_height = header_font_size * 1.5
         header_width = self._internal_width / len(self.grid.headers)
 
         # Draw the header background
         if self.style.header_background_color:
             x_pos = self._x_position
-            y_pos = self._get_element_y_pos_from_top(header_height)
+            y_pos = self._y_pos_below_header
 
             self.canvas.setFillColor(self.style.header_background_color)
-            self.canvas.rect(x_pos, y_pos, self._internal_width, header_height, stroke=0, fill=1)
+            self.canvas.rect(x_pos, y_pos, self._internal_width, self._header_height, stroke=0, fill=1)
 
         # Draw the text elements
         self.canvas.setFillColor(self.style.header_text_color)
-        self.canvas.setFont(self.style.header_font_name, header_font_size)
+        self.canvas.setFont(self.style.header_font_name, self._header_font_size)
 
         for i, header in enumerate(self.grid.headers):
             x_pos = self._x_position + header_width/2 + header_width * i
 
             # Default padding is 120%, so .1 is half of the padding margin
-            y_pos = self._get_element_y_pos_from_top(header_font_size) - header_height*.1
+            _, descent = pdfmetrics.getAscentDescent(self.style.header_font_name, self._header_font_size)
+
+            y_pos = self._y_pos_below_header - descent + (self._header_height - self._header_font_size) / 2
 
             self.canvas.drawCentredString(x_pos, y_pos, header)
 
         # Draw the lines between each header
         if self.style.header_divider_color:
             self.canvas.setStrokeColor(self.style.header_divider_color)
-            bottom = self._get_element_y_pos_from_top(header_height)
-            top = self._get_element_y_pos_from_top()
+            bottom = self._y_pos_below_header
+            top = bottom + self._header_height
 
             self.canvas.setLineWidth(self.style.header_divider_width)
 
@@ -244,8 +251,6 @@ class CalendarGenerator:
                 x_pos = self._x_position + i*header_width - self.style.header_divider_width/2
                 self.canvas.line(x_pos, bottom, x_pos, top)
 
-        self._used_top_space += header_height
-
     def _draw_grid(self):
         if not self.style.grid_line_color and not self.style.grid_line_width:
             return
@@ -255,18 +260,16 @@ class CalendarGenerator:
 
         for column_index in range(1, len(self.grid.headers)):
             x_pos = self._x_position + self._column_width * column_index - self.style.grid_line_width/2
-            top = self._get_element_y_pos_from_top()
-            bottom = self._get_element_y_pos_from_top(self._internal_remaining_height)
+            top = self._y_pos_below_header
+            bottom = self._y_pos_below_header - len(self.grid.grid) * self._row_height
 
             self.canvas.line(x_pos, top, x_pos, bottom)
-
-        row_height = self._internal_remaining_height / self._row_count
 
         for row_index in range(len(self.grid.grid)):
             left = self._x_position
             right = self._x_position + self._internal_width
 
-            y_pos = self._get_element_y_pos_from_top(row_height * row_index)
+            y_pos = self._y_pos_below_header - (self._row_height * row_index)
 
             self.canvas.line(left, y_pos, right, y_pos)
 
@@ -274,11 +277,8 @@ class CalendarGenerator:
         if not self.style.letter_color:
             return
 
-        default_letter_font_size = self._get_letter_font_size()
-        row_height = self._internal_remaining_height / self._row_count
-
-        _, default_letter_descent = pdfmetrics.getAscentDescent(
-            self.style.letter_font_name, default_letter_font_size)
+        _, default_letter_descent = pdfmetrics.getAscentDescent(self.style.letter_font_name,
+                                                                self._default_letter_font_size)
 
         for row_index, row in enumerate(self.grid.grid):
             for col_index, col in enumerate(row):
@@ -292,27 +292,26 @@ class CalendarGenerator:
 
                     label_font_size = min(get_font_size_maximum_width(col.label, self._column_width*.9,
                                                                       self.style.letter_font_name),
-                                          row_height/3)
+                                          self._row_height/3)
 
                     center_at = self._x_position + (col_index)*self._column_width + \
                         self._column_width/2
 
                     _, label_descent = pdfmetrics.getAscentDescent(self.style.letter_font_name, label_font_size)
 
-                    label_y_pos = self._get_element_y_pos_from_top(label_font_size) \
-                        - (row_height * (row_index + 1)) \
-                        + label_font_size - label_descent
+                    label_y_pos = self._y_pos_below_header - label_font_size - (self._row_height * (row_index + 1)
+                                                                                ) + label_font_size - label_descent
 
                     self.canvas.setFont(self.style.letter_font_name, label_font_size)
                     self.canvas.setFillColor(self.style.label_color)
                     self.canvas.drawCentredString(center_at, label_y_pos, col.label)
 
                 if col.letter:
-                    letter_font_size = default_letter_font_size
+                    letter_font_size = self._default_letter_font_size
                     letter_descent = default_letter_descent
 
                     if label_font_size:
-                        letter_font_size = min(default_letter_font_size, row_height - label_font_size)
+                        letter_font_size = min(self._default_letter_font_size, self._row_height - label_font_size)
                         _, letter_descent = pdfmetrics.getAscentDescent(self.style.letter_font_name,
                                                                         letter_font_size)
 
@@ -321,7 +320,8 @@ class CalendarGenerator:
 
                     # We have to get the right bound here, thus the +1, and pad it out, thus the - 5%
                     x_pos = self._x_position + (col_index)*self._column_width + self._column_width * 0.05
-                    y_pos = self._get_element_y_pos_from_top(letter_font_size + row_height*row_index) - letter_descent/2
+                    y_pos = self._y_pos_below_header - letter_font_size - (
+                        self._row_height * row_index) - letter_descent / 2
 
                     self.canvas.drawString(x_pos, y_pos, col.letter)
 
@@ -329,15 +329,13 @@ class CalendarGenerator:
         if not self.style.date_color:
             return
 
-        font_size = self._get_date_font_size()
-        row_height = self._internal_remaining_height / self._row_count
         self.canvas.setFillColor(self.style.date_color)
-        self.canvas.setFont(self.style.date_font_name, font_size)
+        self.canvas.setFont(self.style.date_font_name, self._date_font_size)
 
-        _, descent = pdfmetrics.getAscentDescent(self.style.date_font_name, font_size)
+        _, descent = pdfmetrics.getAscentDescent(self.style.date_font_name, self._date_font_size)
 
         for row_index, row in enumerate(self.grid.grid):
-            y_pos = self._get_element_y_pos_from_top(font_size + row_height*row_index) - descent
+            y_pos = self._y_pos_below_header - self._date_font_size - self._row_height*row_index - descent
 
             for col_index, col in enumerate(row):
                 if not col or not col.date:
@@ -375,39 +373,16 @@ class CalendarGenerator:
 
         return self.layout.inner_width
 
-    @property
-    def _internal_remaining_height(self) -> float:
-        out = self.layout.inner_height
-
-        if self.style.outline_color and self.style.outline_width:
-            out -= self.style.outline_width*2
-
-        out -= self._used_top_space
-
-        return out
-
-    @property
-    def _row_count(self):
-        return len(self.grid.grid)
-
-    def _get_element_y_pos_from_top(self, element_height: float = 0) -> float:
-        """Get the Y position to draw a bottom referenced element, given a height"""
-
-        out = self.layout.bottom_offset + self.layout.inner_height - element_height - self._used_top_space
-
-        if self.style.outline_width and self.style.outline_color:
-            out -= self.style.outline_width
-
-        return out
-
-    def _get_title_font_size(self) -> float:
+    def _set_title_font_size(self) -> float:
         if self.style.title_font_size:
-            return self.style.title_font_size
+            self._title_font_size = self.style.title_font_size
+            return
 
         max_size = self.layout.inner_width * .5
-        return get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
 
-    def _get_header_font_size(self) -> float:
+        self._title_font_size = get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
+
+    def _set_header_font_size(self) -> float:
         maximum_width = self._column_width * .8
 
         if self.style.header_divider_width and self.style.header_divider_color:
@@ -420,9 +395,10 @@ class CalendarGenerator:
             if possible_size < current_size:
                 current_size = possible_size
 
-        return current_size
+        self._header_font_size = current_size
+        self._header_height = self.layout.header_pad * self._header_font_size
 
-    def _get_date_font_size(self) -> float:
+    def _set_date_font_size(self) -> float:
         all_dates = set()
 
         for row in self.grid.grid:
@@ -430,16 +406,13 @@ class CalendarGenerator:
                 if col and col.date:
                     all_dates.add(str(col.date.day))
 
-        # Calculate how big we can be, up to 50% of the height of the cell
-        letter_font_size = self._get_letter_font_size()
-
         all_letters = set()
         for row in self.grid.grid:
             for col in row:
                 if col and col.letter:
                     all_letters.add(col.letter)
 
-        letter_widths = (stringWidth(letter, self.style.letter_font_name, letter_font_size)
+        letter_widths = (stringWidth(letter, self.style.letter_font_name, self._default_letter_font_size)
                          for letter in all_letters)
         max_letter_width = max(*letter_widths)
 
@@ -451,11 +424,9 @@ class CalendarGenerator:
         theoretical_max = min(*max_day_widths)
 
         # Allow either the width-based max from above, or half the cell height
-        return min(theoretical_max, (self.layout.inner_height / self._row_count) * .5)
+        self._date_font_size = min(theoretical_max, (self.layout.inner_height / len(self.grid.grid)) * .5)
 
-    # TODO: This fails when caching is enabled
-    # @functools.cache
-    def _get_letter_font_size(self) -> float:
+    def _set_default_letter_font_size(self) -> float:
         all_letters = set()
 
         for row in self.grid.grid:
@@ -469,17 +440,40 @@ class CalendarGenerator:
         if self.style.grid_line_color and self.style.grid_line_width:
             maximum_width -= self.style.grid_line_width
 
-        row_height = self._internal_remaining_height / self._row_count
-
         # Maximum of 80% of the row height, if we have a really weirdly shaped calendar here
-        current_size = row_height
+        current_size = self._row_height
         for letter in all_letters:
             possible_size = get_font_size_maximum_width(letter, maximum_width, self.style.date_font_name)
 
             if possible_size < current_size:
                 current_size = possible_size
 
-        return current_size
+        self._default_letter_font_size = current_size
+
+    def _set_y_pos_below_header(self):
+        """Get the Y position that will be right below the title"""
+
+        outline_width = 0
+        if self.style.outline_width and self.style.outline_color:
+            outline_width = self.style.outline_width
+
+        self._y_pos_below_header = (self.layout.y_pos + self.layout.bottom_margin + self.layout.inner_height -
+                                    self._title_font_size - self._header_height - outline_width)
+
+    def _set_row_height(self):
+        grid_height = self._y_pos_below_header - self.layout.y_pos - self.layout.bottom_margin
+
+        self._row_height = grid_height / max(len(self.grid.grid), self.minimum_row_count_calculation)
+
+    def _calculate_internals(self):
+        """Calculate all the internal values"""
+
+        self._set_title_font_size()
+        self._set_header_font_size()
+        self._set_y_pos_below_header()
+        self._set_row_height()
+        self._set_default_letter_font_size()
+        self._set_date_font_size()
 
 
 def get_font_size_maximum_width(text: str, maximum: float, font: str) -> float:
