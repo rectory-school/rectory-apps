@@ -6,7 +6,7 @@ from datetime import date
 import calendar
 import functools
 
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any
 
 from io import BytesIO
 
@@ -19,8 +19,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
 
 from reportlab.pdfgen import canvas
-from reportlab.lib import pagesizes
-from reportlab.lib.units import inch, mm
+from reportlab.lib.units import mm
 
 from . import models
 from . import grids
@@ -298,6 +297,25 @@ class PDFOnePage(View):
         date_letter_map = calendar_obj.get_date_letter_map()
         label_map = calendar_obj.get_arbitrary_labels()
 
+        all_months = set()
+        for used_date in date_letter_map | label_map:
+            all_months.add((used_date.year, used_date.month))
+
+        row_count = math.ceil(len(all_months)/ONE_PAGE_PDF_COL_COUNT)
+        layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT, 5*mm, 10*mm)
+
+        title_font_size = None
+        for year, month in all_months:
+            title = date(year, month, 1).strftime("%B %Y")
+            font_size = pdf.get_font_size_maximum_width(title, layouts[0].inner_width / 2, style.title_font_name)
+
+            if title_font_size is None or font_size < title_font_size:
+                title_font_size = font_size
+
+        style = dataclasses.copy.copy(style)
+        assert isinstance(style, pdf.Style)
+        style.title_font_size = title_font_size
+
         buf = BytesIO()
         pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
 
@@ -307,13 +325,6 @@ class PDFOnePage(View):
         pdf_canvas.setTitle(calendar_obj.title)
         pdf_canvas.setCreator("Rectory Apps System")
         pdf_canvas.setSubject("Calendar")
-
-        all_months = set()
-        for used_date in date_letter_map | label_map:
-            all_months.add((used_date.year, used_date.month))
-
-        row_count = math.ceil(len(all_months)/ONE_PAGE_PDF_COL_COUNT)
-        layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT, 5*mm, 10*mm)
 
         for i, (year, month) in enumerate(sorted(all_months)):
             layout = layouts[i]
