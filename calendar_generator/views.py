@@ -336,7 +336,7 @@ class PDFOnePage(View):
             grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
             grid = grid_generator.get_grid()
 
-            generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
+            generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout, minimum_row_count_calculation=5)
             generator.draw()
 
         pdf_canvas.save()

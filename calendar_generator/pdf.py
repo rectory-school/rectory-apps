@@ -2,7 +2,6 @@
 
 import os
 from dataclasses import dataclass
-import functools
 
 from typing import Optional, List
 
@@ -136,6 +135,8 @@ class CalendarGenerator:
 
     style: Style
     layout: Layout
+
+    minimum_row_count_calculation: float = 0
 
     # Used to track how much vertical space we've used
     _used_top_space: float = 0
