@@ -14,6 +14,11 @@ const onAuthFinished = async (googleUser) => {
         body: JSON.stringify({ 'token': id_token }),
     });
 
+    if (!response.ok) {
+        onAuthError(response);
+        return
+    }
+
     const json_data = await response.json();
     if (json_data.success) {
         const next = JSON.parse(document.getElementById('next').textContent);
@@ -34,7 +39,7 @@ const onAuthError = (error) => {
         return
     }
 
-    console.log("error when executing Google sign-in", error);
+    console.log("error when executing Google sign-in: ", error);
     alert("There was an issue when signing into Google. Please contact Technology.");
 };
 
