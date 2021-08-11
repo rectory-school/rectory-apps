@@ -1,32 +1,33 @@
-onAuth = (googleUser) => {
+const onAuthFinished = async (googleUser) => {
     const csrfToken = JSON.parse(document.getElementById('csrf_token').textContent);
 
-    let loc = $(location).attr("href");
-    var id_token = googleUser.getAuthResponse().id_token;
+    const loc = window.location.href;
+    const id_token = googleUser.getAuthResponse().id_token;
 
-    $.ajax({
-        url: loc,
-        type: 'post',
-        data: { 'token': id_token },
-        headers: { 'X-CSRFToken': csrfToken },
-        dataType: 'json',
-        success: function (data) {
-            if (data.success) {
-                const next = JSON.parse(document.getElementById('next').textContent);
-
-                window.location = next;
-                return
-            }
-
-            onAuthError(data.error);
+    const response = await fetch(loc, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
         },
-        error: onAuthError,
+        body: JSON.stringify({ 'token': id_token }),
     });
+
+    const json_data = await response.json();
+    if (json_data.success) {
+        const next = JSON.parse(document.getElementById('next').textContent);
+
+        window.location = next;
+        return
+    }
+
+    // If we didn't have a success, we'll have an error here
+    onAuthError(json_data.error);
 }
 
-onAuthError = (error) => {
-    $(".hide-during-sign-in").show();
-    $(".show-during-sign-in").hide();
+const onAuthError = (error) => {
+    showAuthElements();
 
     if (error.error == "popup_closed_by_user") {
         console.log("popup was closed");
@@ -37,7 +38,27 @@ onAuthError = (error) => {
     alert("There was an issue when signing into Google. Please contact Technology.");
 };
 
-$(document).ready(function () {
+const hideAuthElements = () => {
+    document.querySelectorAll(".hide-during-sign-in").forEach(elem => {
+        elem.style.display = "none";
+    });
+
+    document.querySelectorAll(".show-during-sign-in").forEach(elem => {
+        elem.style.display = "block";
+    });
+}
+
+const showAuthElements = () => {
+    document.querySelectorAll(".hide-during-sign-in").forEach(elem => {
+        elem.style.display = "block";
+    });
+
+    document.querySelectorAll(".show-during-sign-in").forEach(elem => {
+        elem.style.display = "none";
+    });
+}
+
+setup = () => {
     gapi.load('auth2', function () {
         const auth_data = JSON.parse(document.getElementById('auth_data').textContent);
 
@@ -46,16 +67,26 @@ $(document).ready(function () {
             hosted_domain: auth_data["hosted_domain"]
         });
 
-        $(".google-sign-in").each(function (i, e) {
-            auth2.attachClickHandler(e, {}, onAuth, onAuthError);
-        });
+        // Attach handlers for both launching auth through Google
+        // and running our auth start for page modification
+        document.querySelectorAll(".google-sign-in").forEach(elem => {
+            auth2.attachClickHandler(elem, {}, onAuthFinished, onAuthError);
 
-        $(".google-sign-in").click(function (e) {
-            $(".hide-during-sign-in").hide();
-            $(".show-during-sign-in").show();
+            elem.addEventListener("click", (evt) => {
+                hideAuthElements();
+            });
         });
     });
+}
+
+const ready = (callback) => {
+    if (document.readyState != "loading")
+        callback();
+    else
+        document.addEventListener("DOMContentLoaded", callback);
+}
+
+ready(() => {
+    setup();
 });
-
-
 

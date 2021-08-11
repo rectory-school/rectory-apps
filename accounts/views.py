@@ -2,9 +2,12 @@
 
 from typing import Dict, Any
 
+import json
+import logging
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from google.auth.exceptions import GoogleAuthError
 
 from django.http.response import HttpResponseBadRequest, HttpResponseRedirect, HttpResponseBase
 from django.http import HttpRequest
@@ -19,6 +22,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 
+log = logging.getLogger(__name__)
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 
@@ -60,8 +64,18 @@ class SocialLoginView(TemplateView):
     def post(self, request):
         """Handle the sign in token"""
 
-        token = request.POST["token"]
-        id_info = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID)
+        try:
+            request_body = json.loads(request.body)
+            token = request_body["token"]
+        except (json.decoder.JSONDecodeError, KeyError):
+            log.exception("error deciding JSON token")
+            return HttpResponseBadRequest()
+
+        try:
+            id_info = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID)
+        except GoogleAuthError:
+            log.exception("error when validating id token")
+            return HttpResponseBadRequest()
 
         first_name = id_info["given_name"]
         last_name = id_info["family_name"]
