@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'icons',
     'nav',
     'calendar_generator',
+    'sis',
 ]
 
 MIDDLEWARE = [
