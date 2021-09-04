@@ -32,9 +32,6 @@ class Student(models.Model):
     email = models.EmailField(max_length=255, blank=True)
     current = models.BooleanField(default=False)
 
-    rectory_password = models.CharField(max_length=254, blank=True)
-    username = models.CharField(max_length=254, blank=True)
-
     gender = models.CharField(max_length=1, blank=True, default="")
 
     parents = models.ManyToManyField('Parent', through='StudentParentRelation', blank=True)
