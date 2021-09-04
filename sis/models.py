@@ -1,8 +1,8 @@
 """SIS data sync models"""
 
 import logging
-from random import choice
 from django.db import models
+from solo.models import SingletonModel
 
 log = logging.getLogger(__name__)
 
@@ -227,8 +227,7 @@ class Section(models.Model):
 class StudentRegistration(models.Model):
     """A student registration, such as 'John Doe in Geometry 01'"""
 
-    # TODO: Validate this keystone table
-    # Keystone table: ksSTUREG
+    # Keystone table: ksSTUDENTREG
 
     student_reg_id = models.CharField(max_length=20, unique=True)
 
@@ -287,3 +286,15 @@ class StudentParentRelation(models.Model):
 
     class Meta:
         unique_together = (('student', 'parent'), )
+
+
+class Config(SingletonModel):
+    """SIS configuration settings"""
+
+    current_year = models.ForeignKey(AcademicYear, related_name='+', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return "Student Information System Configuration"
+
+    class Meta:
+        verbose_name = "SIS Configuration"

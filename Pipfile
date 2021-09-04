@@ -25,6 +25,7 @@ django-filter = "*"
 django-storages = "*"
 boto3 = "*"
 django-versatileimagefield = "*"
+django-solo = "*"
 
 [dev-packages]
 autopep8 = "*"
