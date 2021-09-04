@@ -163,14 +163,14 @@ class Enrollment(models.Model):
 
     # Keystone table: ksEnrollment
 
-    student = models.ForeignKey(Student)
-    academic_year = models.ForeignKey(AcademicYear)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.DO_NOTHING)
     boarder = models.BooleanField()
-    dorm = models.ForeignKey(Dorm, blank=True, null=True)
-    grade = models.ForeignKey(Grade, null=True)
+    dorm = models.ForeignKey(Dorm, blank=True, null=True, on_delete=models.SET_NULL)
+    grade = models.ForeignKey(Grade, null=True, on_delete=models.DO_NOTHING)
     division = models.CharField(max_length=2)
     section = models.CharField(max_length=1, blank=True)
-    advisor = models.ForeignKey(Teacher, blank=True, null=True)
+    advisor = models.ForeignKey(Teacher, blank=True, null=True, on_delete=models.SET_NULL)
     status_enrollment = models.CharField(max_length=20, blank=True)
     status_attending = models.CharField(max_length=20, blank=True)
 
@@ -207,10 +207,10 @@ class Section(models.Model):
 
     # Keystone table: ksSECTIONS
 
-    course = models.ForeignKey(Course)
+    course = models.ForeignKey(Course, on_delete=models.DO_NOTHING)
     csn = models.CharField(max_length=255)
-    academic_year = models.ForeignKey(AcademicYear)
-    teacher = models.ForeignKey(Teacher, blank=True, null=True)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.DO_NOTHING)
+    teacher = models.ForeignKey(Teacher, blank=True, null=True, on_delete=models.SET_NULL)
 
     students = models.ManyToManyField(Student, through='StudentRegistration')
 
@@ -272,8 +272,8 @@ class Parent(models.Model):
 class StudentParentRelation(models.Model):
     """A student parent relationship, such as Jane Doe/John Doe"""
 
-    student = models.ForeignKey(Student, db_index=True)
-    parent = models.ForeignKey(Parent, db_index=True)
+    student = models.ForeignKey(Student, db_index=True, on_delete=models.DO_NOTHING)
+    parent = models.ForeignKey(Parent, db_index=True, on_delete=models.DO_NOTHING)
 
     relationship = models.CharField(max_length=20, blank=True)
     family_id_key = models.CharField(max_length=20, blank=True)
