@@ -26,7 +26,6 @@ django-storages = "*"
 boto3 = "*"
 django-versatileimagefield = "*"
 django-solo = "*"
-requests-futures = "*"
 
 [dev-packages]
 autopep8 = "*"
