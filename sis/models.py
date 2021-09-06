@@ -63,6 +63,7 @@ class Teacher(models.Model):
     """A teacher, such as Adam Peacock"""
 
     # Keystone table: ksTEACHERS
+
     teacher_id = models.CharField(max_length=5, unique=True)
     unique_name = models.CharField(max_length=255)
 
