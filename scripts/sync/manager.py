@@ -94,13 +94,17 @@ class SyncManager:
             apps_record = self.translate(ks_record)
             waiting.append(self.session.post(self.url, data=apps_record))
 
+        log.info("Beginning execution of %d creation requests", len(waiting))
         for req in waiting:
             res = req.result()
             data = res.json()
 
-            if res.status_code >= 400:
+            if res.status_code >= 400 and res.status_code < 500:
                 log.warning("Unexpected status code when creating %s with %s: %s", res.request, data, res.status_code)
                 continue
+
+            # Catch server errors
+            res.raise_for_status()
 
             log.info("Created %s: %d", data, res.status_code)
 
