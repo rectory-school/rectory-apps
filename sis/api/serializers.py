@@ -93,4 +93,4 @@ class StudentParentRelationshipSerializer(serializers.HyperlinkedModelSerializer
 
     class Meta:
         model = models.StudentParentRelation
-        fields = ['url', 'student', 'parent', 'relationshp', 'family_id_key']
+        fields = ['url', 'student', 'parent', 'relationship', 'family_id_key']
