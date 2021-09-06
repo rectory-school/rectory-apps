@@ -25,8 +25,8 @@ class Student(models.Model):
     # Keystone table: ksPERMRECS
 
     student_id = models.CharField(max_length=7, unique=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255, blank=True)
+    last_name = models.CharField(max_length=255, blank=True)
     nickname = models.CharField(max_length=255, blank=True)
     email = models.EmailField(max_length=255, blank=True)
 
@@ -190,12 +190,12 @@ class Course(models.Model):
 
     number = models.CharField(max_length=20, unique=True)
     course_name = models.CharField(max_length=255)
-    course_name_short = models.CharField(max_length=255)
-    course_name_transcript = models.CharField(max_length=255)
-    division = models.CharField(max_length=2)
+    course_name_short = models.CharField(max_length=255, blank=True)
+    course_name_transcript = models.CharField(max_length=255, blank=True)
+    division = models.CharField(max_length=2, blank=True)
     grade_level = models.CharField(max_length=2, blank=True)
-    department = models.CharField(max_length=255)
-    course_type = models.CharField(max_length=255)
+    department = models.CharField(max_length=255, blank=True)
+    course_type = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return f"{self.number}: {self.course_name}"
