@@ -28,6 +28,8 @@
                 "http://localhost:8000/sis/api/",
                 "--student-file",
                 "${workspaceFolder}/scratch/data-samples/ksPERMRECS.xml.json",
+                "--teacher-file",
+                "${workspaceFolder}/scratch/data-samples/ksTEACHERS.xml.json",
             ],
         }
     ]

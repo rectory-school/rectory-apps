@@ -5,9 +5,8 @@
 import argparse
 import logging
 
-from requests_futures.sessions import FuturesSession
-
 from students import StudentManager
+from teachers import TeacherManager
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,14 +31,13 @@ def main():
     parser.add_argument("--password", required=True)
 
     args = parser.parse_args()
+    auth = (args.username, args.password)
 
-    session = FuturesSession()
-    session.auth = (args.username, args.password)
+    students = StudentManager(args.api_root, auth=auth, ks_filename=args.student_file)
+    students.create()
 
-    url_map = session.get(args.api_root).result().json()
-
-    students = StudentManager(session, url_map, args.student_file)
-    students.sync()
+    teachers = TeacherManager(args.api_root, auth=auth, ks_filename=args.teacher_file)
+    teachers.create()
 
 
 if __name__ == "__main__":
