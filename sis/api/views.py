@@ -10,7 +10,9 @@ from . import serializers
 class Paginator(pagination.CursorPagination):
     """Cursor based pagination"""
 
-    page_size = 5000
+    page_size = 100
+    max_page_size = 5000
+    page_size_query_param = 'page_size'
     ordering = ['pk']
 
 
