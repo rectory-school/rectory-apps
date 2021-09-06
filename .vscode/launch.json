@@ -18,14 +18,16 @@
             "name": "Sync data",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/scripts/sync.py",
+            "program": "${workspaceFolder}/scripts/sync/main.py",
             "args": [
                 "--username",
                 "sissync@rectoryschool.org",
                 "--password",
                 "VtlzBByPg8yFmuW5HkKjKM60IChYBYuhxbhuQQpjHlMhwfpgRfNtJNqtdobqlv6",
                 "--api-root",
-                "http://localhost:8000/sis/api/"
+                "http://localhost:8000/sis/api/",
+                "--student-file",
+                "${workspaceFolder}/scratch/data-samples/ksPERMRECS.xml.json",
             ],
         }
     ]
