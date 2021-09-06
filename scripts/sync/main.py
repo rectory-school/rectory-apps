@@ -5,8 +5,7 @@
 import argparse
 import logging
 
-from students import StudentManager
-from teachers import TeacherManager
+from managers import StudentManager, TeacherManager, CourseManager
 
 logging.basicConfig(level=logging.INFO)
 
@@ -34,10 +33,13 @@ def main():
     auth = (args.username, args.password)
 
     students = StudentManager(args.api_root, auth=auth, ks_filename=args.student_file)
-    students.create()
+    students.sync()
 
     teachers = TeacherManager(args.api_root, auth=auth, ks_filename=args.teacher_file)
-    teachers.create()
+    teachers.sync()
+
+    courses = CourseManager(args.api_root, auth=auth, ks_filename=args.course_file)
+    courses.sync()
 
 
 if __name__ == "__main__":

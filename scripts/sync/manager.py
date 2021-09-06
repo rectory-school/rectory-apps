@@ -94,6 +94,8 @@ class SyncManager:
 
         to_create = self.ks_data.keys() - self.apps_data.keys()
 
+        log.info("Creating %d new records", len(to_create))
+
         for key in to_create:
             ks_record = self.ks_data[key]
             apps_record = self.translate(ks_record)
@@ -138,7 +140,7 @@ class SyncManager:
         out = {}
 
         for apps_attr, ks_attr in self.field_map:
-            val = ks_record[ks_attr]
+            val = ks_record[ks_attr].strip()  # DRF will strip whitespace, so this prevents a needless update
             if apps_attr in self.field_translations:
                 val = self.field_translations[apps_attr](val)
 
