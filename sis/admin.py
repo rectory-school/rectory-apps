@@ -56,8 +56,13 @@ class DormAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Grade)
-class GradeAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
-    """View only grade admin"""
+class GradeAdmin(admin.ModelAdmin):
+    """Grade admin"""
+
+    readonly_fields = ['grade']
+
+    def has_add_permission(self, request) -> bool:
+        return False
 
 
 @admin.register(models.Enrollment)
@@ -70,7 +75,7 @@ class EnrollmentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
         return qs.select_related('student', 'academic_year')
 
     list_display = ['__str__', 'boarder']
-    list_filter = ['academic_year', 'boarder', 'status_attending', 'status_enrollment']
+    list_filter = ['academic_year', 'grade', 'boarder', 'status_attending', 'status_enrollment']
 
 
 @admin.register(models.Course)
@@ -82,14 +87,20 @@ class CourseAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 class SectionAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View only section admin"""
 
-    # TODO: Select academic year in the queryset
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        return qs.select_related('academic_year')
 
 
 @admin.register(models.StudentRegistration)
 class StudentRegistrationAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View only student registration admin"""
 
-    # TODO: Select academic year, section and student in the queryset
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        return qs.select_related('section__academic_year', 'section', 'student')
 
 
 @admin.register(models.Parent)

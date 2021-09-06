@@ -122,17 +122,7 @@ class Dorm(models.Model):
         ordering = ['building', 'wing', 'level', 'dorm_name']
 
     def __str__(self):
-        if self.wing and self.level:
-            return f"{self.building} {self.level} {self.wing}"
-
-        elif self.wing:
-            return f"{self.building} {self.wing}"
-
-        elif self.level:
-            return f"{self.level} {self.building}"
-
-        else:
-            return self.building
+        return self.dorm_name
 
 
 class Grade(models.Model):
@@ -154,7 +144,10 @@ class Grade(models.Model):
         ordering = ['grade']
 
     def __str__(self):
-        return self.description
+        if self.description:
+            return self.description
+
+        return self.grade
 
 
 class Enrollment(models.Model):
@@ -293,10 +286,15 @@ class StudentParentRelation(models.Model):
         unique_together = (('student', 'parent'), )
 
 
+def latest_academic_year() -> AcademicYear:
+    return AcademicYear.objects.order_by('-year').first()
+
+
 class Config(SingletonModel):
     """SIS configuration settings"""
 
-    current_year = models.ForeignKey(AcademicYear, related_name='+', on_delete=models.DO_NOTHING)
+    current_year = models.ForeignKey(
+        AcademicYear, related_name='+', on_delete=models.DO_NOTHING, default=latest_academic_year)
 
     def __str__(self):
         return "Student Information System Configuration"

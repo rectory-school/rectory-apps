@@ -68,7 +68,7 @@ class SectionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Section
-        fields = ['url', 'course', 'csn', 'academic_year', 'teacher', 'students']
+        fields = ['url', 'course', 'csn', 'academic_year', 'teacher']
 
 
 class StudentRegistrationSerializer(serializers.HyperlinkedModelSerializer):
