@@ -98,14 +98,15 @@ class SyncManager:
             res = req.result()
             data = res.json()
 
-            if res.status_code == 201:
-                log.info("Created %s: %d", data, res.status_code)
-
-                key = data[self.apps_key]
-                self.apps_data[key] = data  # Load back in for URLs and PK and such
+            if res.status_code >= 400:
+                log.warning("Unexpected status code when creating %s with %s: %s", res.request, data, res.status_code)
                 continue
 
-            log.warning("Unexpected status code when creating %s with %s: %s", res.request, data, res.status_code)
+            log.info("Created %s: %d", data, res.status_code)
+
+            key = data[self.apps_key]
+            self.apps_data[key] = data  # Load back in for URLs and PK and such
+            continue
 
     def update(self):
         self.load_apps_data()
