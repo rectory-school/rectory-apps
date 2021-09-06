@@ -99,3 +99,24 @@ class StudentParentRelationshipViewSet(Base):
 
     queryset = models.StudentParentRelation.objects.all()
     serializer_class = serializers.StudentParentRelationshipSerializer
+
+
+class DetentionOffenseViewSet(Base):
+    """API endpoint for detention offenses"""
+
+    queryset = models.DetentionOffense.objects.all()
+    serializer_class = serializers.DetentionOffenseSerializer
+
+
+class DetentionCodeViewSet(Base):
+    """API endpoint for detention offenses"""
+
+    queryset = models.DetentionCode.objects.all()
+    serializer_class = serializers.DetentionCodeSerializer
+
+
+class DetentionViewSet(Base):
+    """API endpoint for detentions"""
+
+    queryset = models.Detention.objects.all()
+    serializer_class = serializers.DetentionSerializer

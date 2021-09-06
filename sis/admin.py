@@ -1,7 +1,9 @@
 """SIS Admin"""
 
+from datetime import date, timedelta
+
 from django.contrib import admin
-from django.views.generic.base import View
+from django.db.models import Count, Max
 
 from solo.admin import SingletonModelAdmin
 
@@ -108,3 +110,31 @@ class ParentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View only parent admin"""
 
     list_display = ['full_id', 'full_name', 'first_name', 'last_name']
+
+
+@admin.register(models.DetentionOffense)
+class DetentionOffenseView(admin.ModelAdmin):
+    """Detention offense model admin"""
+
+    readonly_fields = ['offense']
+    # list_filter = ['send_mail', 'num_detentions']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.annotate(num_detentions=Count('detentions'), latest_detention=Max('detentions__date'))
+        qs = qs.filter(latest_detention__gte=date.today() - timedelta(days=365))
+
+        return qs
+
+    def has_add_permission(self, request) -> bool:
+        return False
+
+
+@admin.register(models.DetentionCode)
+class DetentionCodeAdmin(admin.ModelAdmin):
+    """Admin for detention codes"""
+
+    readonly_fields = ['code']
+
+    def has_add_permission(self, request) -> bool:
+        return False

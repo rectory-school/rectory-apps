@@ -1,5 +1,6 @@
 """SIS data sync models"""
 
+from functools import cache
 import logging
 from django.db import models
 from solo.models import SingletonModel
@@ -286,7 +287,52 @@ class StudentParentRelation(models.Model):
         unique_together = (('student', 'parent'), )
 
 
+class DetentionCode(models.Model):
+    """A detention code for reporting"""
+
+    code = models.CharField(max_length=63, unique=True)
+    process = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.code
+
+
+class DetentionOffense(models.Model):
+    """A detention offense for reporting"""
+
+    offense = models.TextField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sentence_insert = models.TextField(blank=True)
+    send_mail = models.BooleanField(default=False)
+
+    def __str__(self):
+        if len(self.offense) < 63:
+            return self.offense
+
+        return self.offense[0:58] + "..."
+
+
+class Detention(models.Model):
+    """A detention"""
+
+    detention_id = models.CharField(max_length=63, unique=True)
+    code = models.ForeignKey(DetentionCode, on_delete=models.DO_NOTHING, related_name='detentions')
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.DO_NOTHING)
+    offense = models.ForeignKey(DetentionOffense, on_delete=models.DO_NOTHING, related_name='detentions')
+
+    comments = models.TextField(blank=True)
+    date = models.DateField()
+
+    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    teacher = models.ForeignKey(Teacher, on_delete=models.DO_NOTHING, related_name='+')
+
+    def __str__(self):
+        return f"{self.detention_id}"
+
+
 def latest_academic_year() -> AcademicYear:
+    """Get the latest academic year as a default value"""
+
     return AcademicYear.objects.order_by('-year').first()
 
 

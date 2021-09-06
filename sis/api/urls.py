@@ -16,6 +16,9 @@ router.register('sections', views.SectionViewSet)
 router.register('student_registrations', views.StudentRegistrationViewSet)
 router.register('parents', views.ParentViewSet)
 router.register('student_parent_relations', views.StudentParentRelationshipViewSet)
+router.register('detention_offenses', views.DetentionOffenseViewSet)
+router.register('detention_codes', views.DetentionCodeViewSet)
+router.register('detentions', views.DetentionViewSet)
 
 # app_name = 'sis-api'
 urlpatterns = [

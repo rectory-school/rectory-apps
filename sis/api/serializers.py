@@ -94,3 +94,28 @@ class StudentParentRelationshipSerializer(serializers.HyperlinkedModelSerializer
     class Meta:
         model = models.StudentParentRelation
         fields = ['url', 'student', 'parent', 'relationship']
+
+
+class DetentionOffenseSerializer(serializers.HyperlinkedModelSerializer):
+    """Serializer for detention codes"""
+
+    class Meta:
+        model = models.DetentionOffense
+        fields = ['url', 'offense']
+
+
+class DetentionCodeSerializer(serializers.HyperlinkedModelSerializer):
+    """Serializer for detention codes"""
+
+    class Meta:
+        model = models.DetentionCode
+        fields = ['url', 'code']
+
+
+class DetentionSerializer(serializers.HyperlinkedModelSerializer):
+    """Detention serializer"""
+
+    class Meta:
+        model = models.Detention
+        fields = ['url', 'detention_id', 'academic_year', 'comments', 'date',
+                  'offense', 'student', 'teacher', 'code']
