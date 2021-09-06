@@ -36,6 +36,8 @@ pytest-django = "*"
 django-debug-toolbar = "*"
 ipython = "*"
 pylint-django = "*"
+pyyaml = "*"
+uritemplate = "*"
 
 [requires]
 python_version = "3.9"
