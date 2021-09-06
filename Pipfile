@@ -25,6 +25,7 @@ django-filter = "*"
 django-storages = "*"
 boto3 = "*"
 django-versatileimagefield = "*"
+django-solo = "*"
 
 [dev-packages]
 autopep8 = "*"
@@ -35,6 +36,8 @@ pytest-django = "*"
 django-debug-toolbar = "*"
 ipython = "*"
 pylint-django = "*"
+pyyaml = "*"
+uritemplate = "*"
 
 [requires]
 python_version = "3.9"

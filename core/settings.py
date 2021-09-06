@@ -60,11 +60,13 @@ INSTALLED_APPS = [
     'django_bootstrap_breadcrumbs',
     'versatileimagefield',
     'rest_framework',
+    'solo',
 
     'accounts',
     'icons',
     'nav',
     'calendar_generator',
+    'sis',
 ]
 
 MIDDLEWARE = [
