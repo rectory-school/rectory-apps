@@ -46,6 +46,9 @@ class StudentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 class TeacherAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View-only teacher admin"""
 
+    list_filter = ['active']
+    list_display = ['name', 'email', 'active']
+
 
 @admin.register(models.Dorm)
 class DormAdmin(admin.ModelAdmin):
