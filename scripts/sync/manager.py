@@ -1,6 +1,6 @@
 """Base manager"""
 
-from typing import List, Tuple, Dict, Iterable, Any, Union
+from typing import List, Tuple, Dict, Any, Callable
 from functools import cache, wraps
 import logging
 import json
@@ -9,22 +9,9 @@ from urllib.parse import urlencode
 
 import requests
 
+from single import run_once
+
 log = logging.getLogger(__name__)
-
-
-def run_once(f):
-    """Runs a function (successfully) only once.
-
-    The running can be reset by setting the `has_run` attribute to False
-    """
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if not wrapper.has_run:
-            result = f(*args, **kwargs)
-            wrapper.has_run = True
-            return result
-    wrapper.has_run = False
-    return wrapper
 
 
 class SyncManager:
@@ -33,6 +20,7 @@ class SyncManager:
     ks_key: str = None
 
     field_map: List[Tuple[str, str]] = None
+    field_translations: Dict[str, Callable[[Any], Any]] = {}
 
     def __init__(self, api_root: str, auth: Tuple[str, str], ks_filename: str = None):
         self.api_root = api_root
@@ -124,7 +112,7 @@ class SyncManager:
                 continue
 
             resp.raise_for_status()
-            log.info("Created %s: %d", data["url"], resp.status_code)
+            log.info("Created %s at %s: %d", key, data["url"], resp.status_code)
             self.apps_data[key] = data
 
     @run_once
@@ -150,7 +138,11 @@ class SyncManager:
         out = {}
 
         for apps_attr, ks_attr in self.field_map:
-            out[apps_attr] = ks_record[ks_attr]
+            val = ks_record[ks_attr]
+            if apps_attr in self.field_translations:
+                val = self.field_translations[apps_attr](val)
+
+            out[apps_attr] = val
 
         return out
 
