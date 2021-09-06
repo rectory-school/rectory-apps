@@ -91,7 +91,7 @@ class ParentViewSet(Base):
     """API endpoint for managing parents"""
 
     queryset = models.Parent.objects.all()
-    serializer_class = serializers.StudentRegistrationSerializer
+    serializer_class = serializers.ParentSerializer
 
 
 class StudentParentRelationshipViewSet(Base):

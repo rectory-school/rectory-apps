@@ -106,9 +106,9 @@ class Teacher(models.Model):
 class Dorm(models.Model):
     """A dorm, such as Hamilton North 2"""
 
-    dorm_name = models.CharField(max_length=20, unique=True)
+    dorm_name = models.CharField(max_length=63, unique=True)
 
-    building = models.CharField(max_length=20)
+    building = models.CharField(max_length=20, blank=True)
     wing = models.CharField(max_length=20, blank=True)
     level = models.CharField(max_length=20, blank=True)
 
@@ -119,7 +119,7 @@ class Dorm(models.Model):
                                    verbose_name="dorm parents")
 
     class Meta:
-        ordering = ['building', 'wing', 'level']
+        ordering = ['building', 'wing', 'level', 'dorm_name']
 
     def __str__(self):
         if self.wing and self.level:
@@ -146,7 +146,7 @@ class Grade(models.Model):
     SCHOOL_CHOICES_LENGTH = max(len(choice[0]) for choice in SCHOOL_CHOICES)
 
     grade = models.CharField(max_length=2, unique=True)
-    description = models.CharField(max_length=63, unique=True)
+    description = models.CharField(max_length=63, blank=True)
 
     school = models.CharField(max_length=SCHOOL_CHOICES_LENGTH, choices=SCHOOL_CHOICES, default='', blank=True)
 
@@ -243,16 +243,15 @@ class Parent(models.Model):
     family_id = models.CharField(max_length=20)
     parent_id = models.CharField(max_length=PARENT_ID_LENGTH)
 
-    # TODO: Is full_id needed?
-    full_id = models.CharField(max_length=(20 + PARENT_ID_LENGTH), unique=True)
+    first_name = models.CharField(max_length=63, blank=True)
+    last_name = models.CharField(max_length=63, blank=True)
+    middle_name = models.CharField(max_length=63, blank=True)
+    full_name = models.CharField(max_length=255, blank=True)
+    email = models.EmailField(max_length=255, blank=True)
 
-    first_name = models.CharField(max_length=50, blank=True)
-    last_name = models.CharField(max_length=50, blank=True)
-
-    email = models.EmailField(max_length=254, blank=True)
-    phone_home = models.CharField(max_length=100, blank=True)
-    phone_work = models.CharField(max_length=100, blank=True)
-    phone_cell = models.CharField(max_length=100, blank=True)
+    phone_home = models.CharField(max_length=63, blank=True)
+    phone_work = models.CharField(max_length=63, blank=True)
+    phone_cell = models.CharField(max_length=63, blank=True)
 
     address = models.TextField(blank=True)
 
@@ -260,12 +259,20 @@ class Parent(models.Model):
 
     class Meta:
         ordering = ['last_name', 'first_name']
+        unique_together = [('family_id', 'parent_id')]
 
     @property
     def name(self):
         """Parent's name"""
 
+        if self.full_name:
+            return self.full_name
+
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def full_id(self) -> str:
+        return f"{self.family_id}/{self.parent_id}"
 
     def __str__(self):
         return self.name
@@ -278,9 +285,6 @@ class StudentParentRelation(models.Model):
     parent = models.ForeignKey(Parent, db_index=True, on_delete=models.DO_NOTHING)
 
     relationship = models.CharField(max_length=20, blank=True)
-
-    # TODO: Is family ID key needed?
-    family_id_key = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return f"{self.student}/{self.parent}"

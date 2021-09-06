@@ -64,6 +64,14 @@ class GradeAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 class EnrollmentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View only enrollment admin"""
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        return qs.select_related('student', 'academic_year')
+
+    list_display = ['__str__', 'boarder']
+    list_filter = ['academic_year', 'boarder', 'status_attending', 'status_enrollment']
+
 
 @admin.register(models.Course)
 class CourseAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
@@ -87,3 +95,5 @@ class StudentRegistrationAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 @admin.register(models.Parent)
 class ParentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View only parent admin"""
+
+    list_display = ['full_id', 'full_name', 'first_name', 'last_name']
