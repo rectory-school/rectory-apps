@@ -4,6 +4,7 @@ from datetime import date, timedelta
 
 from django.contrib import admin
 from django.db.models import Count, Max
+from django.utils.translation import gettext_lazy as _
 
 from solo.admin import SingletonModelAdmin
 
@@ -112,17 +113,40 @@ class ParentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     list_display = ['full_id', 'full_name', 'first_name', 'last_name']
 
 
+class DetentionUsed(admin.SimpleListFilter):
+    """Filter for the last time a detention was used"""
+
+    parameter_name = 'used_recently'
+    title = _('used recently')
+
+    def lookups(self, request, model_admin):
+        return (
+            ('365', _('Within the last year')),
+            ('30', _('Within the last month')),
+        )
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        limit = int(self.value())
+        queryset = queryset.annotate(latest_detention=Max('detentions__date'))
+
+        return queryset.filter(latest_detention__gte=date.today() - timedelta(days=limit))
+
+
 @admin.register(models.DetentionOffense)
 class DetentionOffenseView(admin.ModelAdmin):
     """Detention offense model admin"""
 
     readonly_fields = ['offense']
-    # list_filter = ['send_mail', 'num_detentions']
+    list_filter = ['send_mail', DetentionUsed]
+    list_display = ['__str__', 'send_mail']
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        qs = qs.annotate(num_detentions=Count('detentions'), latest_detention=Max('detentions__date'))
-        qs = qs.filter(latest_detention__gte=date.today() - timedelta(days=365))
+
+        # qs = qs.filter(latest_detention__gte=date.today() - timedelta(days=365))
 
         return qs
 
