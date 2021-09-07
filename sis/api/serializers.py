@@ -84,8 +84,8 @@ class ParentSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Parent
-        fields = ['url', 'family_id', 'parent_id', 'first_name', 'last_name',
-                  'email', 'phone_home', 'phone_work', 'phone_cell', 'address', 'updated_at']
+        fields = ['url', 'family_id', 'parent_id', 'first_name', 'last_name', 'full_name',
+                  'middle_name', 'email', 'phone_home', 'phone_work', 'phone_cell', 'address']
 
 
 class StudentParentRelationshipSerializer(serializers.HyperlinkedModelSerializer):
