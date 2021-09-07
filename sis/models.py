@@ -243,7 +243,7 @@ class Parent(models.Model):
     full_name = models.CharField(max_length=255, blank=True)
     email = models.EmailField(max_length=255, blank=True)
 
-    phone_home = models.CharField(max_length=63, blank=True)
+    phone_home = models.CharField(max_length=255, blank=True)
     phone_work = models.CharField(max_length=63, blank=True)
     phone_cell = models.CharField(max_length=63, blank=True)
 
