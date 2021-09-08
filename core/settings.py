@@ -181,7 +181,7 @@ RESULTS_CACHE_SIZE = 2500
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'logzioFormat': {},
         'verbose': {
@@ -219,7 +219,7 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
         'logzio_type': "django",
         'logs_drain_timeout': 5,
         'url': LOGZ_REMOTE_URL,
-        'debug': True,
+        'debug': False,
         'network_timeout': 10,
         'token': LOGZ_TOKEN,
     }
