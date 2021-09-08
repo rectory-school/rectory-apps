@@ -184,7 +184,7 @@ LOGGING = {
     'formatters': {
         'logzioFormat': {},
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '%(asctime)s %(name)s [%(levelname)s] %(filename)s:%(lineno)d %(process)d %(thread)d %(message)s'
         },
     },
     'handlers': {
@@ -196,7 +196,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO'
+            'level': 'INFO',
         }
     }
 }
