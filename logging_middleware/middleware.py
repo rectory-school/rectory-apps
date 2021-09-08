@@ -19,6 +19,7 @@ class LoggingMiddleware:
         client_ip, _ = get_client_ip(request)
 
         response = self.get_response(request)
+        response_size = len(response.content)
 
         # Post-request
         finished_at = timezone.now()
@@ -30,15 +31,12 @@ class LoggingMiddleware:
             'request-time': took.total_seconds(),
             'path': request.path,
             'method': request.method,
+            'response-size': response_size,
+            'status-code': response.status_code,
         }
 
         if hasattr(request, 'user'):
             extra['user'] = str(request.user)
 
-        if response.streaming:
-            extra['streaming'] = True
-        else:
-            extra['response-size'] = len(response.content)
-
-        self.log.info("Finished request to %s", request.path, extra=extra)
+        self.log.info("%s %s %d", request.method, request.path, response.status_code, extra=extra)
         return response
