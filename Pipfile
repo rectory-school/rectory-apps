@@ -26,6 +26,7 @@ django-storages = "*"
 boto3 = "*"
 django-versatileimagefield = "*"
 django-solo = "*"
+logzio-python-handler = "*"
 
 [dev-packages]
 autopep8 = "*"

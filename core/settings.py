@@ -38,6 +38,10 @@ DEFAULT_FILE_STORAGE = env("DEFAULT_FILE_STORAGE", default="django.core.files.st
 AWS_DEFAULT_ACL = 'public-read'
 AWS_QUERYSTRING_AUTH = False
 
+# Remote logging configuration
+LOGZ_REMOTE_URL = env('LOGZ_REMOTE_URL', default=None)
+LOGZ_TOKEN = env('LOGZ_TOKEN', default=None)
+
 # Application definition
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -173,3 +177,42 @@ INTERNAL_IPS = [
 LOGIN_REDIRECT_URL = "/"
 
 RESULTS_CACHE_SIZE = 2500
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'logzioFormat': {},
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO'
+        }
+    }
+}
+
+if LOGZ_REMOTE_URL and LOGZ_TOKEN:
+    LOGGING['handlers']['logzio'] = {
+        'class': 'logzio.handler.LogzioHandler',
+        'level': 'INFO',
+        'formatter': 'logzioFormat',
+        'token': 'token',
+        'logzio_type': "django",
+        'logs_drain_timeout': 5,
+        'url': LOGZ_REMOTE_URL,
+        'debug': True,
+        'network_timeout': 10,
+        'token': LOGZ_TOKEN,
+    }
+
+    LOGGING['loggers']['django']['handlers'].append('logzio')
