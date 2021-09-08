@@ -29,10 +29,12 @@ class LoggingMiddleware:
         extra = {
             'remote-host': client_ip,
             'request-time': took.total_seconds(),
-            'path': request.path,
-            'method': request.method,
+            'request-path': request.path,
+            'request-method': request.method,
             'response-size': response_size,
-            'status-code': response.status_code,
+            'response-status-code': response.status_code,
+            'request-host': request.get_host(),
+            'request-scheme': request.scheme,
         }
 
         if hasattr(request, 'user'):

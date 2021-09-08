@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import environ
+import socket
+import uuid
+import json
 
 env = environ.Env()
 
@@ -179,11 +182,24 @@ LOGIN_REDIRECT_URL = "/"
 
 RESULTS_CACHE_SIZE = 2500
 
+hostname = socket.gethostname()
+ip_address = socket.gethostbyname(hostname)
+
+logz_format = {
+    'system': 'rectory-apps-web',
+    'system-hostname': hostname,
+    'system-ip-address': ip_address,
+    'system-uuid': uuid.uuid4().hex,
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'logzioFormat': {},
+        'logzioFormat': {
+            'format': json.dumps(logz_format),
+            'validate': False,
+        },
         'verbose': {
             'format': '%(asctime)s %(name)s [%(levelname)s] %(filename)s:%(lineno)d %(process)d %(thread)d %(message)s'
         },
