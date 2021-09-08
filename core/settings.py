@@ -202,10 +202,6 @@ LOGGING = {
         'log-http-requests': {
             'handlers': ['console'],
             'level': 'INFO',
-        },
-        'uvicorn': {
-            'handlers': ['console'],
-            'level': 'INFO'
         }
     }
 }
