@@ -82,6 +82,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'logging_middleware.middleware.LoggingMiddleware',
 ]
 
 if DEBUG:
@@ -180,7 +181,7 @@ RESULTS_CACHE_SIZE = 2500
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'formatters': {
         'logzioFormat': {},
         'verbose': {
@@ -196,7 +197,15 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console'],
+            'level': 'WARN',
+        },
+        'log-http-requests': {
+            'handlers': ['console'],
             'level': 'INFO',
+        },
+        'uvicorn': {
+            'handlers': ['console'],
+            'level': 'INFO'
         }
     }
 }
@@ -216,3 +225,4 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
     }
 
     LOGGING['loggers']['django']['handlers'].append('logzio')
+    LOGGING['loggers']['log-http-requests']['handlers'].append('logzio')
