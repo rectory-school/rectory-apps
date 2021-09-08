@@ -227,7 +227,6 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
         'class': 'logzio.handler.LogzioHandler',
         'level': 'INFO',
         'formatter': 'logzioFormat',
-        'token': 'token',
         'logzio_type': "django",
         'logs_drain_timeout': 5,
         'url': LOGZ_REMOTE_URL,
