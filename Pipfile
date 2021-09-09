@@ -28,6 +28,7 @@ django-versatileimagefield = "*"
 django-solo = "*"
 logzio-python-handler = "*"
 django-ipware = "*"
+django-anymail = {extras = ["mailgun"], version = "*"}
 
 [dev-packages]
 autopep8 = "*"
