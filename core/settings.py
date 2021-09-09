@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-import environ
 import socket
 import uuid
 import json
+from email.utils import parseaddr
+
+import environ
 
 env = environ.Env()
 
@@ -44,6 +46,23 @@ AWS_QUERYSTRING_AUTH = False
 # Remote logging configuration
 LOGZ_REMOTE_URL = env('LOGZ_REMOTE_URL', default=None)
 LOGZ_TOKEN = env('LOGZ_TOKEN', default=None)
+
+# Mail configuration
+MAILGUN_API_KEY = env('MAILGUN_API_KEY', default=None)
+MAILGUN_SENDER_DOMAIN = env('MAILGUN_SENDER_DOMAIN', default=None)
+SERVER_EMAIL = env('SERVER_EMAIL', default='root@localhost')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='root@localhost')
+
+ADMINS = tuple(parseaddr(email) for email in env.list('DJANGO_ADMINS', default=[]))
+MANAGERS = tuple(parseaddr(email) for email in env.list('DJANGO_MANAGERS', default=[]))
+
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
+if MAILGUN_API_KEY and MAILGUN_SENDER_DOMAIN:
+    ANYMAIL = {
+        "MAILGUN_API_KEY": MAILGUN_API_KEY,
+        "MAILGUN_SENDER_DOMAIN": MAILGUN_SENDER_DOMAIN,
+    }
 
 # Application definition
 
