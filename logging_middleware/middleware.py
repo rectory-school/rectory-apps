@@ -19,7 +19,6 @@ class LoggingMiddleware:
         client_ip, _ = get_client_ip(request)
 
         response = self.get_response(request)
-        response_size = len(response.content)
 
         # Post-request
         finished_at = timezone.now()
@@ -31,11 +30,13 @@ class LoggingMiddleware:
             'request-time': took.total_seconds(),
             'request-path': request.path,
             'request-method': request.method,
-            'response-size': response_size,
             'response-status-code': response.status_code,
             'request-host': request.get_host(),
             'request-scheme': request.scheme,
         }
+
+        if hasattr(response, "content"):
+            extra['response-size'] = len(response.content)
 
         if hasattr(request, 'user'):
             extra['user'] = str(request.user)
