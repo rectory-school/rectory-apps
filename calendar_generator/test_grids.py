@@ -5,6 +5,88 @@ from datetime import date
 from . import grids
 
 
+def test_grid_jan_2022():
+    """A specific unit test for January 31st, 2022 not showing up"""
+
+    days = {
+        date(2022, 1, 5): "E",
+        date(2022, 1, 6): "C",
+        date(2022, 1, 7): "A",
+        date(2022, 1, 10): "F",
+        date(2022, 1, 11): "D",
+        date(2022, 1, 12): "B",
+        date(2022, 1, 13): "G",
+        date(2022, 1, 14): "E",
+        date(2022, 1, 18): "C",
+        date(2022, 1, 19): "A",
+        date(2022, 1, 20): "F",
+        date(2022, 1, 24): "B",
+        date(2022, 1, 25): "G",
+        date(2022, 1, 26): "E",
+        date(2022, 1, 27): "C",
+        date(2022, 1, 28): "A",
+        date(2022, 1, 31): "F",
+    }
+
+    expected_headers = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+    expected_grid = [
+        [
+            grids.GridItem(date=None, letter=None, label=None),
+            grids.GridItem(date=None, letter=None, label=None),
+            grids.GridItem(date=None, letter=None, label=None),
+            grids.GridItem(date=None, letter=None, label=None),
+            grids.GridItem(date(2022, 1, 1), None),
+        ],
+        [
+            grids.GridItem(date(2022, 1, 3), None),
+            grids.GridItem(date(2022, 1, 4), None),
+            grids.GridItem(date(2022, 1, 5), "E"),
+            grids.GridItem(date(2022, 1, 6), "C"),
+            grids.GridItem(date(2022, 1, 7), "A"),
+        ],
+        [
+            grids.GridItem(date(2022, 1, 10), "F"),
+            grids.GridItem(date(2022, 1, 11), "D"),
+            grids.GridItem(date(2022, 1, 12), "B"),
+            grids.GridItem(date(2022, 1, 13), "G"),
+            grids.GridItem(date(2022, 1, 14), "E"),
+        ],
+        [
+            grids.GridItem(date(2022, 1, 17), None),
+            grids.GridItem(date(2022, 1, 18), "C"),
+            grids.GridItem(date(2022, 1, 19), "A"),
+            grids.GridItem(date(2022, 1, 20), "F"),
+            grids.GridItem(date(2022, 1, 21), "D"),
+        ],
+        [
+            grids.GridItem(date(2022, 1, 24), "B"),
+            grids.GridItem(date(2022, 1, 25), "G"),
+            grids.GridItem(date(2022, 1, 26), "E"),
+            grids.GridItem(date(2022, 1, 27), "C"),
+            grids.GridItem(date(2022, 1, 28), "A"),
+        ],
+        [
+            grids.GridItem(date(2022, 1, 31), "F"),
+            grids.GridItem(date=None, letter=None, label=None),
+            grids.GridItem(date=None, letter=None, label=None),
+            grids.GridItem(date=None, letter=None, label=None),
+            grids.GridItem(date=None, letter=None, label=None),
+        ],
+    ]
+
+    expected = grids.CalendarGrid(title="January 2022", headers=expected_headers, grid=expected_grid)
+
+    generator = grids.CalendarGridGenerator(
+        date_letter_map=days, label_map={},
+        start_date=date(2021, 1, 1),
+        end_date=date(2021, 1, 31))
+
+    actual = generator.get_grid()
+
+    assert actual == expected
+
+
 def test_grid_generation():
     """Test the generation of the May 2021 calendar grid"""
 
