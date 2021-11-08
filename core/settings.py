@@ -72,6 +72,7 @@ if MAILGUN_API_KEY and MAILGUN_SENDER_DOMAIN:
 
 AUTH_USER_MODEL = 'accounts.User'
 
+# The direct to config settings are to bypass the default_app_config RemovedInDjango41Warning warnings
 INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
 
@@ -86,9 +87,9 @@ INSTALLED_APPS = [
     'django_safemigrate.apps.SafeMigrateConfig',
     'bootstrap4',
     'health_check',
-    'health_check.db',
+    'health_check.db.apps.HealthCheckConfig',
     'django_bootstrap_breadcrumbs',
-    'versatileimagefield',
+    'versatileimagefield.apps.VersatileImageFieldConfig',
     'rest_framework',
     'solo',
 
