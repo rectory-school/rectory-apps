@@ -80,6 +80,6 @@ AVAILABLE_LAYOUT_PRESETS = (
 
     ("A4 Landscape (Print)", _quick(297*mm, 210*mm, 17*mm)),
     ("A4 Landscape (Embedded)", _quick(297*mm, 210*mm, 0*mm)),
-    ("A4: (Print)", _quick(210*mm, 297*mm, 17*mm)),
-    ("A4: (Embedded)", _quick(210*mm, 297*mm, 0*mm)),
+    ("A4 (Print)", _quick(210*mm, 297*mm, 17*mm)),
+    ("A4 (Embedded)", _quick(210*mm, 297*mm, 0*mm)),
 )
