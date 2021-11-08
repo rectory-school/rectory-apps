@@ -22,6 +22,9 @@ RUN poetry install --no-dev --no-interaction --no-ansi
 # Creating folders, and files for a project:
 COPY . /code
 
+# Temporary secret key for collecting static
+ARG SECRET_KEY=-
+
 RUN python manage.py collectstatic --no-input
 EXPOSE 8000
 
