@@ -20,6 +20,7 @@ def test_grid_jan_2022():
         date(2022, 1, 18): "C",
         date(2022, 1, 19): "A",
         date(2022, 1, 20): "F",
+        date(2022, 1, 21): "D",
         date(2022, 1, 24): "B",
         date(2022, 1, 25): "G",
         date(2022, 1, 26): "E",
@@ -31,13 +32,6 @@ def test_grid_jan_2022():
     expected_headers = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
     expected_grid = [
-        [
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date(2022, 1, 1), None),
-        ],
         [
             grids.GridItem(date(2022, 1, 3), None),
             grids.GridItem(date(2022, 1, 4), None),
@@ -79,8 +73,8 @@ def test_grid_jan_2022():
 
     generator = grids.CalendarGridGenerator(
         date_letter_map=days, label_map={},
-        start_date=date(2021, 1, 1),
-        end_date=date(2021, 1, 31))
+        start_date=date(2022, 1, 1),
+        end_date=date(2022, 1, 31))
 
     actual = generator.get_grid()
 
