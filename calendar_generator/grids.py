@@ -79,13 +79,24 @@ class CalendarGridGenerator:
         out = CalendarGrid(headers=used_headers, grid=[], title=self.title)
 
         # Walk backwards until we get our first weekday
-        target_weekday = ordered_weekdays[0]
         internal_start_date = self.start_date
 
+        # This is a fix to the Jan 2022 issue - the first week was all None becuase
+        # Jan 1st was on a Saturday, which then got walked back to December 27, which
+        # then all got excluded because none of the dates were in range
+
+        # Walk forwards until we hit a day of the week we care about
+        while internal_start_date.weekday() not in ordered_weekdays:
+            internal_start_date += timedelta(days=1)
+
+        # Walk backwards until we hit the start of the week
+        target_weekday = ordered_weekdays[0]
         while internal_start_date.weekday() != target_weekday:
             internal_start_date -= timedelta(days=1)
 
-        total_weeks = math.ceil((self.end_date - internal_start_date).days / 7)
+        # The plus one is for the Jan 2022 edge condition, and the extra row gets
+        # excluded at the end if it was added
+        total_weeks = math.ceil((self.end_date - internal_start_date).days / 7) + 1
         full_grid = []
         for week_index in range(total_weeks):
             week_start = internal_start_date + timedelta(days=week_index*7)
@@ -98,7 +109,10 @@ class CalendarGridGenerator:
                 else:
                     row.append(None)
 
-            full_grid.append(row)
+            if row != [None] * len(row):
+                # Make sure we don't dump complete nothing rows in - account
+                # for the Jan 2022 special case
+                full_grid.append(row)
 
         # Now we have a date corresponding to the actual first day that might be on our calendar,
         # even though we might not display that date because it's outside of our range
