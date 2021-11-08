@@ -7,7 +7,7 @@ WORKDIR /app/code/
 RUN apk add --no-cache build-base libffi-dev bzip2-dev zlib-dev sqlite-dev jpeg-dev postgresql-dev
 
 RUN pip install pip==21.3.1
-RUN pip install poetry==1.1.8
+RUN pip install poetry==1.1.11
 
 COPY poetry.lock pyproject.toml /code/
 
