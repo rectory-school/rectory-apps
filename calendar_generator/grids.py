@@ -22,8 +22,8 @@ class GridItem:
     """A date/letter pair in a grid"""
 
     date: date
-    letter: Optional[str]
-    label: Optional[str]
+    letter: Optional[str] = None
+    label: Optional[str] = None
 
 
 @dataclass
