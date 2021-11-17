@@ -19,4 +19,47 @@
         </button>
     {% endbuttons %}
 </form>
+
+<div class="calendar">
+    <h2>{{ calendar.first_date|date:"F Y" }}</h2>
+    <ul class="noprint">
+        {% for style_index, style_name in styles %}
+            <li><strong>{{ style_name }}</strong>:  
+            {% for layout_index, layout_name in layouts %}
+                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ layout_name }}</a>
+
+                {% if not forloop.last %}&bullet;{% endif %}
+            {% endfor %}
+        {% endfor %}
+    </ul>
+
+    <table class="table table-bordered">
+        <thead>
+            {% for header in calendar.grid.headers %}
+                <th scope="col">{{ header }}</th>
+            {% endfor %}
+        </thead>
+        <tbody>
+            {% for week in calendar.grid.grid %}
+            <tr>
+                {% for day in week %}
+                <td>
+                    {% if day %}
+                        <span class="date">{{ day.date.day }}</span>
+
+                        {% if day.letter %}
+                            {% if day.is_label %}
+                                <span class="label">{{ day.letter }}</span>
+                            {% else %}
+                                <span class="letter">{{ day.letter }}</span>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

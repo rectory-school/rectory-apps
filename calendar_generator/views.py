@@ -17,6 +17,7 @@ from django.views.generic import DetailView, ListView, View, FormView
 from django.http import FileResponse, HttpResponseNotFound, HttpResponse, HttpRequest
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
+from django.views.generic.base import TemplateView
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
@@ -111,6 +112,76 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         return context
 
 
+class Custom(TemplateView):
+    """FormView for custom calendar generation"""
+
+    template_name = "calendar_generator/custom.html"
+
+    def get_form_kwargs(self) -> Dict[str, Any]:
+        kwargs = super().get_form_kwargs()
+
+        cal = self.get_calendar()
+        kwargs["calendar"] = cal
+
+        initial = {arg: self.request.GET.get(arg) for arg in self.request.GET}
+        if not 'title' in initial:
+            initial['title'] = cal.title
+
+        if not 'start_date' in initial:
+            initial['start_date'] = cal.start_date
+
+        if not 'end_date' in initial:
+            initial['end_date'] = cal.end_date
+
+        kwargs["initial"] = initial
+        return kwargs
+
+    def get_context_data(self, **kwargs: Dict[str, any]) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        cal = self.get_calendar()
+
+        title = self.request.GET.get('title', cal.title)
+        start_date = self.request.GET.get('start_date', cal.start_date)
+        end_date = self.request.GET.get('end_date', cal.end_date)
+
+        data = {
+            'title': title,
+            'start_date': start_date,
+            'end_date': end_date,
+        }
+
+        form = forms.CustomCalendarForm(data, calendar=cal, initial=data)
+
+        context["calendar"] = cal
+        context["form"] = form
+
+        if form.is_bound and form.is_valid():
+            letter_map = cal.get_date_letter_map()
+            label_map = cal.get_arbitrary_labels()
+
+            f_title = form.cleaned_data["title"]
+            f_start = form.cleaned_data["start_date"]
+            f_end = form.cleaned_data["end_date"]
+
+            grid_generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
+                                                         label_map=label_map,
+                                                         start_date=f_start,
+                                                         end_date=f_end,
+                                                         custom_title=f_title)
+            grid = grid_generator.get_grid()
+
+            context["title"] = title
+            context["grid"] = grid
+
+        return context
+
+    @functools.cache
+    def get_calendar(self) -> models.Calendar:
+        """Get the calendar we are working on"""
+
+        return get_object_or_404(models.Calendar, pk=self.kwargs["calendar_id"])
+
+
 class CustomPDF(FormView):
     """FormView for custom PDF"""
 
@@ -179,6 +250,19 @@ class CustomPDF(FormView):
         """Get the calendar we are working on"""
 
         return get_object_or_404(models.Calendar, pk=self.kwargs["calendar_id"])
+
+
+class PDFDateRange(View):
+    """PDF view of a range of dates"""
+
+    def get(self, request: HttpRequest, calendar_id: int, start_date: str, end_date: str,
+            style_index: int, layout_index: int) -> HttpResponse:
+        """Return the PDF"""
+
+        calendar_obj = get_object_or_404(models.Calendar, pk=calendar_id)
+        assert isinstance(calendar_obj, models.Calendar)
+
+        try:
 
 
 class PDFMonth(View):
@@ -343,3 +427,10 @@ class PDFOnePage(View):
 
         buf.seek(0)
         return FileResponse(buf, filename=f"{calendar_obj.title} - All Months.pdf")
+
+
+def _str_to_date(s: str) -> date:
+    parts = s.split("-")
+    int_parts = (int(p) for p in parts)
+
+    return date(*int_parts)

@@ -54,7 +54,7 @@
     {% endfor %}
 </ul>
     
-<p class="noprint"><a href="{% url 'calendar_generator:custom-pdf' calendar_id=calendar.pk %}">Custom PDF Generator</a></p>
+<p class="noprint"><a href="{% url 'calendar_generator:custom' calendar_id=calendar.pk %}">Custom Calendar Generator</a></p>
     
 {% if today_letter %}
     <h2 class="noprint">Today</h2>
@@ -100,14 +100,14 @@
         <h2>{{calendar.first_date|date:"F Y"}} Printable</h2>
         {% for style_index, style_name in styles %}
             <p><strong>{{ style_name }}</strong>:
-            {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ layout_name }}</a>
+                {% for layout_index, layout_name in layouts %}
+                    <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ layout_name }}</a>
 
-                {% if not forloop.last %}&bullet;{% endif %}
-            {% endfor %}
+                    {% if not forloop.last %}&bullet;{% endif %}
+                {% endfor %}
             </p>
-            {% endfor %}
-</div>
+        {% endfor %}
+    </div>
 {% endfor %}      
 
 {% endblock %}

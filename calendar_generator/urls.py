@@ -30,4 +30,8 @@ urlpatterns = [
     path('calendar-<int:calendar_id>/pdf/custom/',
          views.CustomPDF.as_view(),
          name='custom-pdf'),
+
+    path('calendar-<int:calendar_id>/custom/',
+         views.Custom.as_view(),
+         name='custom'),
 ]
