@@ -103,6 +103,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'core.health_middleware.HealthCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -267,3 +268,5 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
 
     LOGGING['loggers']['django']['handlers'].append('logzio')
     LOGGING['loggers']['log-http-requests']['handlers'].append('logzio')
+
+HEALTH_CHECK_URL = "/health-check/"
