@@ -1,3 +1,5 @@
+"""Tests for the job scheduler"""
+
 from datetime import timedelta
 
 from django.test import TestCase
@@ -23,7 +25,8 @@ class ScheduleTest(TestCase):
             find_jobs())
 
     def test_registration_int(self):
-        @ schedule(5, 10)
+        """Test registration with ints"""
+        @schedule(5, 10)
         def hello():
             pass
 

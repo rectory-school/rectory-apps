@@ -18,11 +18,15 @@ class _GlobalTracker:
 
     def find_jobs(self) -> List[RegisteredJob]:
         """Get all the jobs from the tracker after finding all jobs"""
+
+        self.import_once()
+        return self.tracker.get_jobs()
+
+    def import_once(self):
+        """Run the imports exactly once"""
         if not self.did_imports:
             _run_imports()
-
-        self.did_imports = True
-        return self.tracker.get_jobs()
+            self.did_imports = True
 
 
 def _run_imports():
@@ -41,6 +45,6 @@ def _run_imports():
 
 _global_tracker = _GlobalTracker()
 
-# Grab the default scheduler to libraries can just run @jobs.schedule(30)
+# Grab the default scheduler so libraries can just run @jobs.schedule(30)
 schedule = _global_tracker.tracker.schedule
 find_jobs = _global_tracker.find_jobs
