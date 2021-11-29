@@ -3,19 +3,33 @@ from datetime import timedelta
 from django.test import TestCase
 
 from . import schedule, find_jobs
+from .tracker import RegisteredJob
 
 
 class ScheduleTest(TestCase):
-    def test_registration(self):
+    """Tests for the scheduler"""
+
+    def test_global_registration(self):
+        """Test basic registration"""
         @schedule(timedelta(seconds=30))
         def hello():
             pass
 
-        self.assertIn((timedelta(seconds=30), hello), find_jobs())
+        self.assertIn(
+            RegisteredJob(
+                interval=timedelta(seconds=30),
+                variance=timedelta(seconds=0),
+                func=hello),
+            find_jobs())
 
     def test_registration_int(self):
-        @schedule(5)
+        @ schedule(5, 10)
         def hello():
             pass
 
-        self.assertIn((timedelta(seconds=5), hello), find_jobs())
+        self.assertIn(
+            RegisteredJob(
+                interval=timedelta(seconds=5),
+                variance=timedelta(seconds=10),
+                func=hello),
+            find_jobs())
