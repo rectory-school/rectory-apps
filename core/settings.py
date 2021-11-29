@@ -104,8 +104,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'core.health_middleware.HealthCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'lb_health_check.middleware.AliveCheck',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -275,4 +275,4 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
     LOGGING['loggers']['log-http-requests']['handlers'].append('logzio')
     LOGGING['loggers']['jobs']['handlers'].append('logzio')
 
-HEALTH_CHECK_URL = "/health-check/"
+ALIVENESS_URL = "/health-check/"

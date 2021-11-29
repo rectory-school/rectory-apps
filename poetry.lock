@@ -296,6 +296,17 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [[package]]
+name = "django-lb-health-check"
+version = "1.0"
+description = "Middleware based health check for Django"
+category = "main"
+optional = false
+python-versions = ">=3.6.2"
+
+[package.dependencies]
+Django = ">=2.2"
+
+[[package]]
 name = "django-safemigrate"
 version = "3.0"
 description = "Safely run migrations before deployment"
@@ -983,7 +994,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "48a773f77ca3f6064263e2bab174fd1e2d71951c82145fac231cbd03dc027897"
+content-hash = "50d05abe4bf6a1e1001666a5ed503ada1e79c891679284c5018254fe755bd99c"
 
 [metadata.files]
 appnope = [
@@ -1090,6 +1101,10 @@ django-health-check = [
 django-ipware = [
     {file = "django-ipware-4.0.0.tar.gz", hash = "sha256:1294f916f3b3475e40e1b0ec1bd320aa2397978eae672721c81cbc2ed517e9ee"},
     {file = "django_ipware-4.0.0-py2.py3-none-any.whl", hash = "sha256:116bd0d7940f09bf7ffd465943992e23d87e772a9d6c0d3a57b74040589a383b"},
+]
+django-lb-health-check = [
+    {file = "django-lb-health-check-1.0.tar.gz", hash = "sha256:880104981032785dc4550363b7d5278fa07df0662bd9ea2376732a250e5fea27"},
+    {file = "django_lb_health_check-1.0-py3-none-any.whl", hash = "sha256:81c72b0e2e6d159d59f5c229c2944494f724d0edaae4736fa69a04924b532cda"},
 ]
 django-safemigrate = [
     {file = "django-safemigrate-3.0.tar.gz", hash = "sha256:0d446268322ae411a10c8b49dd52a9f4d182db69f39ef839280edb4b84dad232"},
