@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     'calendar_generator',
     'sis',
     'jobs',
+    'stored_mail',
 ]
 
 MIDDLEWARE = [
