@@ -2,7 +2,7 @@ from typing import List
 from threading import Thread, Event, Lock
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 import signal
 from random import random
 
