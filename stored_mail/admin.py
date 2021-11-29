@@ -35,4 +35,13 @@ class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """Admin for outgoing mail"""
 
     inlines = [SendAddressInline]
-    list_filter = ['sent_at']
+    list_filter = ['sent_at', 'created_at']
+    list_display = ['pk', 'subject', 'created_at', 'sent_at']
+
+    fields = ['from_name', 'from_address', 'subject', 'sent_at', 'mime']
+    readonly_fields = ['mime']
+
+    @admin.display(description='MIME Message')
+    def mime(self, obj: models.OutgoingMessage = None) -> str:
+        if obj:
+            return obj.mime_text()
