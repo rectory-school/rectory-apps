@@ -22,6 +22,10 @@ env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+if (dotenv := (BASE_DIR / ".env")).exists():
+    environ.Env.read_env(dotenv)
+
+
 DEBUG = env.bool('DEBUG', default=False)
 SECRET_KEY = env('SECRET_KEY')
 
@@ -68,6 +72,7 @@ if MAILGUN_API_KEY and MAILGUN_SENDER_DOMAIN:
 
 AUTH_USER_MODEL = 'accounts.User'
 
+# The direct to config settings are to bypass the default_app_config RemovedInDjango41Warning warnings
 INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
 
@@ -79,12 +84,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'adminsortable2',
-    'django_safemigrate.apps.SafeMigrateConfig',
+    'django_safemigrate',
     'bootstrap4',
     'health_check',
-    'health_check.db',
+    # 'health_check.db,
+    'health_check.db.apps.HealthCheckConfig',
     'django_bootstrap_breadcrumbs',
-    'versatileimagefield',
+    # 'versatileimagefield',
+    'versatileimagefield.apps.VersatileImageFieldConfig',
     'rest_framework',
     'solo',
 
@@ -93,10 +100,12 @@ INSTALLED_APPS = [
     'nav',
     'calendar_generator',
     'sis',
+    'jobs',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'lb_health_check.middleware.AliveCheck',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -241,6 +250,10 @@ LOGGING = {
         'log-http-requests': {
             'handlers': ['console'],
             'level': 'INFO',
+        },
+        'jobs': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
         }
     }
 }
@@ -260,3 +273,6 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
 
     LOGGING['loggers']['django']['handlers'].append('logzio')
     LOGGING['loggers']['log-http-requests']['handlers'].append('logzio')
+    LOGGING['loggers']['jobs']['handlers'].append('logzio')
+
+ALIVENESS_URL = "/health-check/"

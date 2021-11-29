@@ -1,9 +1,11 @@
-[[source]]
-url = "https://pypi.org/simple"
-verify_ssl = true
-name = "pypi"
+[tool.poetry]
+name = "rectory-apps"
+version = "0.0.0"
+description = ""
+authors = ["Adam Peacock <adam@thepeacock.net>"]
 
-[packages]
+[tool.poetry.dependencies]
+python = "^3.10"
 django = "~=3.2"
 django-environ = "*"
 django-admin-sortable2 = "*"
@@ -29,8 +31,10 @@ django-solo = "*"
 logzio-python-handler = "*"
 django-ipware = "*"
 django-anymail = {extras = ["mailgun"], version = "*"}
+uWSGI = "^2.0.20"
+django-lb-health-check = "^1.0"
 
-[dev-packages]
+[tool.poetry.dev-dependencies]
 autopep8 = "*"
 rope = "*"
 pylint = "*"
@@ -42,5 +46,6 @@ pylint-django = "*"
 pyyaml = "*"
 uritemplate = "*"
 
-[requires]
-python_version = "3.9"
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

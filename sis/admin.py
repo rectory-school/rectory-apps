@@ -49,6 +49,7 @@ class StudentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 class TeacherAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View-only teacher admin"""
 
+    search_fields = ['last_name', 'first_name', 'email', 'teacher_id', 'unique_name', ]
     list_filter = ['active']
     list_display = ['name', 'email', 'active']
 
