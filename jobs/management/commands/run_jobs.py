@@ -1,57 +1,55 @@
 from typing import List
 from threading import Thread, Event, Lock
-import time
 
 import logging
 from datetime import datetime, timedelta
 import signal
+from random import random
 
 from django.core.management.base import BaseCommand
 
-from jobs import find_jobs, Job
+from jobs import find_jobs, RegisteredJob
 
 log = logging.getLogger(__name__)
 
 
 class JobThread(Thread):
-    def __init__(self, interval: timedelta, job: Job):
-        self.interval = interval
+    def __init__(self, job: RegisteredJob):
         self.job = job
-        self.full_name = f"{self.job.__module__}.{self.job.__name__}"
 
         self._stopping = Event()
 
         super().__init__()
 
     def run(self):
-        log.info("Thread for %s executing evert %s started", self.full_name, self.interval)
+        log.info("Thread for %s executing every %s + %s started", self.job.name, self.job.interval, self.job.variance)
 
         while not self._stopping.is_set():
-            log.info("Starting %s", self.full_name)
+            log.info("Starting %s", self.job.name)
             started_at = datetime.now()
 
             try:
-                self.job()
+                self.job.func()
+                log.info("Finished %s successfully", self.job.name)
             except Exception as exc:
-                log.exception("Exception when running job %s", self.full_name)
+                log.exception("Finished %s with exception: %s", self.job.name, exc)
 
-            log.info("Finished %s", self.full_name)
-
-            next_run = started_at + self.interval
+            this_interval = self.job.interval + random() * self.job.variance
+            next_run = started_at + this_interval
             now = datetime.now()
             delay = next_run - now
 
-            if delay > timedelta(seconds=0):
-                log.info("%s not ready to be run, waiting %s", self.full_name, delay)
+            if delay.total_seconds() > 0:
+                log.info("%s not ready to be run, waiting %s", self.job.name, delay)
 
-                # Wait until stopping is set, in which case the while loop will exit,
-                # or until the next run time
-                if self._stopping.wait(delay.total_seconds()):
-                    return
+                # We do the delay inside of the event wait so that we can respond
+                # immediatly to a stop signal. If we get a stop signal, we'll
+                # stop the wait here and then immediatly exit the while loop
+                self._stopping.wait(delay.total_seconds())
             else:
-                log.info("%s being run with no delay", self.full_name)
+                log.info("%s being run with no delay", self.job.name)
 
-        log.info("Thread running %s stopped", self.full_name)
+        log.info("Thread running %s stopped", self.job.name)
 
     def stop(self):
         self._stopping.set()
@@ -74,19 +72,19 @@ class Coordinator(Thread):
             worker.stop()
 
         for worker in self.workers:
-            log.info("Waiting for %s shutdown", worker.full_name)
+            log.info("Waiting for %s shutdown", worker.job.name)
             worker.join()
-            log.info("%s shutdown finished", worker.full_name)
+            log.info("%s shutdown finished", worker.job.name)
 
         log.info("Job tracker thread finished")
 
-    def add(self, interval: timedelta, job: Job):
+    def add(self, job: RegisteredJob):
         with self._lock:
-            thread = JobThread(interval, job)
+            thread = JobThread(job)
             self.workers.append(thread)
             thread.start()
 
-    def stop(self, *args, **kwargs):
+    def stop_signal(self, *args, **kwargs):
         log.info("Signal set")
         self.evt.set()
 
@@ -98,10 +96,10 @@ class Command(BaseCommand):
         coordinator = Coordinator()
         coordinator.start()
 
-        signal.signal(signal.SIGINT, coordinator.stop)
-        signal.signal(signal.SIGTERM, coordinator.stop)
+        signal.signal(signal.SIGINT, coordinator.stop_signal)
+        signal.signal(signal.SIGTERM, coordinator.stop_signal)
 
-        for interval, job in find_jobs():
-            coordinator.add(interval, job)
+        for job in find_jobs():
+            coordinator.add(job)
 
         coordinator.join()

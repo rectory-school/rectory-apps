@@ -6,7 +6,7 @@ from jobs import schedule
 log = logging.getLogger(__name__)
 
 
-@schedule(5)
+@schedule(0, 30)
 def hello():
     """Say hello"""
 
