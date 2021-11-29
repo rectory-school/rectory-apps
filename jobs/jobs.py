@@ -11,3 +11,10 @@ def hello():
     """Say hello"""
 
     log.debug("Saying hello")
+
+
+@schedule(5, 60)
+def hello_2():
+    """Say hello"""
+
+    log.debug("Saying hello again")
