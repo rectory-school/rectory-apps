@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'nav',
     'calendar_generator',
     'sis',
+    'jobs',
 ]
 
 MIDDLEWARE = [
@@ -249,6 +250,10 @@ LOGGING = {
         'log-http-requests': {
             'handlers': ['console'],
             'level': 'INFO',
+        },
+        'jobs': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
         }
     }
 }
@@ -268,5 +273,6 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
 
     LOGGING['loggers']['django']['handlers'].append('logzio')
     LOGGING['loggers']['log-http-requests']['handlers'].append('logzio')
+    LOGGING['loggers']['jobs']['handlers'].append('logzio')
 
 HEALTH_CHECK_URL = "/health-check/"
