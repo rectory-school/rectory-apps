@@ -24,24 +24,24 @@ class ViewOnlyAdminMixin:
         return False
 
 
-class SendAddressInline(admin.TabularInline):
+class RelatedAddressInline(admin.TabularInline):
     """Inline for a send address"""
 
-    model = models.SendAddress
+    model = models.RelatedAddress
 
 
 @admin.register(models.OutgoingMessage)
 class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """Admin for outgoing mail"""
 
-    inlines = [SendAddressInline]
+    inlines = [RelatedAddressInline]
     list_filter = ['sent_at', 'created_at']
     list_display = ['pk', 'subject', 'created_at', 'sent_at']
 
-    fields = ['from_name', 'from_address', 'reply_to_name', 'reply_to_address', 'subject', 'sent_at', 'mime']
-    readonly_fields = ['mime']
+    fields = ['from_name', 'from_address', 'subject', 'sent_at', 'encoded']
+    readonly_fields = ['encoded']
 
-    @admin.display(description='MIME Message')
-    def mime(self, obj: models.OutgoingMessage = None) -> str:
+    @admin.display(description='Encoded Message')
+    def encoded(self, obj: models.OutgoingMessage = None) -> str:
         if obj:
-            return str(obj.get_mime())
+            return str(obj.get_django_email().message())

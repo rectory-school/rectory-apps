@@ -31,7 +31,7 @@ class Command(BaseCommand):
             outgoing.html = f"<body><div>This is a test message generated at {now}</div></body>"
             outgoing.save()
 
-            send_addr = models.SendAddress()
+            send_addr = models.RelatedAddress()
             send_addr.message = outgoing
             send_addr.field = 'to'
             send_addr.name = to_name
