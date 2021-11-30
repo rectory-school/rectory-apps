@@ -67,6 +67,8 @@ class OutgoingMessage(models.Model):
             'body': self.text,
             'headers': {
                 'Message-ID': message_id,
+                'date': email.utils.formatdate(self.created_at.timestamp())
+            },
             'connection': connection,
         }
 
