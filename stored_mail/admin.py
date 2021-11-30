@@ -9,16 +9,22 @@ class ViewOnlyAdminMixin:
     """Admin view for mixin that provides view-only access"""
 
     def has_add_permission(self, request) -> bool:
+        """Nobody can add items to a view only model"""
+
         del request
 
         return False
 
     def has_delete_permission(self, request, obj=None) -> bool:
+        """Nobody can delete items from a view only model"""
+
         del request, obj
 
         return False
 
     def has_change_permission(self, request, obj=None) -> bool:
+        """Nobody can change items on a view only model"""
+
         del request, obj
 
         return False
@@ -43,5 +49,7 @@ class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 
     @admin.display(description='Encoded Message')
     def encoded(self, obj: models.OutgoingMessage = None) -> str:
+        """Encoded display helper"""
+
         if obj:
             return str(obj.get_django_email().message())
