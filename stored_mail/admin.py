@@ -38,7 +38,7 @@ class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     list_filter = ['sent_at', 'created_at']
     list_display = ['pk', 'subject', 'created_at', 'sent_at']
 
-    fields = ['from_name', 'from_address', 'subject', 'sent_at', 'encoded']
+    fields = ['from_name', 'from_address', 'subject', 'sent_at', 'created_at', 'encoded']
     readonly_fields = ['encoded']
 
     @admin.display(description='Encoded Message')
