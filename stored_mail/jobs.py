@@ -34,11 +34,12 @@ def send_emails() -> bool:
         candidate_query = last_attempt_query & created_at_query & sent_at_query
 
         to_send = models.OutgoingMessage.objects.filter(candidate_query).first()
-        assert isinstance(to_send, models.OutgoingMessage)
 
         if not to_send:
             log.info("No messages to send")
             return False
+
+        assert isinstance(to_send, models.OutgoingMessage)
 
         try:
             msg = to_send.get_django_email()
