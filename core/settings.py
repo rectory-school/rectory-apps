@@ -255,6 +255,10 @@ LOGGING = {
         'jobs': {
             'handlers': ['console', 'mail_admins'],
             'level': 'INFO',
+        },
+        'stored_mail': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
         }
     }
 }
