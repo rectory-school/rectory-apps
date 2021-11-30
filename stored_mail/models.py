@@ -46,7 +46,7 @@ class OutgoingMessage(models.Model):
 
         return f"{self.unique_id}@{domain}"
 
-    def get_django_email(self) -> EmailMessage:
+    def get_django_email(self, connection=None) -> EmailMessage:
         """Get a Django email message"""
 
         message_id = self.message_id
@@ -67,7 +67,7 @@ class OutgoingMessage(models.Model):
             'body': self.text,
             'headers': {
                 'Message-ID': message_id,
-            }
+            'connection': connection,
         }
 
         # Load to/cc/bcc/reply-to
