@@ -28,13 +28,14 @@ class OutgoingMessage(models.Model):
     from_name = models.CharField(max_length=255)
     from_address = models.EmailField()
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     subject = models.CharField(max_length=4096, blank=True)
     text = models.TextField()
     html = models.TextField(blank=True)
 
-    sent_at = models.DateTimeField(null=True)
+    sent_at = models.DateTimeField(null=True, db_index=True)
+    last_send_attempt = models.DateTimeField(null=True, db_index=True)
 
     @property
     def message_id(self) -> str:

@@ -1,10 +1,12 @@
 """Periodic jobs for sending email"""
 
 import logging
-from random import choice, randint
+
+from datetime import timedelta
 
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Q
 from jobs import schedule
 
 from . import models
@@ -12,36 +14,42 @@ from . import models
 log = logging.getLogger(__name__)
 
 
-@schedule(60)
+@schedule(15)
 def send_emails() -> bool:
     """Send all emails that have been scheduled"""
 
-    unsent_pks = models.OutgoingMessage.objects.filter(sent_at__isnull=True).values('pk')
-    if not unsent_pks:
-        log.info("No more unsent PKs")
-        return False
-
-    pk_to_send = choice(unsent_pks)['pk']
-    # We are going to send one email at a time in order to guarantee we
-    # don't mess up any transactions too badly and can just let exceptions
-    # propagate up
+    # TODO: I should probably re-introduce some batching here
 
     with transaction.atomic():
-        to_send = models.OutgoingMessage.objects.select_for_update(skip_locked=True).get(pk=pk_to_send)
+        # Wait at least an hour between attempts
+        last_attempt_query = (Q(last_send_attempt__isnull=True) |
+                              Q(last_send_attempt__lte=(timezone.now() - timedelta(hours=1))))
+
+        # Don't send emails that were created more than 7 days ago
+        # TODO: Make the 7 day threshold configurable
+        created_at_query = Q(created_at__gte=timezone.now() - timedelta(days=7))
+
+        sent_at_query = Q(sent_at__isnull=True)
+
+        candidate_query = last_attempt_query & created_at_query & sent_at_query
+
+        to_send = models.OutgoingMessage.objects.filter(candidate_query).first()
         assert isinstance(to_send, models.OutgoingMessage)
 
         if not to_send:
-            log.info("Hit a race, %d is not available", pk_to_send)
-            return True
+            log.info("No messages to send")
+            return False
 
-        if to_send.sent_at:
-            log.info("Hit a race, %d was already sent", pk_to_send)
-            return True
+        try:
+            msg = to_send.get_django_email()
+            msg.send()
+            to_send.sent_at = timezone.now()
+            to_send.last_send_attempt = None
 
-        msg = to_send.get_django_email()
-        msg.send()
-        to_send.sent_at = timezone.now()
+        except Exception as exc:  # pytlint disable=broad-except
+            log.exception("Unable to send email %d: %s", to_send.pk, exc)
+            to_send.last_send_attempt = timezone.now()
+
         to_send.save()
 
-        # We should run again
-        return True
+    return True

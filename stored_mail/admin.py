@@ -35,8 +35,8 @@ class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """Admin for outgoing mail"""
 
     inlines = [RelatedAddressInline]
-    list_filter = ['sent_at', 'created_at']
-    list_display = ['pk', 'subject', 'created_at', 'sent_at']
+    list_filter = ['sent_at', 'created_at', 'last_send_attempt']
+    list_display = ['pk', 'subject', 'created_at', 'sent_at', 'last_send_attempt']
 
     fields = ['from_name', 'from_address', 'subject', 'sent_at', 'created_at', 'encoded']
     readonly_fields = ['encoded']
