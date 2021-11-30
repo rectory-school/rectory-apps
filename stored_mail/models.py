@@ -1,5 +1,7 @@
 """Models for stored mail sender"""
 
+from typing import Optional
+
 import email.utils
 import email.message
 from email.headerregistry import Address
@@ -7,6 +9,7 @@ from uuid import uuid4
 
 from django.db import models
 from django.conf import settings
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 FIELD_OPTIONS = (
     ('to', 'To'),
@@ -24,6 +27,10 @@ class OutgoingMessage(models.Model):
 
     from_name = models.CharField(max_length=255)
     from_address = models.EmailField()
+
+    reply_to_name = models.CharField(max_length=255)
+    reply_to_address = models.EmailField()
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     subject = models.CharField(max_length=4096, blank=True)
@@ -32,7 +39,7 @@ class OutgoingMessage(models.Model):
 
     sent_at = models.DateTimeField(null=True)
 
-    @ property
+    @property
     def message_id(self) -> str:
         """Unique message ID"""
 
@@ -43,15 +50,14 @@ class OutgoingMessage(models.Model):
         return f"{self.unique_id}@{domain}"
 
     def get_mime(self) -> email.message.EmailMessage:
+        """Get a MIME message"""
         msg = email.message.EmailMessage()
-
-        try:
-            domain = settings.MAILGUN_SENDER_DOMAIN
-        except AttributeError:
-            domain = None
 
         msg['Message-ID'] = self.message_id
         msg['From'] = self.from_addr_obj
+
+        if self.reply_to_addr_obj:
+            msg['Reply-To'] = self.reply_to_addr_obj
 
         if self.subject:
             msg['Subject'] = self.subject
@@ -75,19 +81,65 @@ class OutgoingMessage(models.Model):
 
         return msg
 
+    def get_django_email(self) -> EmailMessage:
+        """Get a Django email message"""
+
+        to_addrs = [addr.encoded for addr in self.addresses.all() if addr.field == 'to']
+        cc_addrs = [addr.encoded for addr in self.addresses.all() if addr.field == 'cc']
+        bcc_addrs = [addr.encoded for addr in self.addresses.all() if addr.field == 'bcc']
+
+        if self.html:
+            msg = EmailMultiAlternatives()
+            msg.attach_alternative(self.html, "text/html")
+        else:
+            msg = EmailMessage()
+
+        msg.subject = self.subject
+        msg.body = self.text
+        msg.from_email = self.from_addr_encoded
+        msg.to = to_addrs
+        msg.cc = cc_addrs
+        msg.bcc = bcc_addrs
+        if self.reply_to_addr_encoded:
+            msg.reply_to = [self.reply_to_addr_encoded]
+
+        return msg
+
     def __str__(self):
-        return self.subject
+        return f"Message {self.pk}"
 
-    def mime_text(self) -> str:
-        return str(self.get_mime())
-
-    @ property
+    @property
     def from_addr_obj(self) -> Address:
         """The address object to send from"""
 
         username, domain = self.from_address.split('@', 1)
 
         return Address(self.from_name, username, domain)
+
+    @property
+    def from_addr_encoded(self) -> str:
+        """Encoded from address"""
+
+        return email.utils.formataddr((self.from_name, self.from_address))
+
+    @property
+    def reply_to_addr_obj(self) -> Optional[Address]:
+        """Address object for the reply to"""
+
+        if not self.reply_to_address:
+            return None
+
+        username, domain = self.reply_to_address.split('@', 1)
+        return Address(self.reply_to_name, username, domain)
+
+    @property
+    def reply_to_addr_encoded(self) -> Optional[str]:
+        """Encoded reply to address"""
+
+        if self.reply_to_address:
+            return email.utils.formataddr((self.reply_to_name, self.reply_to_address))
+
+        return None
 
 
 class SendAddress(models.Model):
@@ -109,10 +161,16 @@ class SendAddress(models.Model):
             ('address', 'message'),
         )
 
-    @ property
+    @property
     def addr_obj(self) -> Address:
         """The address object to send from"""
 
         username, domain = self.address.split('@', 1)
 
         return Address(self.name, username, domain)
+
+    @property
+    def encoded(self) -> str:
+        """An encoded address"""
+
+        return email.utils.formataddr((self.name, self.address))
