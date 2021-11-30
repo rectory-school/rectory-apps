@@ -29,8 +29,13 @@ class JobThread(Thread):
             started_at = datetime.now()
 
             try:
-                self.job.func()
+                run_again = self.job.func()
                 log.info("Finished %s successfully", self.job.name)
+
+                if run_again:
+                    log.info("%s indicated more work and is being immediatly scheduled", self.job.name)
+                    continue
+
             except Exception as exc:
                 log.exception("Finished %s with exception: %s", self.job.name, exc)
 
