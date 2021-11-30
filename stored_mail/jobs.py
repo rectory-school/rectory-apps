@@ -47,7 +47,9 @@ def send_emails() -> bool:
             to_send.sent_at = timezone.now()
             to_send.last_send_attempt = None
 
-        except Exception as exc:  # pytlint disable=broad-except
+        # I always want to be able to store the last send attempt,
+        # and if I throw an exception inside the transaction I can't do that.
+        except Exception as exc:  # pylint: disable=broad-except
             log.exception("Unable to send email %d: %s", to_send.pk, exc)
             to_send.last_send_attempt = timezone.now()
 
