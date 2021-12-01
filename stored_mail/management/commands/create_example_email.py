@@ -31,7 +31,7 @@ class Command(BaseCommand):
                 outgoing.from_name = from_name
                 outgoing.subject = "Test message"
                 outgoing.text = f"This is a test message generated at {now}, sequence {i+1} of {count}"
-                outgoing.html = f"<body><div>This is a test message generated at {now}, sequence {i+1} of {count}</div></body>"
+                outgoing.html = f"<body><div>This is a <em>test</em> message generated at {now}, sequence {i+1} of {count}</div></body>"
                 outgoing.save()
 
                 send_addr = models.RelatedAddress()
