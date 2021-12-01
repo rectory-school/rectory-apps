@@ -101,7 +101,7 @@
         {% for style_index, style_name in styles %}
             <p><strong>{{ style_name }}</strong>:
                 {% for layout_index, layout_name in layouts %}
-                    <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ layout_name }}</a>
+                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ calendar.first_date|date:"c" }}&amp;end_date={{ calendar.last_date|date:"c" }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
 
                     {% if not forloop.last %}&bullet;{% endif %}
                 {% endfor %}

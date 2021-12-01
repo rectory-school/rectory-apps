@@ -4,20 +4,19 @@ import dataclasses
 from dataclasses import dataclass
 from datetime import date
 import calendar
-import functools
 
-from typing import Dict, Any
+from typing import Dict, Any, Union
 
 from io import BytesIO
 
 import math
+from django.http.response import HttpResponseBadRequest
 
-from django.views.generic import DetailView, ListView, View, FormView
+from django.views.generic import DetailView, ListView, View
 
 from django.http import FileResponse, HttpResponseNotFound, HttpResponse, HttpRequest
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.shortcuts import get_object_or_404
-from django.views.generic.base import TemplateView
+from django.shortcuts import get_object_or_404, render
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
@@ -44,6 +43,13 @@ class MonthGrid:
         """The date of the first day of the month in the grid"""
 
         return date(self.year, self.month, 1)
+
+    @property
+    def last_date(self) -> date:
+        """The date of the last day of the month in the grid"""
+
+        _, end_day = calendar.monthrange(self.year, self.month)
+        return date(self.year, self.month, end_day)
 
 
 class CalendarViewPermissionRequired(PermissionRequiredMixin):
@@ -112,202 +118,104 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         return context
 
 
-class Custom(TemplateView):
-    """FormView for custom calendar generation"""
+def custom_preview(request, calendar_id: int):
+    """Custom calendar generation and preview"""
 
-    template_name = "calendar_generator/custom.html"
+    cal: models.Calendar = get_object_or_404(models.Calendar, pk=calendar_id)
+    title = request.GET.get('title', cal.title)
+    start_date = request.GET.get('start_date', cal.start_date)
+    end_date = request.GET.get('end_date', cal.end_date)
 
-    def get_form_kwargs(self) -> Dict[str, Any]:
-        kwargs = super().get_form_kwargs()
+    data = {
+        'title': title,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
 
-        cal = self.get_calendar()
-        kwargs["calendar"] = cal
+    form = forms.CustomCalendarForm(data=data, calendar=cal, initial=data)
 
-        initial = {arg: self.request.GET.get(arg) for arg in self.request.GET}
-        if not 'title' in initial:
-            initial['title'] = cal.title
+    context = {
+        'request': request,
+        'form': form,
+        'calendar': cal,
 
-        if not 'start_date' in initial:
-            initial['start_date'] = cal.start_date
+        "styles": [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_STYLE_PRESETS)],
+        "layouts": [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_LAYOUT_PRESETS)],
 
-        if not 'end_date' in initial:
-            initial['end_date'] = cal.end_date
+        'start_date': start_date,
+        'end_date': end_date,
+        'title': title,
+    }
 
-        kwargs["initial"] = initial
-        return kwargs
+    if form.is_bound and form.is_valid():
+        letter_map = cal.get_date_letter_map()
+        label_map = cal.get_arbitrary_labels()
 
-    def get_context_data(self, **kwargs: Dict[str, any]) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        cal = self.get_calendar()
-
-        title = self.request.GET.get('title', cal.title)
-        start_date = self.request.GET.get('start_date', cal.start_date)
-        end_date = self.request.GET.get('end_date', cal.end_date)
-
-        data = {
-            'title': title,
-            'start_date': start_date,
-            'end_date': end_date,
-        }
-
-        form = forms.CustomCalendarForm(data, calendar=cal, initial=data)
-
-        context["calendar"] = cal
-        context["form"] = form
-
-        if form.is_bound and form.is_valid():
-            letter_map = cal.get_date_letter_map()
-            label_map = cal.get_arbitrary_labels()
-
-            f_title = form.cleaned_data["title"]
-            f_start = form.cleaned_data["start_date"]
-            f_end = form.cleaned_data["end_date"]
-
-            grid_generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
-                                                         label_map=label_map,
-                                                         start_date=f_start,
-                                                         end_date=f_end,
-                                                         custom_title=f_title)
-            grid = grid_generator.get_grid()
-
-            context["title"] = title
-            context["grid"] = grid
-
-        return context
-
-    @functools.cache
-    def get_calendar(self) -> models.Calendar:
-        """Get the calendar we are working on"""
-
-        return get_object_or_404(models.Calendar, pk=self.kwargs["calendar_id"])
-
-
-class CustomPDF(FormView):
-    """FormView for custom PDF"""
-
-    template_name = "calendar_generator/custom_pdf.html"
-    form_class = forms.CustomCalendarForm
-
-    def form_valid(self, form: forms.CustomCalendarForm) -> HttpResponse:
-        calendar_obj = self.get_calendar()
-
-        size_index = int(form.cleaned_data["layout"])
-        title = form.cleaned_data["title"]
-        style_index = int(form.cleaned_data["style"])
-        start_date = form.cleaned_data["start_date"]
-        end_date = form.cleaned_data["end_date"]
-
-        letter_map = calendar_obj.get_date_letter_map()
-        label_map = calendar_obj.get_arbitrary_labels()
+        f_title = form.cleaned_data["title"]
+        f_start = form.cleaned_data["start_date"]
+        f_end = form.cleaned_data["end_date"]
 
         grid_generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
                                                      label_map=label_map,
-                                                     start_date=start_date,
-                                                     end_date=end_date,
-                                                     custom_title=title)
+                                                     start_date=f_start,
+                                                     end_date=f_end,
+                                                     custom_title=f_title)
         grid = grid_generator.get_grid()
+
+        context["title"] = title
+        context["grid"] = grid
+
+    return render(request, "calendar_generator/custom.html", context)
+
+
+def pdf_single_grid(request: HttpRequest, calendar_id: int):
+    """A PDF grid from start date to end date with a given style and size"""
+
+    cal = get_object_or_404(models.Calendar, pk=calendar_id)
+
+    try:
+        style_index = int(request.GET.get('style_index', 0))
+        size_index = int(request.GET.get('size_index', 0))
+        start_date = _parse_date(request.GET.get('start_date', cal.start_date))
+        end_date = _parse_date(request.GET.get('end_date', cal.end_date))
+        title = request.GET.get('title', cal.title)
 
         _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
         _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
 
-        buf = BytesIO()
-        pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
+    except (ValueError, IndexError):
+        return HttpResponseBadRequest()
 
-        if self.request.user.is_authenticated:
-            pdf_canvas.setAuthor(str(self.request.user))
+    letter_map = cal.get_date_letter_map()
+    label_map = cal.get_arbitrary_labels()
 
-        pdf_canvas.setTitle(title)
-        pdf_canvas.setCreator("Rectory Apps System")
-        pdf_canvas.setSubject("Calendar")
+    generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
+                                            label_map=label_map,
+                                            start_date=start_date,
+                                            end_date=end_date,
+                                            custom_title=title,)
 
-        gen = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
+    grid = generator.get_grid()
 
-        gen.draw()
-        pdf_canvas.showPage()
-        pdf_canvas.save()
-        buf.seek(0)
+    buf = BytesIO()
+    pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
 
-        file_name = f"{calendar_obj.title} - {start_date} to {end_date}.pdf"
+    if request.user.is_authenticated:
+        pdf_canvas.setAuthor(str(request.user))
 
-        return FileResponse(buf, filename=file_name)
+    pdf_canvas.setTitle(title)
+    pdf_canvas.setCreator("Rectory Apps System")
+    pdf_canvas.setSubject("Calendar")
 
-    def get_form_kwargs(self) -> Dict[str, Any]:
-        kwargs = super().get_form_kwargs()
+    gen = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
 
-        kwargs["calendar"] = self.get_calendar()
+    gen.draw()
+    pdf_canvas.showPage()
+    pdf_canvas.save()
+    buf.seek(0)
 
-        return kwargs
-
-    def get_context_data(self, **kwargs: Dict[str, any]) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-
-        context["calendar"] = self.get_calendar()
-
-        return context
-
-    @functools.cache
-    def get_calendar(self) -> models.Calendar:
-        """Get the calendar we are working on"""
-
-        return get_object_or_404(models.Calendar, pk=self.kwargs["calendar_id"])
-
-
-class PDFDateRange(View):
-    """PDF view of a range of dates"""
-
-    def get(self, request: HttpRequest, calendar_id: int, start_date: str, end_date: str,
-            style_index: int, layout_index: int) -> HttpResponse:
-        """Return the PDF"""
-
-        calendar_obj = get_object_or_404(models.Calendar, pk=calendar_id)
-        assert isinstance(calendar_obj, models.Calendar)
-
-        try:
-
-
-class PDFMonth(View):
-    """PDF views of a single calendar month"""
-
-    def get(self, request: HttpRequest, calendar_id: int, year: int, month: int,
-            style_index: int, layout_index: int) -> HttpResponse:
-        """Get method returning an individual month PDF"""
-
-        try:
-            calendar_obj = models.Calendar.objects.get(pk=calendar_id)
-            assert isinstance(calendar_obj, models.Calendar)
-
-            start_date = date(year, month, 1)
-            _, end_day = calendar.monthrange(year, month)
-            end_date = date(year, month, end_day)
-
-            _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
-            _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[layout_index]
-        except (ValueError, models.Calendar.DoesNotExist, IndexError):
-            return HttpResponseNotFound()
-
-        date_letter_map = calendar_obj.get_date_letter_map()
-        label_map = calendar_obj.get_arbitrary_labels()
-
-        buf = BytesIO()
-        pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
-
-        if request.user.is_authenticated:
-            pdf_canvas.setAuthor(str(request.user))
-
-        pdf_canvas.setTitle(calendar_obj.title)
-        pdf_canvas.setCreator("Rectory Apps System")
-        pdf_canvas.setSubject("Calendar")
-
-        grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
-        grid = grid_generator.get_grid()
-
-        generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
-        generator.draw()
-
-        pdf_canvas.save()
-
-        buf.seek(0)
-        return FileResponse(buf, filename=f"{year}-{month:02d}.pdf")
+    file_name = f"{cal.title} - {start_date} to {end_date}.pdf"
+    return FileResponse(buf, filename=file_name)
 
 
 class PDFMonths(View):
@@ -429,8 +337,11 @@ class PDFOnePage(View):
         return FileResponse(buf, filename=f"{calendar_obj.title} - All Months.pdf")
 
 
-def _str_to_date(s: str) -> date:
-    parts = s.split("-")
+def _parse_date(val: Union[str, date]) -> date:
+    if isinstance(val, date):
+        return val
+
+    parts = val.split("-")
     int_parts = (int(p) for p in parts)
 
     return date(*int_parts)

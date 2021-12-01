@@ -20,4 +20,21 @@
 </form>
 
 {% include "calendar_generator/partial/calendar.html" with title=title grid=grid %}
+
+<h2>Generate a PDF of the above calendar</h2>
+<p>Note you must preview the calendar before getting a PDF.</p>
+
+<div class="noprint">
+    {% for style_index, style_name in styles %}
+        
+        <p><strong>{{ style_name }}</strong>:
+            {% for layout_index, layout_name in layouts %}
+                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ start_date }}&amp;end_date={{ end_date }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
+
+                {% if not forloop.last %}&bullet;{% endif %}
+            {% endfor %}
+        </p>
+    {% endfor %}
+</div>
+
 {% endblock %}
