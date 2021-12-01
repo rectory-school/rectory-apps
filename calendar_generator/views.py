@@ -128,8 +128,12 @@ def custom_preview(request, calendar_id: int):
 
     cal: models.Calendar = get_object_or_404(models.Calendar, pk=calendar_id)
     title = request.GET.get('title', cal.title)
-    start_date = request.GET.get('start_date', cal.start_date)
-    end_date = request.GET.get('end_date', cal.end_date)
+
+    try:
+        start_date = _parse_date(request.GET.get('start_date', cal.start_date))
+        end_date = _parse_date(request.GET.get('end_date', cal.end_date))
+    except (IndexError, ValueError) as exc:
+        return HttpResponseBadRequest(str(exc))
 
     data = {
         'title': title,
@@ -189,8 +193,8 @@ def pdf_single_grid(request: HttpRequest, calendar_id: int):
         _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
         _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
 
-    except (ValueError, IndexError):
-        return HttpResponseBadRequest()
+    except (ValueError, IndexError) as exc:
+        return HttpResponseBadRequest(str(exc))
 
     letter_map = cal.get_date_letter_map()
     label_map = cal.get_arbitrary_labels()
@@ -236,8 +240,8 @@ def pdf_all_months(request, calendar_id: int):
 
         _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
         _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
-    except (ValueError, IndexError):
-        return HttpResponseBadRequest()
+    except (ValueError, IndexError) as exc:
+        return HttpResponseBadRequest(str(exc))
 
     date_letter_map = cal.get_date_letter_map()
     label_map = cal.get_arbitrary_labels()
@@ -287,8 +291,8 @@ def pdf_one_page(request, calendar_id: int):
 
         _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
         _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
-    except (ValueError, IndexError):
-        return HttpResponseBadRequest()
+    except (ValueError, IndexError) as exc:
+        return HttpResponseBadRequest(str(exc))
 
     date_letter_map = cal.get_date_letter_map()
     label_map = cal.get_arbitrary_labels()
