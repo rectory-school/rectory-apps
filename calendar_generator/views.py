@@ -12,10 +12,12 @@ from io import BytesIO
 import math
 from django.http.response import HttpResponseBadRequest
 
-from django.views.generic import DetailView, ListView, View
+from django.views.generic import DetailView, ListView
 
-from django.http import FileResponse, HttpResponseNotFound, HttpResponse, HttpRequest
+from django.http import FileResponse, HttpRequest
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.decorators import permission_required
+
 from django.shortcuts import get_object_or_404, render
 
 from reportlab.pdfgen import canvas
@@ -28,6 +30,8 @@ from . import pdf
 from . import forms
 
 ONE_PAGE_PDF_COL_COUNT = 2
+
+VIEW_CALENDAR_PERMISSION = 'calendar_generator.view_calendar'
 
 
 @dataclass
@@ -55,7 +59,7 @@ class MonthGrid:
 class CalendarViewPermissionRequired(PermissionRequiredMixin):
     """Require view permission for calendars"""
 
-    permission_required = 'calendar_generator.view_calendar'
+    permission_required = VIEW_CALENDAR_PERMISSION
 
 
 class Calendars(CalendarViewPermissionRequired, ListView):
@@ -118,6 +122,7 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         return context
 
 
+@permission_required(VIEW_CALENDAR_PERMISSION)
 def custom_preview(request, calendar_id: int):
     """Custom calendar generation and preview"""
 
@@ -168,6 +173,7 @@ def custom_preview(request, calendar_id: int):
     return render(request, "calendar_generator/custom.html", context)
 
 
+@permission_required(VIEW_CALENDAR_PERMISSION)
 def pdf_single_grid(request: HttpRequest, calendar_id: int):
     """A PDF grid from start date to end date with a given style and size"""
 
@@ -175,7 +181,7 @@ def pdf_single_grid(request: HttpRequest, calendar_id: int):
 
     try:
         style_index = int(request.GET.get('style_index', 0))
-        size_index = int(request.GET.get('size_index', 0))
+        size_index = int(request.GET.get('layout_index', 0))
         start_date = _parse_date(request.GET.get('start_date', cal.start_date))
         end_date = _parse_date(request.GET.get('end_date', cal.end_date))
         title = request.GET.get('title', cal.title)
@@ -218,123 +224,121 @@ def pdf_single_grid(request: HttpRequest, calendar_id: int):
     return FileResponse(buf, filename=file_name)
 
 
-class PDFMonths(View):
-    """All the month calendars in one PDF"""
+@permission_required(VIEW_CALENDAR_PERMISSION)
+def pdf_all_months(request, calendar_id: int):
+    """Get a PDF with all a month per page"""
 
-    def get(self, request: HttpRequest, calendar_id: int,
-            style_index: int, layout_index: int) -> HttpResponse:
-        """Get method returning an individual month PDF"""
+    cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
-        try:
-            calendar_obj = models.Calendar.objects.get(pk=calendar_id)
-            assert isinstance(calendar_obj, models.Calendar)
+    try:
+        style_index = int(request.GET.get('style_index', 0))
+        size_index = int(request.GET.get('layout_index', 0))
 
-            _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
-            _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[layout_index]
-        except (models.Calendar.DoesNotExist, IndexError):
-            return HttpResponseNotFound()
+        _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
+        _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
+    except (ValueError, IndexError):
+        return HttpResponseBadRequest()
 
-        date_letter_map = calendar_obj.get_date_letter_map()
-        label_map = calendar_obj.get_arbitrary_labels()
+    date_letter_map = cal.get_date_letter_map()
+    label_map = cal.get_arbitrary_labels()
 
-        buf = BytesIO()
-        pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
+    buf = BytesIO()
+    pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
 
-        if request.user.is_authenticated:
-            pdf_canvas.setAuthor(str(request.user))
+    if request.user.is_authenticated:
+        pdf_canvas.setAuthor(str(request.user))
 
-        pdf_canvas.setTitle(calendar_obj.title)
-        pdf_canvas.setCreator("Rectory Apps System")
-        pdf_canvas.setSubject("Calendar")
+    pdf_canvas.setTitle(cal.title)
+    pdf_canvas.setCreator("Rectory Apps System")
+    pdf_canvas.setSubject("Calendar")
 
-        all_months = set()
-        for used_date in date_letter_map | label_map:
-            all_months.add((used_date.year, used_date.month))
+    all_months = set()
+    for used_date in date_letter_map | label_map:
+        all_months.add((used_date.year, used_date.month))
 
-        for year, month in sorted(all_months):
-            start_date = date(year, month, 1)
-            _, end_day = calendar.monthrange(year, month)
-            end_date = date(year, month, end_day)
+    for year, month in sorted(all_months):
+        start_date = date(year, month, 1)
+        _, end_day = calendar.monthrange(year, month)
+        end_date = date(year, month, end_day)
 
-            grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
-            grid = grid_generator.get_grid()
+        grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
+        grid = grid_generator.get_grid()
 
-            generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
-            generator.draw()
+        generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
+        generator.draw()
 
-            pdf_canvas.showPage()
+        pdf_canvas.showPage()
 
-        pdf_canvas.save()
+    pdf_canvas.save()
 
-        buf.seek(0)
-        return FileResponse(buf, filename=f"{calendar_obj.title} - All Months.pdf")
+    buf.seek(0)
+    return FileResponse(buf, filename=f"{cal.title} - All Months.pdf")
 
 
-class PDFOnePage(View):
-    """All the month calendars in one PDF"""
+@permission_required(VIEW_CALENDAR_PERMISSION)
+def pdf_one_page(request, calendar_id: int):
+    """Generate a one page PDF with all calendars on it"""
 
-    def get(self, request: HttpRequest, calendar_id: int,
-            style_index: int, layout_index: int) -> HttpResponse:
-        """Get method returning an individual month PDF"""
+    cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
-        try:
-            calendar_obj = models.Calendar.objects.get(pk=calendar_id)
-            assert isinstance(calendar_obj, models.Calendar)
+    try:
+        style_index = int(request.GET.get('style_index', 0))
+        size_index = int(request.GET.get('layout_index', 0))
 
-            _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
-            _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[layout_index]
-        except (models.Calendar.DoesNotExist, IndexError):
-            return HttpResponseNotFound()
+        _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
+        _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
+    except (ValueError, IndexError):
+        return HttpResponseBadRequest()
 
-        date_letter_map = calendar_obj.get_date_letter_map()
-        label_map = calendar_obj.get_arbitrary_labels()
+    date_letter_map = cal.get_date_letter_map()
+    label_map = cal.get_arbitrary_labels()
 
-        all_months = set()
-        for used_date in date_letter_map | label_map:
-            all_months.add((used_date.year, used_date.month))
+    all_months = set()
+    for used_date in date_letter_map | label_map:
+        all_months.add((used_date.year, used_date.month))
 
-        row_count = math.ceil(len(all_months)/ONE_PAGE_PDF_COL_COUNT)
-        layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT, 5*mm, 10*mm)
+    row_count = math.ceil(len(all_months)/ONE_PAGE_PDF_COL_COUNT)
+    layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT, 5*mm, 10*mm)
 
-        title_font_size = None
-        for year, month in all_months:
-            title = date(year, month, 1).strftime("%B %Y")
-            font_size = pdf.get_font_size_maximum_width(title, layouts[0].inner_width / 2, style.title_font_name)
+    title_font_size = None
+    for year, month in all_months:
+        title = date(year, month, 1).strftime("%B %Y")
+        font_size = pdf.get_font_size_maximum_width(title, layouts[0].inner_width / 2, style.title_font_name)
 
-            if title_font_size is None or font_size < title_font_size:
-                title_font_size = font_size
+        if title_font_size is None or font_size < title_font_size:
+            title_font_size = font_size
 
-        style = dataclasses.copy.copy(style)
-        assert isinstance(style, pdf.Style)
-        style.title_font_size = title_font_size
+    style = dataclasses.copy.copy(style)
+    assert isinstance(style, pdf.Style)
+    style.title_font_size = title_font_size
 
-        buf = BytesIO()
-        pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
+    buf = BytesIO()
+    pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
 
-        if request.user.is_authenticated:
-            pdf_canvas.setAuthor(str(request.user))
+    if request.user.is_authenticated:
+        pdf_canvas.setAuthor(str(request.user))
 
-        pdf_canvas.setTitle(calendar_obj.title)
-        pdf_canvas.setCreator("Rectory Apps System")
-        pdf_canvas.setSubject("Calendar")
+    pdf_canvas.setTitle(cal.title)
+    pdf_canvas.setCreator("Rectory Apps System")
+    pdf_canvas.setSubject("Calendar")
 
-        for i, (year, month) in enumerate(sorted(all_months)):
-            layout = layouts[i]
+    for i, (year, month) in enumerate(sorted(all_months)):
+        layout = layouts[i]
 
-            start_date = date(year, month, 1)
-            _, end_day = calendar.monthrange(year, month)
-            end_date = date(year, month, end_day)
+        start_date = date(year, month, 1)
+        _, end_day = calendar.monthrange(year, month)
+        end_date = date(year, month, end_day)
 
-            grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
-            grid = grid_generator.get_grid()
+        grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
+        grid = grid_generator.get_grid()
 
-            generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout, minimum_row_count_calculation=5)
-            generator.draw()
+        generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout, minimum_row_count_calculation=5)
+        generator.draw()
 
-        pdf_canvas.save()
+    pdf_canvas.save()
 
-        buf.seek(0)
-        return FileResponse(buf, filename=f"{calendar_obj.title} - All Months.pdf")
+    buf.seek(0)
+    return FileResponse(buf, filename=f"{cal.title} - All Months.pdf")
 
 
 def _parse_date(val: Union[str, date]) -> date:

@@ -28,7 +28,7 @@
         <li>
             <strong>{{ style_name }}</strong>: 
             {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">{{ layout_name }}</a>
+                <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk%}?layout_index={{ layout_index }}&amp;style_index={{ style_index }}">{{ layout_name }}</a>
 
                 {% if not forloop.last %}
                     &bullet;
@@ -44,7 +44,7 @@
         <li>
             <strong>{{ style_name }}</strong>: 
             {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">{{ layout_name }}</a>
+                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk%}?layout_index={{ layout_index }}&amp;style_index={{ style_index }}">{{ layout_name }}</a>
 
                 {% if not forloop.last %}
                     &bullet;

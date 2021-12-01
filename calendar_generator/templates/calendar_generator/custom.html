@@ -29,7 +29,7 @@
         
         <p><strong>{{ style_name }}</strong>:
             {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ start_date }}&amp;end_date={{ end_date }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
+                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ start_date|date:"c" }}&amp;end_date={{ end_date|date:"c" }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
 
                 {% if not forloop.last %}&bullet;{% endif %}
             {% endfor %}
