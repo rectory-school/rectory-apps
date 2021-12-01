@@ -28,7 +28,7 @@
         <li>
             <strong>{{ style_name }}</strong>: 
             {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">{{ layout_name }}</a>
+                <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk%}?layout_index={{ layout_index }}&amp;style_index={{ style_index }}">{{ layout_name }}</a>
 
                 {% if not forloop.last %}
                     &bullet;
@@ -44,7 +44,7 @@
         <li>
             <strong>{{ style_name }}</strong>: 
             {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_index=layout_index style_index=style_index %}">{{ layout_name }}</a>
+                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk%}?layout_index={{ layout_index }}&amp;style_index={{ style_index }}">{{ layout_name }}</a>
 
                 {% if not forloop.last %}
                     &bullet;
@@ -54,7 +54,7 @@
     {% endfor %}
 </ul>
     
-<p class="noprint"><a href="{% url 'calendar_generator:custom-pdf' calendar_id=calendar.pk %}">Custom PDF Generator</a></p>
+<p class="noprint"><a href="{% url 'calendar_generator:custom' calendar_id=calendar.pk %}">Custom Calendar Generator</a></p>
     
 {% if today_letter %}
     <h2 class="noprint">Today</h2>
@@ -94,48 +94,20 @@
 {% endif %}
 
 {% for calendar in calendars %}
-<div class="calendar">
-    <h2>{{ calendar.first_date|date:"F Y" }}</h2>
-    <ul class="noprint">
+    {% include "calendar_generator/partial/calendar.html" with title=calendar.first_date|date:"F Y" grid=calendar.grid%}
+
+    <div class="noprint">
+        <h2>{{calendar.first_date|date:"F Y"}} Printable</h2>
         {% for style_index, style_name in styles %}
-            <li><strong>{{ style_name }}</strong>:  
-            {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:month-pdf' calendar_id=object.pk style_index=style_index layout_index=layout_index year=calendar.year month=calendar.month %}">{{ layout_name }}</a>
+            <p><strong>{{ style_name }}</strong>:
+                {% for layout_index, layout_name in layouts %}
+                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ calendar.first_date|date:"c" }}&amp;end_date={{ calendar.last_date|date:"c" }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
 
-                {% if not forloop.last %}&bullet;{% endif %}
-            {% endfor %}
-        {% endfor %}
-    </ul>
-
-    <table class="table table-bordered">
-        <thead>
-            {% for header in calendar.grid.headers %}
-                <th scope="col">{{ header }}</th>
-            {% endfor %}
-        </thead>
-        <tbody>
-            {% for week in calendar.grid.grid %}
-            <tr>
-                {% for day in week %}
-                <td>
-                    {% if day %}
-                        <span class="date">{{ day.date.day }}</span>
-
-                        {% if day.letter %}
-                            {% if day.is_label %}
-                                <span class="label">{{ day.letter }}</span>
-                            {% else %}
-                                <span class="letter">{{ day.letter }}</span>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                </td>
+                    {% if not forloop.last %}&bullet;{% endif %}
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </p>
+        {% endfor %}
+    </div>
 {% endfor %}      
 
 {% endblock %}

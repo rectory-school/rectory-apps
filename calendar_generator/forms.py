@@ -17,21 +17,12 @@ STYLE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILAB
 class CustomCalendarForm(forms.Form):
     """Form to generate a custom calendar"""
 
-    layout = forms.ChoiceField(choices=SIZE_CHOICES)
-    style = forms.ChoiceField(choices=STYLE_CHOICES)
     title = forms.CharField(max_length=255)
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
 
     def __init__(self, *args, calendar: models.Calendar, initial: Optional[Dict] = None, **kwargs):
         self._calendar = calendar
-
-        if not initial:
-            initial = {}
-
-        initial['start_date'] = calendar.start_date
-        initial['end_date'] = calendar.end_date
-        initial['title'] = calendar.title
 
         super().__init__(*args, initial=initial, **kwargs)
 

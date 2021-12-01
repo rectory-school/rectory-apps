@@ -1,0 +1,39 @@
+{% extends "calendar_generator/calendar_base.html" %}
+{% load static bootstrap4 django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+{{ block.super }}
+
+{% breadcrumb "Custom calendar Generation" 'calendar_generator:custom' %}
+{% endblock %}
+
+{% block content %}
+<h1>Custom calendar generation: <em>{{calendar.title}}</em></h1>
+<p>{{ calendar.start_date }} to {{ calendar.end_date }}</p>
+<form method="GET">
+    {% bootstrap_form form %}
+    {% buttons %}
+    <button type="submit" class="btn btn-primary">
+        Generate calendar
+    </button>
+    {% endbuttons %}
+</form>
+
+{% include "calendar_generator/partial/calendar.html" with title=title grid=grid %}
+
+<h2>Generate a PDF</h2>
+
+<div class="noprint">
+    {% for style_index, style_name in styles %}
+        
+        <p><strong>{{ style_name }}</strong>:
+            {% for layout_index, layout_name in layouts %}
+                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ start_date|date:"c" }}&amp;end_date={{ end_date|date:"c" }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
+
+                {% if not forloop.last %}&bullet;{% endif %}
+            {% endfor %}
+        </p>
+    {% endfor %}
+</div>
+
+{% endblock %}

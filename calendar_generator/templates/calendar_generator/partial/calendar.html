@@ -1,0 +1,31 @@
+<div class="calendar">
+    <h2>{{ title }}</h2>
+
+    <table class="table table-bordered">
+        <thead>
+            {% for header in grid.headers %}
+            <th scope="col">{{ header }}</th>
+            {% endfor %}
+        </thead>
+        <tbody>
+            {% for week in grid.grid %}
+            <tr>
+                {% for day in week %}
+                <td>
+                    {% if day %}
+                        <span class="date">{{ day.date.day }}</span>
+
+                        {% if day.letter %}
+                            <span class="letter">{{ day.letter }}</span>
+                        {% endif %}
+                        {% if day.label %}
+                            <span class="label">{{ day.label }}</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
