@@ -49,6 +49,7 @@ class StudentAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 class TeacherAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """View-only teacher admin"""
 
+    search_fields = ['last_name', 'first_name', 'email', 'teacher_id', 'unique_name', ]
     list_filter = ['active']
     list_display = ['name', 'email', 'active']
 
@@ -162,3 +163,14 @@ class DetentionCodeAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request) -> bool:
         return False
+
+
+@admin.register(models.Detention)
+class DetentionAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+    """View only admin for detentions"""
+
+    list_filter = ['date', 'code']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('code', 'offense', 'student')

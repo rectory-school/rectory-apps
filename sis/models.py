@@ -327,7 +327,7 @@ class Detention(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.DO_NOTHING, related_name='+')
 
     def __str__(self):
-        return f"{self.detention_id}"
+        return f"{self.student}: {self.code}/{self.offense}"
 
 
 def latest_academic_year() -> AcademicYear:

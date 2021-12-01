@@ -100,10 +100,13 @@ INSTALLED_APPS = [
     'nav',
     'calendar_generator',
     'sis',
+    'jobs',
+    'stored_mail',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'lb_health_check.middleware.AliveCheck',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -173,7 +176,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'US/Eastern'
 
 USE_I18N = True
 
@@ -248,6 +251,14 @@ LOGGING = {
         'log-http-requests': {
             'handlers': ['console'],
             'level': 'INFO',
+        },
+        'jobs': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
+        },
+        'stored_mail': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
         }
     }
 }
@@ -267,3 +278,6 @@ if LOGZ_REMOTE_URL and LOGZ_TOKEN:
 
     LOGGING['loggers']['django']['handlers'].append('logzio')
     LOGGING['loggers']['log-http-requests']['handlers'].append('logzio')
+    LOGGING['loggers']['jobs']['handlers'].append('logzio')
+
+ALIVENESS_URL = "/health-check/"
