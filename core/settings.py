@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     'calendar_generator',
     'sis',
     'jobs',
+    'stored_mail',
 ]
 
 MIDDLEWARE = [
@@ -175,7 +176,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'US/Eastern'
 
 USE_I18N = True
 
@@ -252,6 +253,10 @@ LOGGING = {
             'level': 'INFO',
         },
         'jobs': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
+        },
+        'stored_mail': {
             'handlers': ['console', 'mail_admins'],
             'level': 'INFO',
         }

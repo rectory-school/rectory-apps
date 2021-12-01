@@ -1,11 +1,11 @@
 """Tracking utils for job runner"""
 
-from typing import Callable, List, Union
+from typing import Callable, List, Optional, Union
 from datetime import timedelta
 from dataclasses import dataclass
 from threading import Lock
 
-Job = Callable[[], None]
+Job = Callable[[], Optional[bool]]
 
 AutoTime = Union[None, timedelta, int, float]
 

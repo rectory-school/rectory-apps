@@ -163,3 +163,14 @@ class DetentionCodeAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request) -> bool:
         return False
+
+
+@admin.register(models.Detention)
+class DetentionAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
+    """View only admin for detentions"""
+
+    list_filter = ['date', 'code']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('code', 'offense', 'student')
