@@ -100,7 +100,7 @@ INSTALLED_APPS = [
     'nav',
     'calendar_generator',
     'sis',
-    'jobs',
+    'job_runner',
     'stored_mail',
 ]
 

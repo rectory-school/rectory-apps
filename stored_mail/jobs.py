@@ -7,15 +7,15 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
-from jobs import schedule
-
+from job_runner.registration import register_job
+from job_runner.environment import RunEnv
 from . import models
 
 log = logging.getLogger(__name__)
 
 
-@schedule(15)
-def send_emails() -> bool:
+@register_job(15)
+def send_emails(env: RunEnv):
     """Send all emails that have been scheduled"""
 
     # TODO: I should probably re-introduce some batching here
@@ -37,7 +37,9 @@ def send_emails() -> bool:
 
         if not to_send:
             log.info("No messages to send")
-            return False
+            # Once we don't have an email to send, return without
+            # requesting an immediate rerun
+            return
 
         assert isinstance(to_send, models.OutgoingMessage)
 
@@ -55,4 +57,5 @@ def send_emails() -> bool:
 
         to_send.save()
 
-    return True
+    # Keep running the job until we don't have any emails to send
+    env.request_rerun()
