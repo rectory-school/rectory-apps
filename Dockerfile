@@ -28,14 +28,5 @@ ARG SECRET_KEY=-
 RUN python manage.py collectstatic --no-input
 EXPOSE 8000
 
-# Tell uWSGI where to find your wsgi file (change this):
-ENV UWSGI_WSGI_FILE=core/wsgi.py
-
-# Base uWSGI configuration (you shouldn't need to change these):
-ENV UWSGI_HTTP=:8000 UWSGI_MASTER=1 UWSGI_HTTP_AUTO_CHUNKED=1 UWSGI_HTTP_KEEPALIVE=1 UWSGI_LAZY_APPS=1 UWSGI_WSGI_ENV_BEHAVIOR=holy UWSGI_UID=nobody UWSGI_GID=nobody
-
-# Number of uWSGI workers and threads per worker (customize as needed):
-# ENV UWSGI_WORKERS=2 UWSGI_THREADS=4
-
-# Start uWSGI
-CMD ["uwsgi"]
+# Start gunicorn
+CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--bind", ":8000", "core.asgi:application", "-k", "uvicorn.workers.UvicornWorker"]
