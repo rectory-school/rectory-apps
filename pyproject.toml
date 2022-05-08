@@ -33,6 +33,7 @@ django-ipware = "*"
 django-anymail = {extras = ["mailgun"], version = "*"}
 uWSGI = "^2.0.20"
 django-lb-health-check = "^1.0"
+django-quick-jobs = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "*"
@@ -45,6 +46,7 @@ ipython = "*"
 pylint-django = "*"
 pyyaml = "*"
 uritemplate = "*"
+mypy = "^0.950"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

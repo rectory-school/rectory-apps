@@ -1,6 +1,5 @@
 """SIS data sync models"""
 
-from functools import cache
 import logging
 from django.db import models
 from solo.models import SingletonModel
@@ -225,7 +224,7 @@ class StudentRegistration(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{section:}: {student:}".format(section=self.section, student=self.student)
+        return f"{self.section}: {self.student}"
 
 
 class Parent(models.Model):
