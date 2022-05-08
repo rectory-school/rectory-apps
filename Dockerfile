@@ -1,5 +1,7 @@
 FROM python:3.10-alpine
 
+ARG DEBUG=false
+
 RUN mkdir /app/
 RUN mkdir /app/code/
 WORKDIR /app/code/
