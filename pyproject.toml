@@ -45,6 +45,7 @@ ipython = "*"
 pylint-django = "*"
 pyyaml = "*"
 uritemplate = "*"
+mypy = "^0.950"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
