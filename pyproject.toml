@@ -32,7 +32,7 @@ logzio-python-handler = "*"
 django-ipware = "*"
 django-anymail = {extras = ["mailgun"], version = "*"}
 django-lb-health-check = "^1.0"
-django-quick-jobs = "^0.1.1"
+django-quick-jobs = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "*"
