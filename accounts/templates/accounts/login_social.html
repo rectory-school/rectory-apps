@@ -14,13 +14,6 @@
 {% endblock %}
 
 {% block content %}
-<div id="g_id_onload"
-    data-client_id="{{ google_oauth_client_id }}"
-    data-context="signin"
-    data-ux_mode="popup"
-    data-login_uri="{{ request.path }}?redirect_to={{next}}"
-    data-csrfmiddlewaretoken="{{ csrf_token }}">
-</div>
 
 <div class="row">
     
@@ -46,13 +39,17 @@
             data-size="large"
             data-logo_alignment="left">
         </div>
+
+        <a class="btn btn-secondary btn-block hide-during-sign-in" 
+                href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
+                    Administrative Login (use only as directed)
+            </a>
+
     <div class="col-lg-3"></div>
 </div>
 <div class="row">
     <div class="col-12">
-        <a href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
-            Administrative Login (use only as directed)
-        </a>
+        
     </div>
 </div>
 {% endblock %}

@@ -55,7 +55,7 @@
         data-context="signin"
         data-ux_mode="popup"
         {% if request.user.is_authenticated %} data-auto_prompt="false" {% endif %}
-        data-login_uri="{{ google_login_url }}?redirect_to={{ request.path }}"
+        data-login_uri="{{ google_login_url }}?redirect_to={{ google_redirect_to }}"
         data-csrfmiddlewaretoken="{{ csrf_token }}">
 </body>
 
