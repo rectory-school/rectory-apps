@@ -140,18 +140,8 @@ class CalendarGenerator:
 
     minimum_row_count_calculation: float = 0
 
-    _title_font_size: float = None
-    _header_font_size: float = None
-    _date_font_size: float = None
-    _default_letter_font_size: float = None
-    _y_pos_below_header: float = None
-    _row_height: float = None
-    _header_height: float = None
-
     def draw(self):
         """Execute the actual draw"""
-
-        self._calculate_internals()
 
         self._draw_title()
         self._draw_frame()
@@ -375,16 +365,17 @@ class CalendarGenerator:
 
         return self.layout.inner_width
 
-    def _set_title_font_size(self) -> float:
+    @property
+    def _title_font_size(self) -> float:
         if self.style.title_font_size:
-            self._title_font_size = self.style.title_font_size
-            return
+            return self.style.title_font_size
 
         max_size = self.layout.inner_width * .5
 
-        self._title_font_size = get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
+        return get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
 
-    def _set_header_font_size(self) -> float:
+    @property
+    def _header_font_size(self) -> float:
         maximum_width = self._column_width * .8
 
         if self.style.header_divider_width and self.style.header_divider_color:
@@ -397,10 +388,14 @@ class CalendarGenerator:
             if possible_size < current_size:
                 current_size = possible_size
 
-        self._header_font_size = current_size
-        self._header_height = self.layout.header_pad * self._header_font_size
+        return current_size
 
-    def _set_date_font_size(self) -> float:
+    @property
+    def _header_height(self) -> float:
+        return self.layout.header_pad * self._header_font_size
+
+    @property
+    def _date_font_size(self) -> float:
         all_dates = set()
 
         for row in self.grid.grid:
@@ -426,9 +421,10 @@ class CalendarGenerator:
         theoretical_max = min(*max_day_widths)
 
         # Allow either the width-based max from above, or half the cell height
-        self._date_font_size = min(theoretical_max, (self.layout.inner_height / len(self.grid.grid)) * .5)
+        return min(theoretical_max, (self.layout.inner_height / len(self.grid.grid)) * .5)
 
-    def _set_default_letter_font_size(self) -> float:
+    @property
+    def _default_letter_font_size(self) -> float:
         all_letters = set()
 
         for row in self.grid.grid:
@@ -450,32 +446,24 @@ class CalendarGenerator:
             if possible_size < current_size:
                 current_size = possible_size
 
-        self._default_letter_font_size = current_size
+        return current_size
 
-    def _set_y_pos_below_header(self):
+    @property
+    def _y_pos_below_header(self) -> float:
         """Get the Y position that will be right below the title"""
 
         outline_width = 0
         if self.style.outline_width and self.style.outline_color:
             outline_width = self.style.outline_width
 
-        self._y_pos_below_header = (self.layout.y_pos + self.layout.bottom_margin + self.layout.inner_height -
-                                    self._title_font_size - self._header_height - outline_width)
+        return (self.layout.y_pos + self.layout.bottom_margin + self.layout.inner_height -
+                self._title_font_size - self._header_height - outline_width)
 
-    def _set_row_height(self):
+    @property
+    def _row_height(self) -> float:
         grid_height = self._y_pos_below_header - self.layout.y_pos - self.layout.bottom_margin
 
-        self._row_height = grid_height / max(len(self.grid.grid), self.minimum_row_count_calculation)
-
-    def _calculate_internals(self):
-        """Calculate all the internal values"""
-
-        self._set_title_font_size()
-        self._set_header_font_size()
-        self._set_y_pos_below_header()
-        self._set_row_height()
-        self._set_default_letter_font_size()
-        self._set_date_font_size()
+        return grid_height / max(len(self.grid.grid), self.minimum_row_count_calculation)
 
 
 def get_font_size_maximum_width(text: str, maximum: float, font: str) -> float:
