@@ -40,21 +40,6 @@ class SocialLoginView(TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-
-        context['google_oauth_client_id'] = settings.GOOGLE_OAUTH_CLIENT_ID
-        context['google_oauth_hosted_domain'] = settings.GOOGLE_HOSTED_DOMAIN
-
-        if REDIRECT_FIELD_NAME in self.request.GET:
-            context[REDIRECT_FIELD_NAME] = self.request.GET[REDIRECT_FIELD_NAME]
-        else:
-            context[REDIRECT_FIELD_NAME] = LOGIN_REDIRECT_URL
-
-        context["redirect_field_name"] = REDIRECT_FIELD_NAME
-
-        return context
-
     def post(self, request):
         """Handle the sign in token"""
 
