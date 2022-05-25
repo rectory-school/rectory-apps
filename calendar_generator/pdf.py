@@ -2,6 +2,7 @@
 
 import os
 from dataclasses import dataclass
+from functools import cached_property
 
 from typing import Optional, List
 
@@ -337,13 +338,13 @@ class CalendarGenerator:
                 x_pos = self._x_position + (col_index+1)*self._column_width - self._column_width * 0.05
                 self.canvas.drawRightString(x_pos, y_pos, str(col.date.day))
 
-    @property
+    @cached_property
     def _column_width(self) -> float:
         """Determine the width of each column"""
 
         return float(self._internal_width) / len(self.grid.headers)
 
-    @property
+    @cached_property
     def _x_position(self) -> float:
         """The X position that we can start drawing at, given frames and such"""
 
@@ -354,7 +355,7 @@ class CalendarGenerator:
 
         return self.layout.left_offset
 
-    @property
+    @cached_property
     def _internal_width(self) -> float:
         """The internally accessible width, given frames and such"""
 
@@ -365,7 +366,7 @@ class CalendarGenerator:
 
         return self.layout.inner_width
 
-    @property
+    @cached_property
     def _title_font_size(self) -> float:
         if self.style.title_font_size:
             return self.style.title_font_size
@@ -374,7 +375,7 @@ class CalendarGenerator:
 
         return get_font_size_maximum_width(self.grid.title, max_size, self.style.title_font_name)
 
-    @property
+    @cached_property
     def _header_font_size(self) -> float:
         maximum_width = self._column_width * .8
 
@@ -390,11 +391,11 @@ class CalendarGenerator:
 
         return current_size
 
-    @property
+    @cached_property
     def _header_height(self) -> float:
         return self.layout.header_pad * self._header_font_size
 
-    @property
+    @cached_property
     def _date_font_size(self) -> float:
         all_dates = set()
 
@@ -423,7 +424,7 @@ class CalendarGenerator:
         # Allow either the width-based max from above, or half the cell height
         return min(theoretical_max, (self.layout.inner_height / len(self.grid.grid)) * .5)
 
-    @property
+    @cached_property
     def _default_letter_font_size(self) -> float:
         all_letters = set()
 
@@ -448,7 +449,7 @@ class CalendarGenerator:
 
         return current_size
 
-    @property
+    @cached_property
     def _y_pos_below_header(self) -> float:
         """Get the Y position that will be right below the title"""
 
@@ -459,7 +460,7 @@ class CalendarGenerator:
         return (self.layout.y_pos + self.layout.bottom_margin + self.layout.inner_height -
                 self._title_font_size - self._header_height - outline_width)
 
-    @property
+    @cached_property
     def _row_height(self) -> float:
         grid_height = self._y_pos_below_header - self.layout.y_pos - self.layout.bottom_margin
 
