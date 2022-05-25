@@ -1,5 +1,6 @@
 """Core template tags"""
 
+from typing import List, Optional
 from django import template
 from django.utils.html import mark_safe
 from django.urls import reverse, NoReverseMatch
@@ -20,7 +21,9 @@ def auth_button(context):
     if current_user.is_anonymous:
         return available_nav_item("Log in", reverse('accounts:login') + "?next=" + current_path)
 
-    return available_nav_item("Log off " + str(current_user), reverse('accounts:logout') + "?next=" + current_path)
+    return available_nav_item(
+        "Log off " + str(current_user),
+        reverse('accounts:logout') + "?next=" + current_path, extra_classes=['g_id_signout'])
 
 
 @register.simple_tag(takes_context=True)
@@ -57,7 +60,11 @@ def active_nav_item(title, url) -> str:
                      '<span class="sr-only">(current)</span></a></li>')
 
 
-def available_nav_item(title, url) -> str:
+def available_nav_item(title, url, extra_classes: Optional[List[str]] = None) -> str:
     """String for an available nav item"""
 
-    return mark_safe(f'<li class="nav-item"><a class="nav-link" href="{url}">{ title }</a></li>')
+    a_classes = ["nav-link"]
+    if extra_classes:
+        a_classes.extend(extra_classes)
+
+    return mark_safe(f'<li class="nav-item"><a class="{ " ".join(a_classes) }" href="{url}">{ title }</a></li>')
