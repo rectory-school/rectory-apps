@@ -55,7 +55,7 @@
         data-context="signin"
         data-ux_mode="popup"
         data-auto_select="true"
-        {% if request.user.is_authenticated %} 
+        {% if request.user.is_authenticated or disable_auto_login %} 
             data-auto_prompt="false"
         {% endif %}
         data-login_uri="{{ google_login_url }}?redirect_to={{ google_redirect_to }}"
