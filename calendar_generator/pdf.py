@@ -265,7 +265,7 @@ class CalendarGenerator:
 
             self.canvas.line(x_pos, top, x_pos, bottom)
 
-        for row_index in range(len(self.grid.grid)):
+        for row_index in range(1, len(self.grid.grid)):
             left = self._x_position
             right = self._x_position + self._internal_width
 
