@@ -239,7 +239,9 @@ class CalendarGenerator:
         if self.style.header_divider_color:
             self.canvas.setStrokeColor(self.style.header_divider_color)
             bottom = self._y_pos_below_header - self.style.grid_line_width / 2
-            top = bottom + self._header_height + self.style.grid_line_width / 2
+            top = bottom + self._header_height
+            if self.style.outline_width and self.style.outline_color:
+                top -= self.style.outline_width / 2
 
             self.canvas.setLineWidth(self.style.header_divider_width)
 
