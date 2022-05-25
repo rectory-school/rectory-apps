@@ -43,6 +43,9 @@ class SocialLoginView(TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data()
         context["disable_auto_login"] = True
+        next_parameter = self.request.GET.get(REDIRECT_FIELD_NAME)
+        if next_parameter:
+            context["next"] = next_parameter
         return context
 
     def post(self, request):
