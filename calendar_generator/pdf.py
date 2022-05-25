@@ -238,8 +238,8 @@ class CalendarGenerator:
         # Draw the lines between each header
         if self.style.header_divider_color:
             self.canvas.setStrokeColor(self.style.header_divider_color)
-            bottom = self._y_pos_below_header
-            top = bottom + self._header_height
+            bottom = self._y_pos_below_header - self.style.grid_line_width / 2
+            top = bottom + self._header_height + self.style.grid_line_width / 2
 
             self.canvas.setLineWidth(self.style.header_divider_width)
 
