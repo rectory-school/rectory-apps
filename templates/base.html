@@ -54,10 +54,9 @@
         data-client_id="{{ google_oauth_client_id }}"
         data-context="signin"
         data-ux_mode="popup"
+        data-auto_select="true"
         {% if request.user.is_authenticated %} 
             data-auto_prompt="false"
-        {% else %}
-            data-auto_select="true"
         {% endif %}
         data-login_uri="{{ google_login_url }}?redirect_to={{ google_redirect_to }}"
         data-csrfmiddlewaretoken="{{ csrf_token }}">
