@@ -15,41 +15,30 @@
 
 {% block content %}
 
-<div class="row">
-    
-    <div class="col-lg-3"></div>
-    <div class="col-lg-6">
-        <h1>Rectory Apps Login</h1>
+<h1>Rectory Apps Login</h1>
 
-        {% if next %}
-            {% if user.is_authenticated %}
-                <p>Your account ({{ request.user }}) doesn't have access to this page. To proceed, please log in with an account that has access.</p>
-            {% endif %}
-        {% else %}
-            {% if user.is_authenticated %}
-                <p>You are logged in as {{ request.user }}</p>
-            {% endif %}
-        {% endif %}
+{% if next %}
+    {% if user.is_authenticated %}
+        <p>Your account ({{ request.user }}) doesn't have access to this page. To proceed, please log in with an account that has access.</p>
+    {% endif %}
+{% else %}
+    {% if user.is_authenticated %}
+        <p>You are logged in as {{ request.user }}</p>
+    {% endif %}
+{% endif %}
 
-        <div class="g_id_signin"
-            data-type="standard"
-            data-shape="rectangular"
-            data-theme="outline"
-            data-text="signin_with"
-            data-size="large"
-            data-logo_alignment="left">
-        </div>
-
-        <a class="btn btn-secondary btn-block hide-during-sign-in" 
-                href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
-                    Administrative Login (use only as directed)
-            </a>
-
-    <div class="col-lg-3"></div>
+<div class="g_id_signin"
+    data-type="standard"
+    data-shape="rectangular"
+    data-theme="outline"
+    data-text="signin_with"
+    data-size="large"
+    data-logo_alignment="left">
 </div>
-<div class="row">
-    <div class="col-12">
-        
-    </div>
+
+<div style="margin-top: 1rem;">
+    <a href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
+        Administrative Login (use only as directed)
+    </a>
 </div>
 {% endblock %}
