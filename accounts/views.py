@@ -43,10 +43,8 @@ class SocialLoginView(TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        context["auth_data"] = {
-            'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
-            'hosted_domain': settings.GOOGLE_HOSTED_DOMAIN,
-        }
+        context['google_oauth_client_id'] = settings.GOOGLE_OAUTH_CLIENT_ID
+        context['google_oauth_hosted_domain'] = settings.GOOGLE_HOSTED_DOMAIN
 
         if REDIRECT_FIELD_NAME in self.request.GET:
             context[REDIRECT_FIELD_NAME] = self.request.GET[REDIRECT_FIELD_NAME]
@@ -60,8 +58,9 @@ class SocialLoginView(TemplateView):
     def post(self, request):
         """Handle the sign in token"""
 
-        token = request.POST["token"]
-        id_info = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID)
+        redirect_to = request.GET.get("redirect_to", "/")
+        credential = request.POST["credential"]
+        id_info = id_token.verify_oauth2_token(credential, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID)
 
         first_name = id_info["given_name"]
         last_name = id_info["family_name"]
@@ -105,10 +104,7 @@ class SocialLoginView(TemplateView):
 
         login(request, user)
 
-        # The JS can handle the rest
-        return JsonResponse({
-            'success': True
-        })
+        return HttpResponseRedirect(redirect_to)
 
 
 class NativeLoginView(LoginView):
