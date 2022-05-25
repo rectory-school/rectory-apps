@@ -27,6 +27,8 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     {% bootstrap_css %}
     {% bootstrap_javascript jquery='full' %}
 
@@ -46,6 +48,15 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <div
+        id="g_id_onload" 
+        data-client_id="{{ google_oauth_client_id }}"
+        data-context="signin"
+        data-ux_mode="popup"
+        {% if request.user.is_authenticated %} data-auto_prompt="false" {% endif %}
+        data-login_uri="{{ google_login_url }}?redirect_to={{ request.path }}"
+        data-csrfmiddlewaretoken="{{ csrf_token }}">
 </body>
 
 </html>
