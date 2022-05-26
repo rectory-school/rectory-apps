@@ -261,6 +261,9 @@ class ArbitraryLabel(models.Model):
         if self.date not in self.calendar.get_date_letter_map():
             raise ValidationError("Label date was not within calendar")
 
+    def __str__(self):
+        return f"{self.date}/{self.label}"
+
 
 class Layout(models.Model):
     """A layout that can be used in a calendar"""
