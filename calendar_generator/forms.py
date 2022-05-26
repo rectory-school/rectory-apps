@@ -8,10 +8,6 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
 from . import models
-from . import pdf_presets
-
-SIZE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_LAYOUT_PRESETS)]
-STYLE_CHOICES = [(i, title) for (i, (title, _)) in enumerate(pdf_presets.AVAILABLE_STYLE_PRESETS)]
 
 
 class CustomCalendarForm(forms.Form):
