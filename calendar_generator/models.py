@@ -277,7 +277,7 @@ class Layout(models.Model):
     header_divider_width = models.FloatField(validators=[MinValueValidator(0)], default=1)
     outline_width = models.FloatField(validators=[MinValueValidator(0)], default=1)
     grid_line_width = models.FloatField(validators=[MinValueValidator(0)], default=1)
-    grid_line_width = models.FloatField(validators=[MinValueValidator(0)], default=0)
+    title_font_size = models.FloatField(validators=[MinValueValidator(0)], default=0)
 
     header_font_name = models.CharField(max_length=255, default="HelveticaNeue-Bold")
     letter_font_name = models.CharField(max_length=255, default="HelveticaNeue-Light")
