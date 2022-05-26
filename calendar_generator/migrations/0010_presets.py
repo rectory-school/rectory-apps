@@ -103,7 +103,7 @@ def make_colors(apps, schema_editor):
     for name, val in _colors.items():
         red, green, blue = _get_color(val)
 
-        RGBColor.objects.create(name=name, red=red, green=green, blue=blue, alpha=0)
+        RGBColor.objects.create(name=name, red=red, green=green, blue=blue, alpha=1)
 
 
 def delete_colors(apps, schema_editor):
