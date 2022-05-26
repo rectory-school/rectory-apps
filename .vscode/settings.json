@@ -26,6 +26,7 @@
         "nostatic",
         "pylint",
         "pytest",
+        "reportlab",
         "safemigrate",
         "sorl",
         "sortid",
