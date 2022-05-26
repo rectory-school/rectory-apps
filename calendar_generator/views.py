@@ -147,8 +147,8 @@ def custom_preview(request, calendar_id: int):
         'form': form,
         'calendar': cal,
 
-        "styles": [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_STYLE_PRESETS)],
-        "layouts": [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_LAYOUT_PRESETS)],
+        "styles": models.ColorSet.objects.all(),
+        "layouts": models.Layout.objects.all(),
 
         'start_date': start_date,
         'end_date': end_date,
@@ -177,7 +177,9 @@ def custom_preview(request, calendar_id: int):
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_single_grid(request: HttpRequest, calendar_id: int, layout_id: int, style_id: int, year: int, month: int):
+def pdf_single_grid(
+        request: HttpRequest, calendar_id: int, layout_id: int, style_id: int, start_year: int, start_month: int,
+        start_day: int, end_year: int, end_month: int, end_day: int):
     """A PDF grid from start date to end date with a given style and size"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
@@ -192,10 +194,13 @@ def pdf_single_grid(request: HttpRequest, calendar_id: int, layout_id: int, styl
     letter_map = cal.get_date_letter_map()
     label_map = cal.get_arbitrary_labels()
 
-    _, last_day = calendar.monthrange(year, month)
-    start_date = date(year, month, 1)
-    end_date = date(year, month, last_day)
-    title = date(year, month, 1).strftime("%B %Y")
+    if end_day == 0:
+        _, end_day = calendar.monthrange(end_year, end_month)
+
+    start_date = date(start_year, start_month, start_day)
+    end_date = date(end_year, end_month, end_day)
+
+    title = request.GET.get("title", date(start_year, start_month, 1).strftime("%B %Y"))
 
     generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
                                             label_map=label_map,
