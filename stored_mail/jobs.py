@@ -14,11 +14,9 @@ from . import models
 log = logging.getLogger(__name__)
 
 
-@register_job(15)
+@register_job(300)
 def send_emails(env: RunEnv):
     """Send all emails that have been scheduled"""
-
-    # TODO: I should probably re-introduce some batching here
 
     with transaction.atomic():
         # Wait at least an hour between attempts
@@ -33,7 +31,7 @@ def send_emails(env: RunEnv):
 
         candidate_query = last_attempt_query & created_at_query & sent_at_query
 
-        to_send = models.OutgoingMessage.objects.filter(candidate_query).first()
+        to_send = models.OutgoingMessage.objects.filter(candidate_query).select_for_update(skip_locked=True).first()
 
         if not to_send:
             log.info("No messages to send")
