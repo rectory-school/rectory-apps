@@ -25,7 +25,6 @@ from reportlab.lib.units import mm
 
 from . import models
 from . import grids
-from . import pdf_presets
 from . import pdf
 from . import forms
 
@@ -105,8 +104,11 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         context["today_letter"] = None
         context["today"] = today
 
-        context["styles"] = [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_STYLE_PRESETS)]
-        context["layouts"] = [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_LAYOUT_PRESETS)]
+        context["styles"] = models.ColorSet.objects.all()
+        context["layouts"] = models.Layout.objects.all()
+        context["monthly_favorites"] = models.MonthlyDisplaySet.objects.all().select_related("color_set", "layout")
+        context["one_page_favorites"] = models.OnePageDisplaySet.objects.all().select_related("color_set", "layout")
+        context["show_all_displays"] = "show_all_displays" in self.request.GET
 
         if today in days_dict:
             context["today_letter"] = days_dict[today]
@@ -148,8 +150,8 @@ def custom_preview(request, calendar_id: int):
         'form': form,
         'calendar': cal,
 
-        "styles": [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_STYLE_PRESETS)],
-        "layouts": [(i, name) for i, (name, _) in enumerate(pdf_presets.AVAILABLE_LAYOUT_PRESETS)],
+        "styles": models.ColorSet.objects.all(),
+        "layouts": models.Layout.objects.all(),
 
         'start_date': start_date,
         'end_date': end_date,
@@ -178,26 +180,30 @@ def custom_preview(request, calendar_id: int):
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_single_grid(request: HttpRequest, calendar_id: int):
+def pdf_single_grid(
+        request: HttpRequest, calendar_id: int, layout_id: int, style_id: int, start_year: int, start_month: int,
+        start_day: int, end_year: int, end_month: int, end_day: int):
     """A PDF grid from start date to end date with a given style and size"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style_index = int(request.GET.get('style_index', 0))
-        size_index = int(request.GET.get('layout_index', 0))
-        start_date = _parse_date(request.GET.get('start_date', cal.start_date))
-        end_date = _parse_date(request.GET.get('end_date', cal.end_date))
-        title = request.GET.get('title', cal.title)
+        style = models.ColorSet.objects.get(pk=style_id).to_style()
+        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
 
-        _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
-        _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
-
-    except (ValueError, IndexError) as exc:
+    except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
 
     letter_map = cal.get_date_letter_map()
     label_map = cal.get_arbitrary_labels()
+
+    if end_day == 0:
+        _, end_day = calendar.monthrange(end_year, end_month)
+
+    start_date = date(start_year, start_month, start_day)
+    end_date = date(end_year, end_month, end_day)
+
+    title = request.GET.get("title", date(start_year, start_month, 1).strftime("%B %Y"))
 
     generator = grids.CalendarGridGenerator(date_letter_map=letter_map,
                                             label_map=label_map,
@@ -229,18 +235,16 @@ def pdf_single_grid(request: HttpRequest, calendar_id: int):
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_all_months(request, calendar_id: int):
+def pdf_all_months(request, calendar_id: int, style_id: int, layout_id: int):
     """Get a PDF with all a month per page"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style_index = int(request.GET.get('style_index', 0))
-        size_index = int(request.GET.get('layout_index', 0))
+        style = models.ColorSet.objects.get(pk=style_id).to_style()
+        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
 
-        _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
-        _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
-    except (ValueError, IndexError) as exc:
+    except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
 
     date_letter_map = cal.get_date_letter_map()
@@ -280,18 +284,16 @@ def pdf_all_months(request, calendar_id: int):
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_one_page(request, calendar_id: int):
+def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
     """Generate a one page PDF with all calendars on it"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style_index = int(request.GET.get('style_index', 0))
-        size_index = int(request.GET.get('layout_index', 0))
+        style = models.ColorSet.objects.get(pk=style_id).to_style()
+        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
 
-        _, style = pdf_presets.AVAILABLE_STYLE_PRESETS[style_index]
-        _, layout = pdf_presets.AVAILABLE_LAYOUT_PRESETS[size_index]
-    except (ValueError, IndexError) as exc:
+    except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
 
     date_letter_map = cal.get_date_letter_map()
@@ -307,7 +309,7 @@ def pdf_one_page(request, calendar_id: int):
     title_font_size = None
     for year, month in all_months:
         title = date(year, month, 1).strftime("%B %Y")
-        font_size = pdf.get_font_size_maximum_width(title, layouts[0].inner_width / 2, style.title_font_name)
+        font_size = pdf.get_font_size_maximum_width(title, layouts[0].inner_width / 2, layout.title_font_name)
 
         if title_font_size is None or font_size < title_font_size:
             title_font_size = font_size

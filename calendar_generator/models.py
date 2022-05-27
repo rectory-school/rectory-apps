@@ -7,6 +7,11 @@ from typing import Dict, Set, List, Iterable, Optional
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
+from django.core.validators import MaxValueValidator, MinValueValidator
+
+from reportlab.lib import colors
+
+from . import pdf
 
 
 class Calendar(models.Model):
@@ -79,7 +84,7 @@ class Calendar(models.Model):
         skip_days = self.get_all_skip_days()
         reset_days = self.get_all_reset_days()
 
-        out = {}
+        out: Dict[datetime.date, Optional[str]] = {}
 
         i = 0
 
@@ -255,3 +260,185 @@ class ArbitraryLabel(models.Model):
 
         if self.date not in self.calendar.get_date_letter_map():
             raise ValidationError("Label date was not within calendar")
+
+    def __str__(self):
+        return f"{self.date}/{self.label}"
+
+
+class Layout(models.Model):
+    """A layout that can be used in a calendar"""
+
+    name = models.CharField(max_length=255)
+
+    width = models.FloatField(validators=[MinValueValidator(0)], default=791)
+    height = models.FloatField(validators=[MinValueValidator(0)], default=612)
+    top_margin = models.FloatField(validators=[MinValueValidator(0)], default=36)
+    bottom_margin = models.FloatField(validators=[MinValueValidator(0)], default=36)
+    left_margin = models.FloatField(validators=[MinValueValidator(0)], default=36)
+    right_margin = models.FloatField(validators=[MinValueValidator(0)], default=36)
+
+    header_divider_width = models.FloatField(validators=[MinValueValidator(0)], default=1)
+    outline_width = models.FloatField(validators=[MinValueValidator(0)], default=1)
+    grid_line_width = models.FloatField(validators=[MinValueValidator(0)], default=1)
+    title_font_size = models.FloatField(validators=[MinValueValidator(0)], default=0)
+
+    header_font_name = models.CharField(max_length=255, default="HelveticaNeue-Bold")
+    letter_font_name = models.CharField(max_length=255, default="HelveticaNeue-Light")
+    date_font_name = models.CharField(max_length=255, default="HelveticaNeue-Light")
+    title_font_name = models.CharField(max_length=255, default="HelveticaNeue-Bold")
+
+    def to_pdf_layout(self) -> pdf.Layout:
+        """Get the PDF layout"""
+
+        return pdf.Layout(
+            width=self.width,
+            height=self.height,
+            top_margin=self.top_margin,
+            bottom_margin=self.bottom_margin,
+            left_margin=self.left_margin,
+            right_margin=self.right_margin,
+
+            header_divider_width=self.header_divider_width,
+            outline_width=self.outline_width,
+            grid_line_width=self.grid_line_width,
+            title_font_size=self.title_font_size,
+
+            header_font_name=self.header_font_name,
+            letter_font_name=self.letter_font_name,
+            date_font_name=self.date_font_name,
+            title_font_name=self.title_font_name,
+        )
+
+    def __str__(self):
+        return self.name
+
+
+class RGBColor(models.Model):
+    """An RGB color"""
+
+    name = models.CharField(max_length=255, unique=True)
+
+    red = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(1)])
+    green = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(1)])
+    blue = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(1)])
+    alpha = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(1)])
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'color'
+        verbose_name_plural = 'colors'
+
+    @property
+    def reportlab_color(self) -> colors.Color:
+        """Get the Reportlab color object"""
+
+        return colors.Color(self.red, self.green, self.blue, self.alpha)
+
+    def __str__(self):
+        return self.name
+
+
+class ColorSet(models.Model):
+    """A color set that can be used on calendars"""
+
+    name = models.CharField(max_length=255, unique=True)
+
+    header_text_color = models.ForeignKey(RGBColor, related_name='+',
+                                          on_delete=models.DO_NOTHING,
+                                          help_text=("The color to use to draw the "
+                                                     "headers: Monday, Tuesday, etc"))
+
+    letter_color = models.ForeignKey(RGBColor, related_name='+',
+                                     on_delete=models.DO_NOTHING,
+                                     help_text=('The color to use to "day of the week" '
+                                                'letters, such as A, B, and C'))
+
+    date_color = models.ForeignKey(RGBColor, related_name='+',
+                                   on_delete=models.DO_NOTHING,
+                                   help_text=("The color used to draw the day of the "
+                                              "month, such as 1, 2, 3 ... 31"))
+
+    label_color = models.ForeignKey(RGBColor, related_name='+',
+                                    on_delete=models.DO_NOTHING,
+                                    help_text=('The color used to draw arbitrary '
+                                               'labels such as "No school"'))
+
+    title_color = models.ForeignKey(RGBColor, related_name='+', blank=True, null=True,
+                                    on_delete=models.DO_NOTHING,
+                                    help_text=('The color used to the title of the '
+                                               'calendar, such as "January 2021"'))
+
+    outline_color = models.ForeignKey(RGBColor, related_name='+', blank=True, null=True,
+                                      on_delete=models.DO_NOTHING,
+                                      help_text=('The color used to draw around the '
+                                                 'outside of the whole calendar'))
+
+    grid_line_color = models.ForeignKey(RGBColor, related_name='+', blank=True, null=True,
+                                        on_delete=models.DO_NOTHING,
+                                        help_text=('The color used to draw the grid '
+                                                   'lines inside the calendar'))
+
+    header_divider_color = models.ForeignKey(RGBColor, related_name='+', blank=True, null=True,
+                                             on_delete=models.DO_NOTHING,
+                                             help_text=('The color used to draw the lines '
+                                                        'in between the header (Monday, Tuesday, etc)'))
+
+    header_background_color = models.ForeignKey(RGBColor, related_name='+', blank=True, null=True,
+                                                on_delete=models.DO_NOTHING,
+                                                help_text=('The color used to draw the '
+                                                           'background of the header'))
+
+    frame_background_color = models.ForeignKey(RGBColor, related_name='+', blank=True, null=True,
+                                               on_delete=models.DO_NOTHING,
+                                               help_text=('The color used to draw the '
+                                                          'background of the whole calendar'))
+
+    def to_style(self) -> pdf.Style:
+        """Get the PDF style for a color set"""
+
+        return pdf.Style(
+            header_text_color=self.header_text_color.reportlab_color,
+            letter_color=self.letter_color.reportlab_color,
+            date_color=self.date_color.reportlab_color,
+            label_color=self.label_color.reportlab_color,
+
+            title_color=_to_optional_color(self.title_color),
+            outline_color=_to_optional_color(self.outline_color),
+            grid_line_color=_to_optional_color(self.grid_line_color),
+
+            header_divider_color=_to_optional_color(self.header_divider_color),
+            header_background_color=_to_optional_color(self.header_background_color),
+            frame_background_color=_to_optional_color(self.frame_background_color),
+        )
+
+    def __str__(self):
+        return self.name
+
+
+class MonthlyDisplaySet(models.Model):
+    """A "favorite" view for a monthly calendar"""
+
+    name = models.CharField(max_length=255, unique=True)
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name='+')
+    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name='+')
+
+    def __str__(self):
+        return self.name
+
+
+class OnePageDisplaySet(models.Model):
+    """A "favorite" view for a one page calendar"""
+
+    name = models.CharField(max_length=255, unique=True)
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name='+')
+    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name='+')
+
+    def __str__(self):
+        return self.name
+
+
+def _to_optional_color(color: Optional[RGBColor]) -> Optional[colors.Color]:
+    if color:
+        return color.reportlab_color
+
+    return None

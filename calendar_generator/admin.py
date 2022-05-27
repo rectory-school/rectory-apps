@@ -68,3 +68,28 @@ class CalendarAdmin(admin.ModelAdmin):
     """Admin for a calendar"""
 
     inlines = [DayInline, SkipDateInline, ResetDayAdmin, DateLabelInline]
+
+
+@admin.register(models.RGBColor)
+class RGBColorAdmin(admin.ModelAdmin):
+    """Admin for colors"""
+
+
+@admin.register(models.ColorSet)
+class ColorSetAdmin(admin.ModelAdmin):
+    """Color set admin"""
+
+
+@admin.register(models.Layout)
+class LayoutAdmin(admin.ModelAdmin):
+    """Layout admin"""
+
+
+@admin.register(models.MonthlyDisplaySet)
+class MonthlyDisplaySetAdmin(admin.ModelAdmin):
+    """Monthly display set admin"""
+
+
+@admin.register(models.OnePageDisplaySet)
+class OnePageDisplaySetAdmin(admin.ModelAdmin):
+    """One page display set admin"""

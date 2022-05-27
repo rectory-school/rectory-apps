@@ -13,6 +13,7 @@
         "120"
     ],
     "cSpell.words": [
+        "adminsortable",
         "asgi",
         "csrf",
         "csrftoken",
@@ -26,6 +27,7 @@
         "nostatic",
         "pylint",
         "pytest",
+        "reportlab",
         "safemigrate",
         "sorl",
         "sortid",
