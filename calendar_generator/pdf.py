@@ -99,7 +99,7 @@ class Layout:
         return get_maximum_width(title, max_size, self.title_font_name)
 
     def subdivide(self, row_count: int, col_count: int) -> List['Layout']:
-        """Subdivide will give back a bunch of sub-styles for drawing multiple calendars on one page,
+        """Subdivide will give back a bunch of sub-layouts for drawing multiple calendars on one page,
         starting in the top left and in reading order"""
 
         col_pad = self.margins
@@ -122,12 +122,12 @@ class Layout:
             for col_index in range(col_count):
                 col_offset = self.margins + col_index * (col_width + col_pad)
 
-                style = Layout(width=col_width, height=row_height,
-                               line_width=self.line_width,
-                               margins=0,
-                               x_pos=col_offset, y_pos=row_offset)
+                layout = Layout(width=col_width, height=row_height,
+                                line_width=self.line_width,
+                                margins=0,
+                                x_pos=col_offset, y_pos=row_offset)
 
-                out.append(style)
+                out.append(layout)
 
         return out
 
@@ -139,7 +139,7 @@ class CalendarGenerator:
     canvas: canvas.Canvas
     grid: grids.CalendarGrid
 
-    style: ColorSet
+    color_set: ColorSet
     layout: Layout
 
     minimum_row_count_calculation: float = 0
@@ -159,14 +159,14 @@ class CalendarGenerator:
         y_pos = self.layout.bottom_offset + self._total_grid_height - decent
 
         self.canvas.setFont(self.layout.title_font_name, self._title_font_size)
-        self.canvas.setFillColor(self.style.title_color)
+        self.canvas.setFillColor(self.color_set.title_color)
 
         self.canvas.drawString(self.layout.left_offset, y_pos, self.grid.title)
 
     def _draw_frame_background(self):
         """Draw the frame background"""
 
-        self.canvas.setFillColor(self.style.line_color)
+        self.canvas.setFillColor(self.color_set.line_color)
         self.canvas.rect(self.layout.left_offset,
                          self.layout.bottom_offset,
                          self.layout.outer_width,
@@ -174,8 +174,8 @@ class CalendarGenerator:
                          stroke=0, fill=1)
 
     def _draw_header(self):
-        self.canvas.setFillColor(self.style.header_text_color)
-        self.canvas.setStrokeColor(self.style.inner_grid_color)
+        self.canvas.setFillColor(self.color_set.header_text_color)
+        self.canvas.setStrokeColor(self.color_set.inner_grid_color)
         self.canvas.setFont(self.layout.header_font_name, self._header_font_size)
         self.canvas.setLineWidth(self.layout.line_width)
 
@@ -191,7 +191,7 @@ class CalendarGenerator:
 
             self.canvas.drawCentredString(center, y_pos, header)
 
-            if self.style.divide_header and i > 0:
+            if self.color_set.divide_header and i > 0:
                 bottom = self.layout.bottom_offset + self._grid_height
                 top = bottom + self._header_height
 
@@ -202,7 +202,7 @@ class CalendarGenerator:
             left += self.layout.line_width
 
     def _draw_grid(self):
-        self.canvas.setFillColor(self.style.inner_grid_color)
+        self.canvas.setFillColor(self.color_set.inner_grid_color)
 
         bottom = self.layout.bottom_offset + self.layout.line_width
         for _ in range(self._row_count):
@@ -252,7 +252,7 @@ class CalendarGenerator:
                     y_pos = bottom - descent
 
                     self.canvas.setFont(self.layout.letter_font_name, label_font_size)
-                    self.canvas.setFillColor(self.style.label_color)
+                    self.canvas.setFillColor(self.color_set.label_color)
                     self.canvas.drawCentredString(center, y_pos, col.label)
 
                 if col.letter:
@@ -262,7 +262,7 @@ class CalendarGenerator:
                         letter_font_size = min(self._letter_font_size, self._row_height - label_font_size)
 
                     self.canvas.setFont(self.layout.letter_font_name, letter_font_size)
-                    self.canvas.setFillColor(self.style.letter_color)
+                    self.canvas.setFillColor(self.color_set.letter_color)
 
                     x_pos = left + self._column_width * 0.05
                     y_pos = bottom + self._row_height * .1 + label_font_size
@@ -270,7 +270,7 @@ class CalendarGenerator:
                     self.canvas.drawString(x_pos, y_pos, col.letter)
 
     def _draw_dates(self):
-        self.canvas.setFillColor(self.style.date_color)
+        self.canvas.setFillColor(self.color_set.date_color)
         self.canvas.setFont(self.layout.date_font_name, self._date_font_size)
 
         _, descent = pdfmetrics.getAscentDescent(self.layout.date_font_name, self._date_font_size)
@@ -341,7 +341,7 @@ class CalendarGenerator:
 
         maximum_width = self._column_width * .8
 
-        if self.style.divide_header:
+        if self.color_set.divide_header:
             maximum_width -= self.layout.line_width
 
         current_size = self._column_width  # Set an upper bound to keep the column header at most squarish
