@@ -1,11 +1,10 @@
 """Calendar views"""
 
-import dataclasses
 from dataclasses import dataclass
 from datetime import date
 import calendar
 
-from typing import Dict, Any, Union
+from typing import Dict, Any, List, Union
 
 from io import BytesIO
 
@@ -21,7 +20,6 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, render
 
 from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm
 
 from . import models
 from . import grids
@@ -104,7 +102,7 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         context["today_letter"] = None
         context["today"] = today
 
-        context["styles"] = models.ColorSet.objects.all()
+        context["color_sets"] = models.ColorSet.objects.all()
         context["layouts"] = models.Layout.objects.all()
         context["monthly_favorites"] = models.MonthlyDisplaySet.objects.all().select_related("color_set", "layout")
         context["one_page_favorites"] = models.OnePageDisplaySet.objects.all().select_related("color_set", "layout")
@@ -150,7 +148,7 @@ def custom_preview(request, calendar_id: int):
         'form': form,
         'calendar': cal,
 
-        "styles": models.ColorSet.objects.all(),
+        "color_sets": models.ColorSet.objects.all(),
         "layouts": models.Layout.objects.all(),
 
         'start_date': start_date,
@@ -181,15 +179,18 @@ def custom_preview(request, calendar_id: int):
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
 def pdf_single_grid(
-        request: HttpRequest, calendar_id: int, layout_id: int, style_id: int, start_year: int, start_month: int,
+        request: HttpRequest, calendar_id: int, layout_id: int, color_set_id: int, start_year: int, start_month: int,
         start_day: int, end_year: int, end_month: int, end_day: int):
-    """A PDF grid from start date to end date with a given style and size"""
+    """A PDF grid from start date to end date with a given color set and layout"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=style_id).to_style()
-        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
+        db_color_set: models.ColorSet = models.ColorSet.objects.get(pk=color_set_id)
+        db_layout: models.Layout = models.Layout.objects.get(pk=layout_id)
+
+        color_set = db_color_set.for_pdf()
+        layout = db_layout.for_pdf()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
@@ -223,7 +224,7 @@ def pdf_single_grid(
     pdf_canvas.setCreator("Rectory Apps System")
     pdf_canvas.setSubject("Calendar")
 
-    gen = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
+    gen = pdf.CalendarGenerator(pdf_canvas, grid, color_set, layout)
 
     gen.draw()
     pdf_canvas.showPage()
@@ -235,14 +236,17 @@ def pdf_single_grid(
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_all_months(request, calendar_id: int, style_id: int, layout_id: int):
+def pdf_all_months(request, calendar_id: int, color_set_id: int, layout_id: int):
     """Get a PDF with all a month per page"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=style_id).to_style()
-        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
+        db_color_set: models.ColorSet = models.ColorSet.objects.get(pk=color_set_id)
+        db_layout: models.Layout = models.Layout.objects.get(pk=layout_id)
+
+        color_set = db_color_set.for_pdf()
+        layout = db_layout.for_pdf()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
@@ -272,7 +276,7 @@ def pdf_all_months(request, calendar_id: int, style_id: int, layout_id: int):
         grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
         grid = grid_generator.get_grid()
 
-        generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
+        generator = pdf.CalendarGenerator(pdf_canvas, grid, color_set, layout)
         generator.draw()
 
         pdf_canvas.showPage()
@@ -284,14 +288,17 @@ def pdf_all_months(request, calendar_id: int, style_id: int, layout_id: int):
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
+def pdf_one_page(request, calendar_id: int, color_set_id: int, layout_id: int):
     """Generate a one page PDF with all calendars on it"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=style_id).to_style()
-        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
+        db_color_set: models.ColorSet = models.ColorSet.objects.get(pk=color_set_id)
+        db_layout: models.Layout = models.Layout.objects.get(pk=layout_id)
+
+        color_set = db_color_set.for_pdf()
+        layout = db_layout.for_pdf()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
@@ -304,19 +311,15 @@ def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
         all_months.add((used_date.year, used_date.month))
 
     row_count = math.ceil(len(all_months)/ONE_PAGE_PDF_COL_COUNT)
-    layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT, 5*mm, 10*mm)
+    layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT)
 
-    title_font_size = None
+    title_font_sizes: List[float] = []
     for year, month in all_months:
         title = date(year, month, 1).strftime("%B %Y")
-        font_size = pdf.get_font_size_maximum_width(title, layouts[0].inner_width / 2, layout.title_font_name)
+        font_size = pdf.get_maximum_width(title, layouts[0].outer_width / 2, layout.title_font_name)
+        title_font_sizes.append(font_size)
 
-        if title_font_size is None or font_size < title_font_size:
-            title_font_size = font_size
-
-    style = dataclasses.copy.copy(style)
-    assert isinstance(style, pdf.Style)
-    style.title_font_size = title_font_size
+    title_font_size = min(title_font_sizes)
 
     buf = BytesIO()
     pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
@@ -330,6 +333,7 @@ def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
 
     for i, (year, month) in enumerate(sorted(all_months)):
         layout = layouts[i]
+        layout.title_font_size_override = title_font_size
 
         start_date = date(year, month, 1)
         _, end_day = calendar.monthrange(year, month)
@@ -338,7 +342,7 @@ def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
         grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
         grid = grid_generator.get_grid()
 
-        generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout, minimum_row_count_calculation=5)
+        generator = pdf.CalendarGenerator(pdf_canvas, grid, color_set, layout, minimum_row_count_calculation=5)
         generator.draw()
 
     pdf_canvas.save()
