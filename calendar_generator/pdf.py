@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from functools import cache, cached_property
 
-from typing import List, Optional
+from typing import List
 
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
@@ -154,46 +154,6 @@ class CalendarGenerator:
         self._draw_dates()
         self._draw_letters()
 
-    @cached_property
-    def _title_font_size(self) -> float:
-        return self.layout.font_size_for_title(self.grid.title)
-
-    @cached_property
-    def _title_space_used(self) -> float:
-        """The total space used by the title"""
-
-        return self._title_font_size
-
-    @cached_property
-    def _total_grid_height(self) -> float:
-        """The height available for the grid and headers"""
-
-        return self.layout.outer_height - self._title_space_used
-
-    @cached_property
-    def _header_font_size(self) -> float:
-        """The calculated size of the headers"""
-
-        maximum_width = self._column_width * .8
-
-        if self.style.divide_header:
-            maximum_width -= self.layout.line_width
-
-        current_size = self._column_width  # Set an upper bound to keep the column header at most squarish
-
-        for header in self.grid.headers:
-            possible_size = get_maximum_width(header, maximum_width, self.layout.header_font_name)
-            if possible_size < current_size:
-                current_size = possible_size
-
-        return current_size
-
-    @cached_property
-    def _header_height(self) -> float:
-        """The height used by the headers"""
-
-        return self.layout.header_pad * self._header_font_size
-
     def _draw_title(self):
         decent = get_decent(self.layout.title_font_name, self._title_font_size)
         y_pos = self.layout.bottom_offset + self._total_grid_height - decent
@@ -257,9 +217,6 @@ class CalendarGenerator:
             bottom += self.layout.line_width
 
     def _draw_letters(self):
-        _, letter_descent = pdfmetrics.getAscentDescent(self.layout.letter_font_name,
-                                                        self._letter_font_size)
-
         # Note, this calculation grabs the top, but I'm subtracting the
         # row height and line before using it, so it becomes the bottom
         # as soon as the first row is entered
@@ -272,11 +229,13 @@ class CalendarGenerator:
 
             bottom -= self._row_height
             bottom -= self.layout.line_width
-            top = bottom + self._row_height
 
             for col in row:
                 left += self.layout.line_width
                 left += self._column_width
+
+                if not col:
+                    continue
 
                 center = left + self._column_width / 2
 
@@ -320,11 +279,11 @@ class CalendarGenerator:
         top -= self._date_font_size
         top -= descent
 
-        for _, row in enumerate(self.grid.grid):
+        for row in self.grid.grid:
             right = self.layout.left_offset + self.layout.line_width + self._column_width - self._column_width*.025
 
-            for _, col in enumerate(row):
-                if col.date:
+            for col in row:
+                if col:
                     self.canvas.drawRightString(right, top, str(col.date.day))
 
                 right += self.layout.line_width
@@ -359,6 +318,46 @@ class CalendarGenerator:
     @cached_property
     def _row_count(self):
         return len(self.grid.grid)
+
+    @cached_property
+    def _title_font_size(self) -> float:
+        return self.layout.font_size_for_title(self.grid.title)
+
+    @cached_property
+    def _title_space_used(self) -> float:
+        """The total space used by the title"""
+
+        return self._title_font_size
+
+    @cached_property
+    def _total_grid_height(self) -> float:
+        """The height available for the grid and headers"""
+
+        return self.layout.outer_height - self._title_space_used
+
+    @cached_property
+    def _header_font_size(self) -> float:
+        """The calculated size of the headers"""
+
+        maximum_width = self._column_width * .8
+
+        if self.style.divide_header:
+            maximum_width -= self.layout.line_width
+
+        current_size = self._column_width  # Set an upper bound to keep the column header at most squarish
+
+        for header in self.grid.headers:
+            possible_size = get_maximum_width(header, maximum_width, self.layout.header_font_name)
+            if possible_size < current_size:
+                current_size = possible_size
+
+        return current_size
+
+    @cached_property
+    def _header_height(self) -> float:
+        """The height used by the headers"""
+
+        return self.layout.header_pad * self._header_font_size
 
     @cached_property
     def _date_font_size(self) -> float:

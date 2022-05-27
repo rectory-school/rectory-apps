@@ -1,6 +1,5 @@
 """Calendar views"""
 
-import dataclasses
 from dataclasses import dataclass
 from datetime import date
 import calendar
@@ -21,7 +20,6 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, render
 
 from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm
 
 from . import models
 from . import grids
