@@ -81,7 +81,7 @@ class CalendarGridGenerator:
         # Walk backwards until we get our first weekday
         internal_start_date = self.start_date
 
-        # This is a fix to the Jan 2022 issue - the first week was all None becuase
+        # This is a fix to the Jan 2022 issue - the first week was all None because
         # Jan 1st was on a Saturday, which then got walked back to December 27, which
         # then all got excluded because none of the dates were in range
 
