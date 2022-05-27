@@ -24,11 +24,11 @@
 
 <h2 class="noprint">Monthly Calendars</h2>
 <ul class="noprint">
-    {% for style_index, style_name in styles %}
+    {% for style in styles %}
         <li>
-            <strong>{{ style_name }}</strong>: 
-            {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:months-pdf' calendar_id=object.pk%}?layout_index={{ layout_index }}&amp;style_index={{ style_index }}">{{ layout_name }}</a>
+            <strong>{{ style.name }}</strong>: 
+            {% for layout in layouts %}
+                <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
 
                 {% if not forloop.last %}
                     &bullet;
@@ -40,11 +40,11 @@
 
 <h2 class="noprint">One-page calendar</h2>
 <ul class="noprint">
-    {% for style_index, style_name in styles %}
+    {% for style in styles %}
         <li>
-            <strong>{{ style_name }}</strong>: 
-            {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk%}?layout_index={{ layout_index }}&amp;style_index={{ style_index }}">{{ layout_name }}</a>
+            <strong>{{ style.name }}</strong>: 
+            {% for layout in layouts %}
+                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
 
                 {% if not forloop.last %}
                     &bullet;
@@ -98,10 +98,10 @@
 
     <div class="noprint">
         <h2>{{calendar.first_date|date:"F Y"}} Printable</h2>
-        {% for style_index, style_name in styles %}
-            <p><strong>{{ style_name }}</strong>:
-                {% for layout_index, layout_name in layouts %}
-                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ calendar.first_date|date:"c" }}&amp;end_date={{ calendar.last_date|date:"c" }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
+        {% for style in styles %}
+            <p><strong>{{ style.name }}</strong>:
+                {% for layout in layouts %}
+                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk style_id=style.pk layout_id=layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ layout }}</a>
 
                     {% if not forloop.last %}&bullet;{% endif %}
                 {% endfor %}

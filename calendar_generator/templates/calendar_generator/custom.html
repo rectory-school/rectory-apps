@@ -24,11 +24,11 @@
 <h2>Generate a PDF</h2>
 
 <div class="noprint">
-    {% for style_index, style_name in styles %}
+    {% for style in styles %}
         
-        <p><strong>{{ style_name }}</strong>:
-            {% for layout_index, layout_name in layouts %}
-                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk %}?style_index={{ style_index }}&amp;layout_index={{ layout_index }}&amp;start_date={{ start_date|date:"c" }}&amp;end_date={{ end_date|date:"c" }}&amp;title={{ title|urlencode}}">{{ layout_name }}</a>
+        <p><strong>{{ style.name }}</strong>:
+            {% for layout in layouts %}
+                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk style_id=style.pk layout_id=layout.pk start_year=start_date.year start_month=start_date.month start_day=start_date.day end_year=end_date.year end_month=end_date.month end_day=end_date.day %}?title={{ title|urlencode}}">{{ layout }}</a>
 
                 {% if not forloop.last %}&bullet;{% endif %}
             {% endfor %}
