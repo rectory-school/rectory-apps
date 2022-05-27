@@ -11,6 +11,8 @@ from accounts.admin_staff_monkeypatch import patched_has_permission
 
 register = template.Library()
 
+ClassList = Optional[List[str]]
+
 
 @register.simple_tag(takes_context=True)
 def auth_button(context):
@@ -25,8 +27,8 @@ def auth_button(context):
 
     title = f"Log off {current_user}"
     href = reverse('accounts:logout') + "?next=" + current_path
-    hover = f"Email: {current_user.email}&#013;ID: {current_user.pk}"
-    return _nav_item(title, href, extra_link_classes=["g_id_signout"], hover=hover)
+    hover = f"ID: {current_user.pk}&#013;Email: {current_user.email}"
+    return _nav_item(title, href, link_classes=["g_id_signout"], hover=hover)
 
 
 @register.simple_tag(takes_context=True)
@@ -56,13 +58,14 @@ def nav_item(context, title: str, url_name: str, required_permission: str = None
     return _nav_item(title, url)
 
 
-def _nav_item(
-        title, url, extra_li_classes: Optional[List[str]] = None,
-        extra_link_classes: Optional[List[str]] = None, hover: str = "") -> str:
+def _nav_item(title, url,
+              li_classes: ClassList = None,
+              link_classes: ClassList = None,
+              hover: str = "") -> str:
     """String for an available nav item"""
 
-    li_class = _get_defaulted_classes(extra_li_classes, "nav-item")
-    a_class = _get_defaulted_classes(extra_link_classes, "nav-link")
+    li_class = _get_defaulted_classes(li_classes, "nav-item")
+    a_class = _get_defaulted_classes(link_classes, "nav-link")
 
     li_attrs = [li_class]
     if hover:
@@ -74,7 +77,7 @@ def _nav_item(
     return mark_safe(li.render())
 
 
-def _defaulted_list(extra_attrs: Optional[List[str]], *base_attrs: str) -> Sequence[str]:
+def _defaulted_list(extra_attrs: ClassList, *base_attrs: str) -> Sequence[str]:
     if not extra_attrs:
         return base_attrs
 
@@ -85,5 +88,5 @@ def _get_class(classes: Sequence[str]) -> attributes.Class:
     return attributes.Class(" ".join(classes))
 
 
-def _get_defaulted_classes(extra_attrs: Optional[List[str]], *base_attrs: str) -> attributes.Class:
+def _get_defaulted_classes(extra_attrs: ClassList, *base_attrs: str) -> attributes.Class:
     return _get_class(_defaulted_list(extra_attrs, *base_attrs))
