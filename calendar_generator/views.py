@@ -106,6 +106,9 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
 
         context["styles"] = models.ColorSet.objects.all()
         context["layouts"] = models.Layout.objects.all()
+        context["monthly_favorites"] = models.MonthlyDisplaySet.objects.all().select_related("color_set", "layout")
+        context["one_page_favorites"] = models.OnePageDisplaySet.objects.all().select_related("color_set", "layout")
+        context["show_all_displays"] = "show_all_displays" in self.request.GET
 
         if today in days_dict:
             context["today_letter"] = days_dict[today]

@@ -16,42 +16,68 @@
     Calendar: {{ calendar.title }}
 </h1>
 
-<p><em>{{ calendar.start_date }} to {{ calendar.end_date }}</em>
+<p><em>{{ calendar.start_date }} to {{ calendar.end_date }}</em></p>
 
-{% if has_admin_access and perms.calendar_generator.add_calendar %}
-    <p class="noprint"><a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a></p>
-{% endif %}
+<p class="noprint">
+    {% if has_admin_access and perms.calendar_generator.add_calendar %}
+        <a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a>
+
+        {% if monthly_favorites or one_page_favorites %}
+            &bullet;
+        {% endif %}
+    {% endif %}
+
+    {% if monthly_favorites or one_page_favorites %}
+        {% if show_all_displays %}
+            <a href="{{ request.path }}">Switch to limited display mode</a>
+        {% else %}
+            <a href="{{ request.path }}?show_all_displays">Switch to full display mode</a>
+        {% endif %}
+    {% endif %}
+</p>
 
 <h2 class="noprint">Monthly Calendars</h2>
 <ul class="noprint">
-    {% for style in styles %}
-        <li>
-            <strong>{{ style.name }}</strong>: 
-            {% for layout in layouts %}
-                <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
+    {% if not show_all_displays and monthly_favorites %}
+        {% for favorite in monthly_favorites %}
+            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a></li>
+        {% endfor %}
+    {% else %}
+        {% for style in styles %}
+            <li>
+                <strong>{{ style.name }}</strong>: 
+                {% for layout in layouts %}
+                    <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
 
-                {% if not forloop.last %}
-                    &bullet;
-                {% endif %}
-            {% endfor %}
-        </li>
-    {% endfor %}
+                    {% if not forloop.last %}
+                        &bullet;
+                    {% endif %}
+                {% endfor %}
+            </li>
+        {% endfor %}
+    {% endif %}
 </ul>
 
 <h2 class="noprint">One-page calendar</h2>
 <ul class="noprint">
-    {% for style in styles %}
-        <li>
-            <strong>{{ style.name }}</strong>: 
-            {% for layout in layouts %}
-                <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
+    {% if not show_all_displays and one_page_favorites %}
+        {% for favorite in one_page_favorites %}
+            <li><a href="{% url 'calendar_generator:one-page-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a></li>
+        {% endfor %}
+    {% else %}
+        {% for style in styles %}
+            <li>
+                <strong>{{ style.name }}</strong>: 
+                {% for layout in layouts %}
+                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
 
-                {% if not forloop.last %}
-                    &bullet;
-                {% endif %}
-            {% endfor %}
-        </li>
-    {% endfor %}
+                    {% if not forloop.last %}
+                        &bullet;
+                    {% endif %}
+                {% endfor %}
+            </li>
+        {% endfor %}
+    {% endif %}
 </ul>
     
 <p class="noprint"><a href="{% url 'calendar_generator:custom' calendar_id=calendar.pk %}">Custom Calendar Generator</a></p>
@@ -98,15 +124,26 @@
 
     <div class="noprint">
         <h2>{{calendar.first_date|date:"F Y"}} Printable</h2>
-        {% for style in styles %}
-            <p><strong>{{ style.name }}</strong>:
-                {% for layout in layouts %}
-                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk style_id=style.pk layout_id=layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ layout }}</a>
+
+        {% if not show_all_displays and monthly_favorites %}
+            <p>
+                {% for favorite in monthly_favorites %}
+                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk style_id=favorite.color_set.pk layout_id=favorite.layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ favorite.name }}</a>
 
                     {% if not forloop.last %}&bullet;{% endif %}
                 {% endfor %}
             </p>
-        {% endfor %}
+        {% else %}
+            {% for style in styles %}
+                <p><strong>{{ style.name }}</strong>:
+                    {% for layout in layouts %}
+                        <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk style_id=style.pk layout_id=layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ layout }}</a>
+
+                        {% if not forloop.last %}&bullet;{% endif %}
+                    {% endfor %}
+                </p>
+            {% endfor %}
+        {% endif %}
     </div>
 {% endfor %}      
 
