@@ -28,7 +28,7 @@
         
         <p><strong>{{ style.name }}</strong>:
             {% for layout in layouts %}
-                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk style_id=style.pk layout_id=layout.pk start_year=start_date.year start_month=start_date.month start_day=start_date.day end_year=end_date.year end_month=end_date.month end_day=end_date.day %}?title={{ title|urlencode}}">{{ layout }}</a>
+                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk color_set_id=style.pk layout_id=layout.pk start_year=start_date.year start_month=start_date.month start_day=start_date.day end_year=end_date.year end_month=end_date.month end_day=end_date.day %}?title={{ title|urlencode}}">{{ layout }}</a>
 
                 {% if not forloop.last %}&bullet;{% endif %}
             {% endfor %}

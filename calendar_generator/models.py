@@ -280,7 +280,7 @@ class Layout(models.Model):
     date_font_name = models.CharField(max_length=255, default="HelveticaNeue-Light")
     title_font_name = models.CharField(max_length=255, default="HelveticaNeue-Bold")
 
-    def to_pdf_layout(self) -> pdf.Layout:
+    def for_pdf(self) -> pdf.Layout:
         """Get the PDF layout"""
 
         return pdf.Layout(
@@ -365,7 +365,7 @@ class ColorSet(models.Model):
     divide_header = models.BooleanField(help_text=('If the header should be divided '
                                                    'using the inner grid color'))
 
-    def to_style(self) -> pdf.ColorSet:
+    def for_pdf(self) -> pdf.ColorSet:
         """Get the PDF style for a color set"""
 
         return pdf.ColorSet(

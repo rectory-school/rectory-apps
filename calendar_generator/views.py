@@ -179,14 +179,14 @@ def custom_preview(request, calendar_id: int):
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
 def pdf_single_grid(
-        request: HttpRequest, calendar_id: int, layout_id: int, style_id: int, start_year: int, start_month: int,
+        request: HttpRequest, calendar_id: int, layout_id: int, color_set_id: int, start_year: int, start_month: int,
         start_day: int, end_year: int, end_month: int, end_day: int):
     """A PDF grid from start date to end date with a given style and size"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=style_id).to_style()
+        style = models.ColorSet.objects.get(pk=color_set_id).to_style()
         layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
@@ -233,13 +233,13 @@ def pdf_single_grid(
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_all_months(request, calendar_id: int, style_id: int, layout_id: int):
+def pdf_all_months(request, calendar_id: int, color_set_id: int, layout_id: int):
     """Get a PDF with all a month per page"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=style_id).to_style()
+        style = models.ColorSet.objects.get(pk=color_set_id).to_style()
         layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
@@ -282,20 +282,20 @@ def pdf_all_months(request, calendar_id: int, style_id: int, layout_id: int):
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
-def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
+def pdf_one_page(request, calendar_id: int, color_set_id: int, layout_id: int):
     """Generate a one page PDF with all calendars on it"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        db_style = models.ColorSet.objects.get(pk=style_id)
+        db_style = models.ColorSet.objects.get(pk=color_set_id)
         db_layout = models.Layout.objects.get(pk=layout_id)
 
         assert isinstance(db_style, models.ColorSet)
         assert isinstance(db_layout, models.Layout)
 
-        style = db_style.to_style()
-        layout = db_layout.to_pdf_layout()
+        style = db_style.for_pdf()
+        layout = db_layout.for_pdf()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
