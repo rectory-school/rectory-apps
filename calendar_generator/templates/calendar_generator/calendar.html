@@ -49,11 +49,11 @@
     </p>
 {% else %}
     <ul class="noprint">
-        {% for style in styles %}
+        {% for color_set in color_sets %}
             <li>
-                <strong>{{ style.name }}</strong>: 
+                <strong>{{ color_set.name }}</strong>: 
                 {% for layout in layouts %}
-                    <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=layout.pk color_set_id=style.pk %}">{{ layout.name }}</a>
+                    <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=layout.pk color_set_id=color_set.pk %}">{{ layout.name }}</a>
 
                     {% if not forloop.last %}
                         &bullet;
@@ -78,11 +78,11 @@
     </p>
 {% else %}
     <ul class="noprint">
-        {% for style in styles %}
+        {% for color_set in color_sets %}
             <li>
-                <strong>{{ style.name }}</strong>: 
+                <strong>{{ color_set.name }}</strong>: 
                 {% for layout in layouts %}
-                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_id=layout.pk color_set_id=style.pk %}">{{ layout.name }}</a>
+                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_id=layout.pk color_set_id=color_set.pk %}">{{ layout.name }}</a>
 
                     {% if not forloop.last %}
                         &bullet;
@@ -145,10 +145,10 @@
                 {% endfor %}
             </p>
         {% else %}
-            {% for style in styles %}
-                <p><strong>{{ style.name }}</strong>:
+            {% for color_set in color_sets %}
+                <p><strong>{{ color_set.name }}</strong>:
                     {% for layout in layouts %}
-                        <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk color_set_id=style.pk layout_id=layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ layout }}</a>
+                        <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk color_set_id=color_set.pk layout_id=layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ layout }}</a>
 
                         {% if not forloop.last %}&bullet;{% endif %}
                     {% endfor %}

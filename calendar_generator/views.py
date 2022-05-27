@@ -102,7 +102,7 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         context["today_letter"] = None
         context["today"] = today
 
-        context["styles"] = models.ColorSet.objects.all()
+        context["color_sets"] = models.ColorSet.objects.all()
         context["layouts"] = models.Layout.objects.all()
         context["monthly_favorites"] = models.MonthlyDisplaySet.objects.all().select_related("color_set", "layout")
         context["one_page_favorites"] = models.OnePageDisplaySet.objects.all().select_related("color_set", "layout")
@@ -148,7 +148,7 @@ def custom_preview(request, calendar_id: int):
         'form': form,
         'calendar': cal,
 
-        "styles": models.ColorSet.objects.all(),
+        "color_sets": models.ColorSet.objects.all(),
         "layouts": models.Layout.objects.all(),
 
         'start_date': start_date,
@@ -181,13 +181,16 @@ def custom_preview(request, calendar_id: int):
 def pdf_single_grid(
         request: HttpRequest, calendar_id: int, layout_id: int, color_set_id: int, start_year: int, start_month: int,
         start_day: int, end_year: int, end_month: int, end_day: int):
-    """A PDF grid from start date to end date with a given style and size"""
+    """A PDF grid from start date to end date with a given color set and layout"""
 
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=color_set_id).to_style()
-        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
+        db_color_set: models.ColorSet = models.ColorSet.objects.get(pk=color_set_id)
+        db_layout: models.Layout = models.Layout.objects.get(pk=layout_id)
+
+        color_set = db_color_set.for_pdf()
+        layout = db_layout.for_pdf()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
@@ -221,7 +224,7 @@ def pdf_single_grid(
     pdf_canvas.setCreator("Rectory Apps System")
     pdf_canvas.setSubject("Calendar")
 
-    gen = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
+    gen = pdf.CalendarGenerator(pdf_canvas, grid, color_set, layout)
 
     gen.draw()
     pdf_canvas.showPage()
@@ -239,8 +242,11 @@ def pdf_all_months(request, calendar_id: int, color_set_id: int, layout_id: int)
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=color_set_id).to_style()
-        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
+        db_color_set: models.ColorSet = models.ColorSet.objects.get(pk=color_set_id)
+        db_layout: models.Layout = models.Layout.objects.get(pk=layout_id)
+
+        color_set = db_color_set.for_pdf()
+        layout = db_layout.for_pdf()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
@@ -270,7 +276,7 @@ def pdf_all_months(request, calendar_id: int, color_set_id: int, layout_id: int)
         grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
         grid = grid_generator.get_grid()
 
-        generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout)
+        generator = pdf.CalendarGenerator(pdf_canvas, grid, color_set, layout)
         generator.draw()
 
         pdf_canvas.showPage()
@@ -288,13 +294,10 @@ def pdf_one_page(request, calendar_id: int, color_set_id: int, layout_id: int):
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        db_style = models.ColorSet.objects.get(pk=color_set_id)
-        db_layout = models.Layout.objects.get(pk=layout_id)
+        db_color_set: models.ColorSet = models.ColorSet.objects.get(pk=color_set_id)
+        db_layout: models.Layout = models.Layout.objects.get(pk=layout_id)
 
-        assert isinstance(db_style, models.ColorSet)
-        assert isinstance(db_layout, models.Layout)
-
-        style = db_style.for_pdf()
+        color_set = db_color_set.for_pdf()
         layout = db_layout.for_pdf()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
@@ -339,7 +342,7 @@ def pdf_one_page(request, calendar_id: int, color_set_id: int, layout_id: int):
         grid_generator = grids.CalendarGridGenerator(date_letter_map, label_map, start_date, end_date)
         grid = grid_generator.get_grid()
 
-        generator = pdf.CalendarGenerator(pdf_canvas, grid, style, layout, minimum_row_count_calculation=5)
+        generator = pdf.CalendarGenerator(pdf_canvas, grid, color_set, layout, minimum_row_count_calculation=5)
         generator.draw()
 
     pdf_canvas.save()

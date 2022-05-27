@@ -366,7 +366,7 @@ class ColorSet(models.Model):
                                                    'using the inner grid color'))
 
     def for_pdf(self) -> pdf.ColorSet:
-        """Get the PDF style for a color set"""
+        """Get the PDF version of a color set"""
 
         return pdf.ColorSet(
             title_color=self.title_color.reportlab_color,
