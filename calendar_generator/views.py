@@ -315,7 +315,7 @@ def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
             title_font_size = font_size
 
     style = dataclasses.copy.copy(style)
-    assert isinstance(style, pdf.Style)
+    assert isinstance(style, pdf.ColorSet)
     style.title_font_size = title_font_size
 
     buf = BytesIO()
