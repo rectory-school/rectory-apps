@@ -299,7 +299,7 @@ class Layout(models.Model):
         return self.name
 
 
-class RGBColor(models.Model):
+class Color(models.Model):
     """An RGB color"""
 
     name = models.CharField(max_length=255, unique=True)
@@ -311,8 +311,6 @@ class RGBColor(models.Model):
 
     class Meta:
         ordering = ['name']
-        verbose_name = 'color'
-        verbose_name_plural = 'colors'
 
     @property
     def reportlab_color(self) -> colors.Color:
@@ -329,35 +327,35 @@ class ColorSet(models.Model):
 
     name = models.CharField(max_length=255, unique=True)
 
-    title_color = models.ForeignKey(RGBColor, related_name='+',
+    title_color = models.ForeignKey(Color, related_name='+',
                                     on_delete=models.DO_NOTHING,
                                     help_text=('The color used to the title of the '
                                                'calendar, such as "January 2021"'))
 
-    line_color = models.ForeignKey(RGBColor, related_name='+',
+    line_color = models.ForeignKey(Color, related_name='+',
                                    on_delete=models.DO_NOTHING,
                                    help_text=('The color to use for all lines'))
 
-    inner_grid_color = models.ForeignKey(RGBColor, related_name='+',
+    inner_grid_color = models.ForeignKey(Color, related_name='+',
                                          on_delete=models.DO_NOTHING,
                                          help_text=('The color of the inner grid'))
 
-    header_text_color = models.ForeignKey(RGBColor, related_name='+',
+    header_text_color = models.ForeignKey(Color, related_name='+',
                                           on_delete=models.DO_NOTHING,
                                           help_text=("The color to use to draw the "
                                                      "headers: Monday, Tuesday, etc"))
 
-    date_color = models.ForeignKey(RGBColor, related_name='+',
+    date_color = models.ForeignKey(Color, related_name='+',
                                    on_delete=models.DO_NOTHING,
                                    help_text=("The color used to draw the day of the "
                                               "month, such as 1, 2, 3 ... 31"))
 
-    letter_color = models.ForeignKey(RGBColor, related_name='+',
+    letter_color = models.ForeignKey(Color, related_name='+',
                                      on_delete=models.DO_NOTHING,
                                      help_text=('The color to use to "day of the week" '
                                                 'letters, such as A, B, and C'))
 
-    label_color = models.ForeignKey(RGBColor, related_name='+',
+    label_color = models.ForeignKey(Color, related_name='+',
                                     on_delete=models.DO_NOTHING,
                                     help_text=('The color used to draw arbitrary '
                                                'labels such as "No school"'))
@@ -405,7 +403,7 @@ class OnePageDisplaySet(models.Model):
         return self.name
 
 
-def _to_optional_color(color: Optional[RGBColor]) -> Optional[colors.Color]:
+def _to_optional_color(color: Optional[Color]) -> Optional[colors.Color]:
     if color:
         return color.reportlab_color
 
