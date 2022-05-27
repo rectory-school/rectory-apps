@@ -83,3 +83,13 @@ class ColorSetAdmin(admin.ModelAdmin):
 @admin.register(models.Layout)
 class LayoutAdmin(admin.ModelAdmin):
     """Layout admin"""
+
+
+@admin.register(models.MonthlyDisplaySet)
+class MonthlyDisplaySetAdmin(admin.ModelAdmin):
+    """Monthly display set admin"""
+
+
+@admin.register(models.OnePageDisplaySet)
+class OnePageDisplaySetAdmin(admin.ModelAdmin):
+    """One page display set admin"""

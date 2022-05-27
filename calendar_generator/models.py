@@ -316,7 +316,7 @@ class Layout(models.Model):
 class RGBColor(models.Model):
     """An RGB color"""
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     red = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(1)])
     green = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(1)])
@@ -341,7 +341,7 @@ class RGBColor(models.Model):
 class ColorSet(models.Model):
     """A color set that can be used on calendars"""
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     header_text_color = models.ForeignKey(RGBColor, related_name='+',
                                           on_delete=models.DO_NOTHING,
@@ -410,6 +410,28 @@ class ColorSet(models.Model):
             header_background_color=_to_optional_color(self.header_background_color),
             frame_background_color=_to_optional_color(self.frame_background_color),
         )
+
+    def __str__(self):
+        return self.name
+
+
+class MonthlyDisplaySet(models.Model):
+    """A "favorite" view for a monthly calendar"""
+
+    name = models.CharField(max_length=255, unique=True)
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name='+')
+    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name='+')
+
+    def __str__(self):
+        return self.name
+
+
+class OnePageDisplaySet(models.Model):
+    """A "favorite" view for a one page calendar"""
+
+    name = models.CharField(max_length=255, unique=True)
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name='+')
+    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name='+')
 
     def __str__(self):
         return self.name
