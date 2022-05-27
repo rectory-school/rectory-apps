@@ -20,11 +20,7 @@
 
 <p class="noprint">
     {% if has_admin_access and perms.calendar_generator.add_calendar %}
-        <a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a>
-
-        {% if monthly_favorites or one_page_favorites %}
-            &bullet;
-        {% endif %}
+        <a href="{% url 'admin:calendar_generator_calendar_change' object_id=object.id %}">Edit this calendar</a> &bullet;
     {% endif %}
 
     {% if monthly_favorites or one_page_favorites %}
@@ -33,16 +29,26 @@
         {% else %}
             <a href="{{ request.path }}?show_all_displays">Switch to full display mode</a>
         {% endif %}
+
+        &bullet;
     {% endif %}
+
+    <a href="{% url 'calendar_generator:custom' calendar_id=calendar.pk %}">Custom Calendar Generator</a>
 </p>
 
 <h2 class="noprint">Monthly Calendars</h2>
-<ul class="noprint">
-    {% if not show_all_displays and monthly_favorites %}
+{% if not show_all_displays and monthly_favorites %}
+    <p>
         {% for favorite in monthly_favorites %}
-            <li><a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a></li>
+            <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a>
+
+            {% if not forloop.last %}
+                &bullet;
+            {% endif %}
         {% endfor %}
-    {% else %}
+    </p>
+{% else %}
+    <ul class="noprint">
         {% for style in styles %}
             <li>
                 <strong>{{ style.name }}</strong>: 
@@ -55,16 +61,23 @@
                 {% endfor %}
             </li>
         {% endfor %}
+    </ul>
     {% endif %}
-</ul>
+
 
 <h2 class="noprint">One-page calendar</h2>
-<ul class="noprint">
-    {% if not show_all_displays and one_page_favorites %}
+{% if not show_all_displays and one_page_favorites %}
+    <p class="noprint">
         {% for favorite in one_page_favorites %}
-            <li><a href="{% url 'calendar_generator:one-page-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a></li>
+            <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a>
+
+            {% if not forloop.last %}
+                &bullet;
+            {% endif %}
         {% endfor %}
-    {% else %}
+    </p>
+{% else %}
+    <ul class="noprint">
         {% for style in styles %}
             <li>
                 <strong>{{ style.name }}</strong>: 
@@ -77,10 +90,8 @@
                 {% endfor %}
             </li>
         {% endfor %}
-    {% endif %}
-</ul>
-    
-<p class="noprint"><a href="{% url 'calendar_generator:custom' calendar_id=calendar.pk %}">Custom Calendar Generator</a></p>
+    </ul>
+{% endif %}
     
 {% if today_letter %}
     <h2 class="noprint">Today</h2>
