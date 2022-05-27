@@ -227,8 +227,8 @@ Django = ">=2.2,<4.1"
 
 [[package]]
 name = "django-anymail"
-version = "8.5"
-description = "Django email integration for Amazon SES, Mailgun, Mailjet, Postmark, SendGrid, SendinBlue, SparkPost and other transactional ESPs"
+version = "8.6"
+description = "Django email backends and webhooks for Amazon SES, Mailgun, Mailjet, Mandrill, Postal, Postmark, SendGrid, SendinBlue, and SparkPost"
 category = "main"
 optional = false
 python-versions = ">=3.5"
@@ -453,6 +453,14 @@ tornado = ["tornado (>=0.2)"]
 name = "h11"
 version = "0.13.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
+name = "htmlbuilder"
+version = "1.0.0"
+description = "A beautiful html builder library."
 category = "main"
 optional = false
 python-versions = ">=3.6"
@@ -1131,7 +1139,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5034d44861f0c876f5bf147edcded4699a5c43f3d5cde6d8e87360a3502d51a0"
+content-hash = "0327bfdbab1eb3ec6877c821689b43fe9988eef08bbcd912b00454d9eb0135d1"
 
 [metadata.files]
 appnope = [
@@ -1215,8 +1223,8 @@ django-admin-sortable2 = [
     {file = "django_admin_sortable2-1.0.4-py3-none-any.whl", hash = "sha256:e22956889533b48a35a7f02859ae3a939753fa9a7d7d532cefc2835b41bdcebb"},
 ]
 django-anymail = [
-    {file = "django-anymail-8.5.tar.gz", hash = "sha256:677e937dc9e2671ca7631abb1d94ddc6b840beb3d53c0fbf699e866a6a9ba92f"},
-    {file = "django_anymail-8.5-py3-none-any.whl", hash = "sha256:2325932f56f914d96e0a54db850f2b246ed2277b753f75319620d051a51551e2"},
+    {file = "django-anymail-8.6.tar.gz", hash = "sha256:783342d49dd07d68778b81dd12a94c86e1d217463a68a85450a0513fabe31345"},
+    {file = "django_anymail-8.6-py3-none-any.whl", hash = "sha256:49d83d7c16316ca86a624097496881d59b7d71b16bf1c5211cffa5b19ef98d0c"},
 ]
 django-bootstrap-breadcrumbs = [
     {file = "django_bootstrap_breadcrumbs-0.9.2-py2-none-any.whl", hash = "sha256:b17085de5d70d6dcef118e46fe90654f0681434106dd4f5c6d23cd1257fa1882"},
@@ -1290,6 +1298,10 @@ gunicorn = [
 h11 = [
     {file = "h11-0.13.0-py3-none-any.whl", hash = "sha256:8ddd78563b633ca55346c8cd41ec0af27d3c79931828beffb46ce70a379e7442"},
     {file = "h11-0.13.0.tar.gz", hash = "sha256:70813c1135087a248a4d38cc0e1a0181ffab2188141a93eaf567940c3957ff06"},
+]
+htmlbuilder = [
+    {file = "htmlBuilder-1.0.0-py2.py3-none-any.whl", hash = "sha256:d023c1be4e1f8b0df31a3414ab27be2d44defc1ff96c242962c1d67e38091701"},
+    {file = "htmlBuilder-1.0.0.tar.gz", hash = "sha256:4eae01d8acc77213328659b6be32e357f47ae10939959fcdcce8afb9393de564"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
