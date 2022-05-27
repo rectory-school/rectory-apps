@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import date
 import calendar
 
-from typing import Dict, Any, Union
+from typing import Dict, Any, List, Union
 
 from io import BytesIO
 
@@ -290,8 +290,14 @@ def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
     cal = get_object_or_404(models.Calendar, pk=calendar_id)
 
     try:
-        style = models.ColorSet.objects.get(pk=style_id).to_style()
-        layout = models.Layout.objects.get(pk=layout_id).to_pdf_layout()
+        db_style = models.ColorSet.objects.get(pk=style_id)
+        db_layout = models.Layout.objects.get(pk=layout_id)
+
+        assert isinstance(db_style, models.ColorSet)
+        assert isinstance(db_layout, models.Layout)
+
+        style = db_style.to_style()
+        layout = db_layout.to_pdf_layout()
 
     except (ValueError, IndexError, models.ColorSet.DoesNotExist, models.Layout.DoesNotExist) as exc:
         return HttpResponseBadRequest(str(exc))
@@ -304,19 +310,15 @@ def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
         all_months.add((used_date.year, used_date.month))
 
     row_count = math.ceil(len(all_months)/ONE_PAGE_PDF_COL_COUNT)
-    layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT, 5*mm, 10*mm)
+    layouts = layout.subdivide(row_count, ONE_PAGE_PDF_COL_COUNT)
 
-    title_font_size = None
+    title_font_sizes: List[float] = []
     for year, month in all_months:
         title = date(year, month, 1).strftime("%B %Y")
-        font_size = pdf.get_font_size_maximum_width(title, layouts[0].inner_width / 2, layout.title_font_name)
+        font_size = pdf.get_maximum_width(title, layouts[0].outer_width / 2, layout.title_font_name)
+        title_font_sizes.append(font_size)
 
-        if title_font_size is None or font_size < title_font_size:
-            title_font_size = font_size
-
-    style = dataclasses.copy.copy(style)
-    assert isinstance(style, pdf.ColorSet)
-    style.title_font_size = title_font_size
+    title_font_size = min(title_font_sizes)
 
     buf = BytesIO()
     pdf_canvas = canvas.Canvas(buf, pagesize=(layout.width, layout.height))
@@ -330,6 +332,7 @@ def pdf_one_page(request, calendar_id: int, style_id: int, layout_id: int):
 
     for i, (year, month) in enumerate(sorted(all_months)):
         layout = layouts[i]
+        layout.title_font_size_override = title_font_size
 
         start_date = date(year, month, 1)
         _, end_day = calendar.monthrange(year, month)

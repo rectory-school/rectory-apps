@@ -2,9 +2,9 @@
 
 import os
 from dataclasses import dataclass
-from functools import cached_property
+from functools import cache, cached_property
 
-from typing import List
+from typing import List, Optional
 
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
@@ -52,7 +52,7 @@ class Layout:
     margins: float
     line_width: float
 
-    title_font_size_override: int = 0  # 0 is auto-sized
+    title_font_size_override: float = 0  # 0 is auto-sized
 
     header_font_name: str = "HelveticaNeue-Bold"
     letter_font_name: str = "HelveticaNeue-Light"
@@ -96,11 +96,14 @@ class Layout:
 
         max_size = self.outer_width * .5
 
-        return get_font_size_maximum_width(title, max_size, self.title_font_name)
+        return get_maximum_width(title, max_size, self.title_font_name)
 
-    def subdivide(self, row_count: int, col_count: int, row_pad: float, col_pad: float) -> List['Layout']:
+    def subdivide(self, row_count: int, col_count: int) -> List['Layout']:
         """Subdivide will give back a bunch of sub-styles for drawing multiple calendars on one page,
         starting in the top left and in reading order"""
+
+        col_pad = self.margins
+        row_pad = self.margins / 2
 
         out = []
 
@@ -121,7 +124,7 @@ class Layout:
 
                 style = Layout(width=col_width, height=row_height,
                                line_width=self.line_width,
-                               margins=self.margins,
+                               margins=0,
                                x_pos=col_offset, y_pos=row_offset)
 
                 out.append(style)
@@ -149,21 +152,11 @@ class CalendarGenerator:
         self._draw_header()
         self._draw_grid()
         self._draw_dates()
-
-        return
-
         self._draw_letters()
 
     @cached_property
     def _title_font_size(self) -> float:
         return self.layout.font_size_for_title(self.grid.title)
-
-    @cached_property
-    def _title_font_descent(self) -> float:
-        """The descent of the title font, which has to do with where it is drawn"""
-
-        _, descent = pdfmetrics.getAscentDescent(self.layout.title_font_name, self._title_font_size)
-        return descent
 
     @cached_property
     def _title_space_used(self) -> float:
@@ -189,7 +182,7 @@ class CalendarGenerator:
         current_size = self._column_width  # Set an upper bound to keep the column header at most squarish
 
         for header in self.grid.headers:
-            possible_size = get_font_size_maximum_width(header, maximum_width, self.layout.header_font_name)
+            possible_size = get_maximum_width(header, maximum_width, self.layout.header_font_name)
             if possible_size < current_size:
                 current_size = possible_size
 
@@ -202,10 +195,8 @@ class CalendarGenerator:
         return self.layout.header_pad * self._header_font_size
 
     def _draw_title(self):
-        if not self.style.title_color:
-            return
-
-        y_pos = self.layout.bottom_offset + self._total_grid_height - self._title_font_descent
+        decent = get_decent(self.layout.title_font_name, self._title_font_size)
+        y_pos = self.layout.bottom_offset + self._total_grid_height - decent
 
         self.canvas.setFont(self.layout.title_font_name, self._title_font_size)
         self.canvas.setFillColor(self.style.title_color)
@@ -223,10 +214,6 @@ class CalendarGenerator:
                          stroke=0, fill=1)
 
     def _draw_header(self):
-        header_count = len(self.grid.headers)
-        available_width = self.layout.outer_width - self.layout.line_width * (header_count + 1)
-        header_width = available_width / len(self.grid.headers)
-
         self.canvas.setFillColor(self.style.header_text_color)
         self.canvas.setStrokeColor(self.style.inner_grid_color)
         self.canvas.setFont(self.layout.header_font_name, self._header_font_size)
@@ -240,7 +227,7 @@ class CalendarGenerator:
         left = self.layout.left_offset + self.layout.line_width
 
         for i, header in enumerate(self.grid.headers):
-            center = left + header_width / 2
+            center = left + self._column_width / 2
 
             self.canvas.drawCentredString(center, y_pos, header)
 
@@ -251,86 +238,75 @@ class CalendarGenerator:
                 x_pos = left - self.layout.line_width / 2
                 self.canvas.line(x_pos, bottom, x_pos, top)
 
-            left += header_width
+            left += self._column_width
             left += self.layout.line_width
 
     def _draw_grid(self):
         self.canvas.setFillColor(self.style.inner_grid_color)
 
-        column_count = len(self.grid.headers)
-        row_count = len(self.grid.grid)
-
-        # We will have one more border line than column
-        available_width = self.layout.outer_width - self.layout.line_width * (column_count + 1)
-        box_width = available_width / column_count
-
-        available_height = self.layout.outer_height
-        available_height -= self._title_space_used
-        available_height -= self._header_height
-        available_height -= self.layout.line_width * row_count  # No +1 because of the header acting as the top border
-        box_height = available_height / row_count
-
         bottom = self.layout.bottom_offset + self.layout.line_width
-        for _ in range(row_count):
+        for _ in range(self._row_count):
             left = self.layout.left_offset + self.layout.line_width
 
-            for _ in range(column_count):
-                self.canvas.rect(left, bottom, box_width, box_height, stroke=0, fill=1)
-                left += box_width
+            for _ in range(self._column_count):
+                self.canvas.rect(left, bottom, self._column_width, self._row_height, stroke=0, fill=1)
+                left += self._column_width
                 left += self.layout.line_width
 
-            bottom += box_height
+            bottom += self._row_height
             bottom += self.layout.line_width
 
     def _draw_letters(self):
-        if not self.style.letter_color:
-            return
+        _, letter_descent = pdfmetrics.getAscentDescent(self.layout.letter_font_name,
+                                                        self._letter_font_size)
 
-        _, default_letter_descent = pdfmetrics.getAscentDescent(self.layout.letter_font_name,
-                                                                self._default_letter_font_size)
+        # Note, this calculation grabs the top, but I'm subtracting the
+        # row height and line before using it, so it becomes the bottom
+        # as soon as the first row is entered
+        bottom = self.layout.bottom_offset + self._grid_height + self.layout.line_width
 
-        for row_index, row in enumerate(self.grid.grid):
-            for col_index, col in enumerate(row):
-                if not col:
-                    continue
+        for row in self.grid.grid:
+            # Just like in the rows, I'm shifting left a column
+            # because the first column adds it before doing anything
+            left = self.layout.left_offset - self._column_width
 
+            bottom -= self._row_height
+            bottom -= self.layout.line_width
+            top = bottom + self._row_height
+
+            for col in row:
+                left += self.layout.line_width
+                left += self._column_width
+
+                center = left + self._column_width / 2
+
+                # This gets defined up here because the letter calculations will use it
+                # to adjust their positions
                 label_font_size = 0
 
                 if col.label:
-                    center_at = self._x_position + (col_index)*self._column_width + self._column_width/2
+                    maximum_font_size = get_maximum_width(col.label, self._column_width*.9,
+                                                          self.layout.letter_font_name)
+                    label_font_size = min(maximum_font_size, self._row_height/3)
 
-                    label_font_size = min(get_font_size_maximum_width(col.label, self._column_width*.9,
-                                                                      self.layout.letter_font_name),
-                                          self._row_height/3)
-
-                    center_at = self._x_position + (col_index)*self._column_width + \
-                        self._column_width/2
-
-                    _, label_descent = pdfmetrics.getAscentDescent(self.layout.letter_font_name, label_font_size)
-
-                    label_y_pos = self._y_pos_below_header - label_font_size - (self._row_height * (row_index + 1)
-                                                                                ) + label_font_size - label_descent
+                    descent = get_decent(self.layout.letter_font_name, label_font_size)
+                    y_pos = bottom - descent
 
                     self.canvas.setFont(self.layout.letter_font_name, label_font_size)
                     self.canvas.setFillColor(self.style.label_color)
-                    self.canvas.drawCentredString(center_at, label_y_pos, col.label)
+                    self.canvas.drawCentredString(center, y_pos, col.label)
 
                 if col.letter:
-                    letter_font_size = self._default_letter_font_size
-                    letter_descent = default_letter_descent
+                    letter_font_size = self._letter_font_size
 
                     if label_font_size:
-                        letter_font_size = min(self._default_letter_font_size, self._row_height - label_font_size)
-                        _, letter_descent = pdfmetrics.getAscentDescent(self.layout.letter_font_name,
-                                                                        letter_font_size)
+                        letter_font_size = min(self._letter_font_size, self._row_height - label_font_size)
 
                     self.canvas.setFont(self.layout.letter_font_name, letter_font_size)
                     self.canvas.setFillColor(self.style.letter_color)
 
-                    # We have to get the right bound here, thus the +1, and pad it out, thus the - 5%
-                    x_pos = self._x_position + (col_index)*self._column_width + self._column_width * 0.05
-                    y_pos = self._y_pos_below_header - letter_font_size - (
-                        self._row_height * row_index) - letter_descent / 2
+                    x_pos = left + self._column_width * 0.05
+                    y_pos = bottom + self._row_height * .1 + label_font_size
 
                     self.canvas.drawString(x_pos, y_pos, col.letter)
 
@@ -340,31 +316,49 @@ class CalendarGenerator:
 
         _, descent = pdfmetrics.getAscentDescent(self.layout.date_font_name, self._date_font_size)
 
-        for row_index, row in enumerate(self.grid.grid):
-            y_pos = self.layout.bottom_offset + self.layout.outer_height
-            y_pos -= self._title_space_used
-            y_pos -= self._header_height
-            y_pos
+        top = self.layout.bottom_offset + self._grid_height
+        top -= self._date_font_size
+        top -= descent
 
-            y_pos = self.layout.outer_height - self._date_font_size - self._row_height*row_index - descent
+        for _, row in enumerate(self.grid.grid):
+            right = self.layout.left_offset + self.layout.line_width + self._column_width - self._column_width*.025
 
-            for col_index, col in enumerate(row):
-                if not col or not col.date:
-                    continue
+            for _, col in enumerate(row):
+                if col.date:
+                    self.canvas.drawRightString(right, top, str(col.date.day))
 
-                # We have to get the right bound here, thus the +1, and pad it out, thus the - 5%
-                x_pos = self._x_position + (col_index+1)*self._column_width - self._column_width * 0.05
-                self.canvas.drawRightString(x_pos, y_pos, str(col.date.day))
+                right += self.layout.line_width
+                right += self._column_width
 
-    @property
-    def _outline_matches_header_background(self) -> bool:
-        return (bool(self.layout.outline_width) and self.style.outline_color == self.style.header_background_color)
+            top -= self.layout.line_width
+            top -= self._row_height
 
     @cached_property
     def _column_width(self) -> float:
-        """Determine the width of each column"""
+        """Determine the inner width of each column"""
 
-        return float(self.layout.outer_width) / len(self.grid.headers)
+        width = self.layout.outer_width
+        width -= self.layout.line_width * (self._column_count + 1)
+        return width / self._column_count
+
+    @cached_property
+    def _row_height(self) -> float:
+        """Determine the inner height of each row"""
+
+        height = self.layout.outer_height
+        height -= self._title_space_used
+        height -= self._header_height
+        height -= self.layout.line_width * self._row_count
+
+        return height / self._row_count
+
+    @cached_property
+    def _column_count(self):
+        return len(self.grid.headers)
+
+    @cached_property
+    def _row_count(self):
+        return len(self.grid.grid)
 
     @cached_property
     def _date_font_size(self) -> float:
@@ -381,13 +375,13 @@ class CalendarGenerator:
                 if col and col.letter:
                     all_letters.add(col.letter)
 
-        letter_widths = (stringWidth(letter, self.layout.letter_font_name, self._default_letter_font_size)
+        letter_widths = (stringWidth(letter, self.layout.letter_font_name, self._letter_font_size)
                          for letter in all_letters)
         max_letter_width = max(*letter_widths)
 
         # Allow up to the lesser of half the cell, or 60% of the remaining space
         space_available = min((self._column_width - max_letter_width)*.6, self._column_width / 2)
-        max_day_widths = (get_font_size_maximum_width(day, space_available, self.layout.date_font_name)
+        max_day_widths = (get_maximum_width(day, space_available, self.layout.date_font_name)
                           for day in all_dates if day)
 
         theoretical_max = min(*max_day_widths)
@@ -396,7 +390,7 @@ class CalendarGenerator:
         return min(theoretical_max, (self.layout.outer_height / len(self.grid.grid)) * .5)
 
     @cached_property
-    def _default_letter_font_size(self) -> float:
+    def _letter_font_size(self) -> float:
         all_letters = set()
 
         for row in self.grid.grid:
@@ -407,22 +401,15 @@ class CalendarGenerator:
         # Letters get 80% of the cell
         maximum_width = self._column_width * .8
 
-        if self.style.grid_line_color and self.layout.grid_line_width:
-            maximum_width -= self.layout.grid_line_width
-
         # Maximum of 80% of the row height, if we have a really weirdly shaped calendar here
         current_size = self._row_height
         for letter in all_letters:
-            possible_size = get_font_size_maximum_width(letter, maximum_width, self.layout.date_font_name)
+            possible_size = get_maximum_width(letter, maximum_width, self.layout.date_font_name)
 
             if possible_size < current_size:
                 current_size = possible_size
 
         return current_size
-
-    @cached_property
-    def _row_height(self) -> float:
-        return self._grid_height / len(self.grid.grid)
 
     @cached_property
     def _grid_height(self) -> float:
@@ -431,9 +418,18 @@ class CalendarGenerator:
         return self._total_grid_height - self._header_height
 
 
-def get_font_size_maximum_width(text: str, maximum: float, font: str) -> float:
+@cache
+def get_maximum_width(text: str, maximum: float, font: str) -> float:
     """Get the maximum font size to fit some given text into a given width"""
 
     font_size = 12
     width = stringWidth(text, font, font_size)
     return maximum/width * font_size
+
+
+@cache
+def get_decent(font_name, font_size) -> float:
+    """Get the descent for some font at some size"""
+
+    _, descent = pdfmetrics.getAscentDescent(font_name, font_size)
+    return descent
