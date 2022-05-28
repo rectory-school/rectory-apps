@@ -11,9 +11,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-import socket
-import uuid
-import json
 from email.utils import parseaddr
 
 import environ
@@ -37,20 +34,7 @@ CSRF_TRUSTED_ORIGINS = ALLOWED_HOSTS
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default=None)
 GOOGLE_HOSTED_DOMAIN = env("GOOGLE_HOSTED_DOMAIN", default=None)
 
-# These are for DigitalOcean Spaces
-AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME", default=None)
-AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default=None)
-AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default=None)
-AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY", default=None)
-AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default=None)
-
 DEFAULT_FILE_STORAGE = env("DEFAULT_FILE_STORAGE", default="django.core.files.storage.FileSystemStorage")
-AWS_DEFAULT_ACL = 'public-read'
-AWS_QUERYSTRING_AUTH = False
-
-# Remote logging configuration
-LOGZ_REMOTE_URL = env('LOGZ_REMOTE_URL', default=None)
-LOGZ_TOKEN = env('LOGZ_TOKEN', default=None)
 
 # Mail configuration
 MAILGUN_API_KEY = env('MAILGUN_API_KEY', default=None)
@@ -87,20 +71,11 @@ INSTALLED_APPS = [
     'adminsortable2',
     'django_safemigrate',
     'bootstrap4',
-    'health_check',
-    # 'health_check.db,
-    'health_check.db.apps.HealthCheckConfig',
     'django_bootstrap_breadcrumbs',
-    # 'versatileimagefield',
-    'versatileimagefield.apps.VersatileImageFieldConfig',
-    'rest_framework',
-    'solo',
 
     'accounts',
-    'icons',
     'nav',
     'calendar_generator',
-    'sis',
     'job_runner',
     'stored_mail',
 ]
@@ -115,7 +90,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'logging_middleware.middleware.LoggingMiddleware',
 ]
 
 if DEBUG:
@@ -211,74 +185,5 @@ INTERNAL_IPS = [
 LOGIN_REDIRECT_URL = "/"
 
 RESULTS_CACHE_SIZE = 2500
-
-hostname = socket.gethostname()
-ip_address = socket.gethostbyname(hostname)
-
-logz_format = {
-    'system': 'rectory-apps-web',
-    'system-hostname': hostname,
-    'system-ip-address': ip_address,
-    'system-uuid': uuid.uuid4().hex,
-}
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'logzioFormat': {
-            'format': json.dumps(logz_format),
-            'validate': False,
-        },
-        'verbose': {
-            'format': '%(asctime)s %(name)s [%(levelname)s] %(filename)s:%(lineno)d %(process)d %(thread)d %(message)s'
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-        }
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'mail_admins'],
-            'level': 'WARN',
-        },
-        'log-http-requests': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'jobs': {
-            'handlers': ['console', 'mail_admins'],
-            'level': 'INFO',
-        },
-        'stored_mail': {
-            'handlers': ['console', 'mail_admins'],
-            'level': 'INFO',
-        }
-    }
-}
-
-if LOGZ_REMOTE_URL and LOGZ_TOKEN:
-    LOGGING['handlers']['logzio'] = {
-        'class': 'logzio.handler.LogzioHandler',
-        'level': 'INFO',
-        'formatter': 'logzioFormat',
-        'logzio_type': "django",
-        'logs_drain_timeout': 5,
-        'url': LOGZ_REMOTE_URL,
-        'debug': False,
-        'network_timeout': 10,
-        'token': LOGZ_TOKEN,
-    }
-
-    LOGGING['loggers']['django']['handlers'].append('logzio')
-    LOGGING['loggers']['log-http-requests']['handlers'].append('logzio')
-    LOGGING['loggers']['jobs']['handlers'].append('logzio')
 
 ALIVENESS_URL = "/health-check/"
