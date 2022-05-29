@@ -126,6 +126,12 @@ class NativeLoginView(LoginView):
 
     template_name = "accounts/login_native.html"
 
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        context['disable_auto_login'] = True
+        return context
+
 
 def logout(request: HttpRequest):
     """Log out the user and flag their session to not log back in quickly"""
