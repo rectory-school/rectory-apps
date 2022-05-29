@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 from email.utils import parseaddr
+from secrets import token_hex
 
 import environ
 
@@ -24,7 +25,7 @@ if (dotenv := (BASE_DIR / ".env")).exists():
 
 
 DEBUG = env.bool('DEBUG', default=False)
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY', default=token_hex(64))
 
 DATABASES = {'default': env.db(default='sqlite:///' + (BASE_DIR / 'db.sqlite3').absolute().as_posix()), }
 CACHES = {'default': env.cache(default="locmemcache://")}
