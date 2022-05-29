@@ -271,7 +271,7 @@ Django = ">=2.2"
 
 [[package]]
 name = "django-quick-jobs"
-version = "0.2.0"
+version = "0.2.1"
 description = "A method of quickly and simply running background jobs in a Django project"
 category = "main"
 optional = false
@@ -1061,8 +1061,8 @@ django-lb-health-check = [
     {file = "django_lb_health_check-1.0-py3-none-any.whl", hash = "sha256:81c72b0e2e6d159d59f5c229c2944494f724d0edaae4736fa69a04924b532cda"},
 ]
 django-quick-jobs = [
-    {file = "django-quick-jobs-0.2.0.tar.gz", hash = "sha256:b79a706a29c45b492d87b3a328cb4a70ec423537a8f263457bc581814ad99e90"},
-    {file = "django_quick_jobs-0.2.0-py3-none-any.whl", hash = "sha256:fb2fb0341530014f93ee61920f087f5a8ee64b5a4ade65285e56c861f8612a37"},
+    {file = "django-quick-jobs-0.2.1.tar.gz", hash = "sha256:5e74ea50108a535b772ca598e5af5b47cc4aaf9bfa4a5edd07d6e6488539ce2c"},
+    {file = "django_quick_jobs-0.2.1-py3-none-any.whl", hash = "sha256:d379c642ea6c52b803b38acd99af7d8bb4c20b927cb6b529a4ecb786777b95c6"},
 ]
 django-safemigrate = [
     {file = "django-safemigrate-3.1.tar.gz", hash = "sha256:a6306cda415ca95d70c656411652fd8e8385a82c2742d21446ce7bb7595dd1fb"},
