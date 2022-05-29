@@ -1,4 +1,4 @@
-name: Run tests
+name: Check for hanging migrations
 on:
   - pull_request
 
