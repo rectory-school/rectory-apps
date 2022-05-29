@@ -40,7 +40,7 @@
 {% if not show_all_displays and monthly_favorites %}
     <p>
         {% for favorite in monthly_favorites %}
-            <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a>
+            <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk color_set_id=favorite.color_set.pk %}">{{ favorite.name }}</a>
 
             {% if not forloop.last %}
                 &bullet;
@@ -49,11 +49,11 @@
     </p>
 {% else %}
     <ul class="noprint">
-        {% for style in styles %}
+        {% for color_set in color_sets %}
             <li>
-                <strong>{{ style.name }}</strong>: 
+                <strong>{{ color_set.name }}</strong>: 
                 {% for layout in layouts %}
-                    <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
+                    <a href="{% url 'calendar_generator:months-pdf' calendar_id=calendar.pk layout_id=layout.pk color_set_id=color_set.pk %}">{{ layout.name }}</a>
 
                     {% if not forloop.last %}
                         &bullet;
@@ -69,7 +69,7 @@
 {% if not show_all_displays and one_page_favorites %}
     <p class="noprint">
         {% for favorite in one_page_favorites %}
-            <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk style_id=favorite.color_set.pk %}">{{ favorite.name }}</a>
+            <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=calendar.pk layout_id=favorite.layout.pk color_set_id=favorite.color_set.pk %}">{{ favorite.name }}</a>
 
             {% if not forloop.last %}
                 &bullet;
@@ -78,11 +78,11 @@
     </p>
 {% else %}
     <ul class="noprint">
-        {% for style in styles %}
+        {% for color_set in color_sets %}
             <li>
-                <strong>{{ style.name }}</strong>: 
+                <strong>{{ color_set.name }}</strong>: 
                 {% for layout in layouts %}
-                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_id=layout.pk style_id=style.pk %}">{{ layout.name }}</a>
+                    <a href="{% url 'calendar_generator:one-page-pdf' calendar_id=object.pk layout_id=layout.pk color_set_id=color_set.pk %}">{{ layout.name }}</a>
 
                     {% if not forloop.last %}
                         &bullet;
@@ -139,16 +139,16 @@
         {% if not show_all_displays and monthly_favorites %}
             <p>
                 {% for favorite in monthly_favorites %}
-                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk style_id=favorite.color_set.pk layout_id=favorite.layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ favorite.name }}</a>
+                    <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk color_set_id=favorite.color_set.pk layout_id=favorite.layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ favorite.name }}</a>
 
                     {% if not forloop.last %}&bullet;{% endif %}
                 {% endfor %}
             </p>
         {% else %}
-            {% for style in styles %}
-                <p><strong>{{ style.name }}</strong>:
+            {% for color_set in color_sets %}
+                <p><strong>{{ color_set.name }}</strong>:
                     {% for layout in layouts %}
-                        <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk style_id=style.pk layout_id=layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ layout }}</a>
+                        <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=object.pk color_set_id=color_set.pk layout_id=layout.pk start_year=calendar.year start_month=calendar.month start_day=1 end_year=calendar.year end_month=calendar.month end_day=0 %}">{{ layout }}</a>
 
                         {% if not forloop.last %}&bullet;{% endif %}
                     {% endfor %}

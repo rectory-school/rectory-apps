@@ -70,7 +70,7 @@ class CalendarAdmin(admin.ModelAdmin):
     inlines = [DayInline, SkipDateInline, ResetDayAdmin, DateLabelInline]
 
 
-@admin.register(models.RGBColor)
+@admin.register(models.Color)
 class RGBColorAdmin(admin.ModelAdmin):
     """Admin for colors"""
 

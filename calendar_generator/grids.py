@@ -39,7 +39,7 @@ class CalendarGrid:
 class CalendarGridGenerator:
     """A generator that makes a calendar grid"""
 
-    date_letter_map: Dict[date, str]
+    date_letter_map: Dict[date, Optional[str]]
     label_map: Dict[date, str]
 
     start_date: date
@@ -81,7 +81,7 @@ class CalendarGridGenerator:
         # Walk backwards until we get our first weekday
         internal_start_date = self.start_date
 
-        # This is a fix to the Jan 2022 issue - the first week was all None becuase
+        # This is a fix to the Jan 2022 issue - the first week was all None because
         # Jan 1st was on a Saturday, which then got walked back to December 27, which
         # then all got excluded because none of the dates were in range
 
@@ -100,7 +100,7 @@ class CalendarGridGenerator:
         full_grid = []
         for week_index in range(total_weeks):
             week_start = internal_start_date + timedelta(days=week_index*7)
-            row = []
+            row: List[Optional[date]] = []
             for day_index in range(len(used_weekdays)):
                 cell_date = week_start + timedelta(days=day_index)
 
@@ -119,11 +119,14 @@ class CalendarGridGenerator:
 
         # Create the grid we're going to be using
 
-        def get_entry(date_val: date) -> Optional[GridItem]:
+        def get_entry(date_val: Optional[date]) -> Optional[GridItem]:
             """
             Get the entry for this item in the calendar grid
             Will either be a grid item, or a None if it's out of our month range
             """
+
+            if not date_val:
+                return None
 
             letter = self.date_letter_map.get(date_val)
             label = self.label_map.get(date_val)
