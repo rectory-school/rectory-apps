@@ -22,6 +22,7 @@ django-bootstrap-breadcrumbs = "*"
 django-anymail = {extras = ["mailgun"], version = "*"}
 django-lb-health-check = "^1.0"
 django-quick-jobs = "^0.2.0"
+htmlBuilder = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "*"
