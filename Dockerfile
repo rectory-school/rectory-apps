@@ -6,7 +6,7 @@ RUN mkdir /app/
 RUN mkdir /app/code/
 WORKDIR /app/code/
 
-RUN pip install pip==22.0.4
+RUN pip install pip==22.1.1
 RUN pip install poetry==1.1.13
 
 COPY poetry.lock pyproject.toml /code/
