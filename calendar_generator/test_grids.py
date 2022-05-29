@@ -62,10 +62,10 @@ def test_grid_jan_2022():
         ],
         [
             grids.GridItem(date(2022, 1, 31), "F"),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
+            None,
+            None,
+            None,
+            None,
         ],
     ]
 
@@ -139,8 +139,8 @@ def test_grid_generation():
             grids.GridItem(date(2021, 3, 29), "O"),
             grids.GridItem(date(2021, 3, 30), "B"),
             grids.GridItem(date(2021, 3, 31), "O"),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
+            None,
+            None,
 
         ]
     ]
@@ -189,10 +189,10 @@ def test_last_empty():
 
     expected_grid = [
         [
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
-            grids.GridItem(date=None, letter=None, label=None),
+            None,
+            None,
+            None,
+            None,
             grids.GridItem(date(2021, 10, 1), "A"),
         ],
         [
