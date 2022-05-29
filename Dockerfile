@@ -1,12 +1,10 @@
-FROM python:3.10-alpine
+FROM python:3.10
 
 ARG DEBUG=false
 
 RUN mkdir /app/
 RUN mkdir /app/code/
 WORKDIR /app/code/
-
-RUN apk add --no-cache build-base libffi-dev bzip2-dev zlib-dev sqlite-dev jpeg-dev postgresql-dev freetype-dev
 
 RUN pip install pip==22.0.4
 RUN pip install poetry==1.1.13
