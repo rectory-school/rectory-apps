@@ -9,7 +9,7 @@ from google.auth.transport import requests
 from django.http.response import HttpResponseBadRequest, HttpResponseRedirect, HttpResponseBase
 from django.http import HttpRequest
 from django.contrib.auth.views import LoginView
-from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth import REDIRECT_FIELD_NAME, logout as auth_logout
 from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model, login
 from django.http import JsonResponse
@@ -21,6 +21,7 @@ from django.conf import settings
 
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
+USER_DID_LOGOUT_KEY = "user_did_logout"
 
 
 class SocialLoginView(TemplateView):
@@ -48,7 +49,7 @@ class SocialLoginView(TemplateView):
             context["next"] = next_parameter
         return context
 
-    def post(self, request):
+    def post(self, request: HttpRequest):
         """Handle the sign in token"""
 
         redirect_to = request.GET.get("redirect_to", "/")
@@ -96,7 +97,7 @@ class SocialLoginView(TemplateView):
             user.save()
 
         login(request, user)
-
+        request.session[USER_DID_LOGOUT_KEY] = False
         return HttpResponseRedirect(redirect_to)
 
 
@@ -104,3 +105,20 @@ class NativeLoginView(LoginView):
     """Our login view"""
 
     template_name = "accounts/login_native.html"
+
+
+def logout(request: HttpRequest):
+    """Log out the user and flag their session to not log back in quickly"""
+
+    next_url = request.GET.get(REDIRECT_FIELD_NAME, "/")
+    auth_logout(request)
+    request.session[USER_DID_LOGOUT_KEY] = True
+    return HttpResponseRedirect(next_url)
+
+
+def reset_session(request: HttpRequest):
+    """Clear the user's session"""
+
+    next_url = request.GET.get(REDIRECT_FIELD_NAME, "/")
+    request.session.flush()
+    return HttpResponseRedirect(next_url)
