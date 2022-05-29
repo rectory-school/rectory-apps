@@ -32,7 +32,8 @@ class UserAdmin(DjangoUserAdmin):
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
-                                       'groups', 'user_permissions')}),
+                                       'allow_google_hd_bypass', 'groups',
+                                       'user_permissions',)}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
@@ -50,7 +51,8 @@ class UserAdmin(DjangoUserAdmin):
     def has_password(self, obj: models.User = None):
         """Determine if the user can log in directly"""
 
-        return obj.password != ""
+        if obj:
+            return obj.password != ""
 
     def clear_password(self, request: HttpRequest, queryset):
         """Clear the user's password to force a Google login"""

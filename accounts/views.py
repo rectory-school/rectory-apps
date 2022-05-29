@@ -27,7 +27,6 @@ UserModel = get_user_model()
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 USER_DID_LOGOUT_KEY = "user_did_logout"
-bypass_hd_check_on_existing_email = settings.GOOGLE_BYPASS_HD_CHECK_ON_EMAIL
 
 allowed_domains = [domain.lower() for domain in settings.GOOGLE_HOSTED_DOMAINS]
 
@@ -161,12 +160,11 @@ def _hosted_domain_allowed(id_info: dict) -> bool:
     if hosted_domain in allowed_domains:
         return True
 
-    if bypass_hd_check_on_existing_email:
-        if UserModel.objects.filter(email=email).exists():
-            log.info("Bypassing hosted domain rejection due to existing email",
-                     email=email, hosted_domain=hosted_domain,
-                     allowed_domains=allowed_domains)
-            return True
+    if UserModel.objects.filter(email=email, allow_google_hd_bypass=True).exists():
+        log.info("Bypassing hosted domain rejection due to existing email",
+                 email=email, hosted_domain=hosted_domain,
+                 allowed_domains=allowed_domains)
+        return True
 
     log.info("Rejecting Google login hosted domain checked login", email=email,
              hosted_domain=hosted_domain, allowed_domains=allowed_domains)

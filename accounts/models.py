@@ -1,5 +1,6 @@
 """Models for accounts"""
 
+from typing import List
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -48,9 +49,12 @@ class User(AbstractUser):
 
     username = None
     email = models.EmailField(_('email address'), unique=True)
+    allow_google_hd_bypass = models.BooleanField(
+        default=False, help_text="Allow Google login even if the user isn't in an allowed domain",
+        verbose_name="Allow off-workspace Google login")
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: List[str] = []
 
     objects = UserManager()
 
