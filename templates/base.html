@@ -42,8 +42,8 @@
 <body>
     {% include "nav/nav.html" %}
     <div class="container main">
-        {% bootstrap_messages %}
         {% render_breadcrumbs "django_bootstrap_breadcrumbs/bootstrap4.html" %}
+        {% bootstrap_messages %}
 
         {% block content %}
         {% endblock %}
@@ -55,11 +55,16 @@
         data-context="signin"
         data-ux_mode="popup"
         data-auto_select="true"
+        data-itp_support="true"
         {% if disable_auto_login %} 
             data-auto_prompt="false"
         {% endif %}
-        data-login_uri="{{ google_login_url }}?redirect_to={{ google_redirect_to }}"
-        data-csrfmiddlewaretoken="{{ csrf_token }}">
+        data-login_uri="{{ google_login_url }}?{{ redirect_field_name }}={{ google_redirect_to }}"
+        data-csrfmiddlewaretoken="{{ csrf_token }}"
+        {% if not disable_auto_login %}
+            data-from_auto="true"
+        {% endif %}
+        >
 </body>
 
 </html>

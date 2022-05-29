@@ -25,6 +25,7 @@ def account_processors(request: HttpRequest):
         'google_login_url': full_login_url,
         'google_oauth_client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
         'google_redirect_to': redirect_to,
+        'redirect_field_name': REDIRECT_FIELD_NAME,
     }
 
     # This is conditionally set because a template context might set it.
