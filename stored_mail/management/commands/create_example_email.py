@@ -1,6 +1,7 @@
 """Command to create a sample email"""
 
 import email.utils
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -30,6 +31,7 @@ class Command(BaseCommand):
                 outgoing.from_address = from_address
                 outgoing.from_name = from_name
                 outgoing.subject = "Test message"
+                outgoing.discard_after = now + timedelta(hours=1)
                 outgoing.text = f"This is a test message generated at {now}, sequence {i+1} of {count}"
                 outgoing.html = f"<body><div>This is a <em>test</em> message generated at {now}, sequence {i+1} of {count}</div></body>"
                 outgoing.save()
