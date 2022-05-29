@@ -20,6 +20,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 
+UserModel = get_user_model()
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 USER_DID_LOGOUT_KEY = "user_did_logout"
@@ -82,7 +83,6 @@ class SocialLoginView(TemplateView):
 
         try:
             #  pylint: disable=invalid-name
-            UserModel = get_user_model()
             user = UserModel.objects.get(email=email)
 
             if not user.is_active:
@@ -141,6 +141,11 @@ def reset_session(request: HttpRequest):
 
 
 def _hosted_domain_allowed(id_info: dict) -> bool:
+    email = id_info["email"]
+
+    if UserModel.objects.filter(email=email).exists():
+
+        return True
     hosted_domain = id_info.get("hd")
 
     if not allowed_domains:
