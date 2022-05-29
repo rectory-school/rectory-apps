@@ -1,12 +1,17 @@
 """Core template tags"""
 
+from typing import List, Optional, Sequence
 from django import template
 from django.utils.html import mark_safe
 from django.urls import reverse, NoReverseMatch
 
+from htmlBuilder import tags, attributes
+
 from accounts.admin_staff_monkeypatch import patched_has_permission
 
 register = template.Library()
+
+ClassList = Optional[List[str]]
 
 
 @register.simple_tag(takes_context=True)
@@ -18,9 +23,12 @@ def auth_button(context):
     current_user = request.user
 
     if current_user.is_anonymous:
-        return available_nav_item("Log in", reverse('accounts:login') + "?next=" + current_path)
+        return _nav_item("Log in", reverse('accounts:login') + "?next=" + current_path)
 
-    return available_nav_item("Log off " + str(current_user), reverse('accounts:logout') + "?next=" + current_path)
+    title = f"Log off {current_user}"
+    href = reverse('accounts:logout') + "?next=" + current_path
+    hover = f"ID: {current_user.pk}&#013;Email: {current_user.email}"
+    return _nav_item(title, href, link_classes=["g_id_signout"], hover=hover)
 
 
 @register.simple_tag(takes_context=True)
@@ -42,22 +50,43 @@ def nav_item(context, title: str, url_name: str, required_permission: str = None
         url = reverse(url_name)
     except NoReverseMatch:
         url = url_name
-        return available_nav_item(title, url)
+        return _nav_item(title, url)
 
     if url == current_path:
-        return active_nav_item(title, url)
+        return _nav_item(title, url, ["active"])
 
-    return available_nav_item(title, url)
-
-
-def active_nav_item(title, url) -> str:
-    """String for an active nav item"""
-
-    return mark_safe(f'<li class="nav-item active"><a class="nav-link" href="{url}">{ title }'
-                     '<span class="sr-only">(current)</span></a></li>')
+    return _nav_item(title, url)
 
 
-def available_nav_item(title, url) -> str:
+def _nav_item(title, url,
+              li_classes: ClassList = None,
+              link_classes: ClassList = None,
+              hover: str = "") -> str:
     """String for an available nav item"""
 
-    return mark_safe(f'<li class="nav-item"><a class="nav-link" href="{url}">{ title }</a></li>')
+    li_class = _get_defaulted_classes(li_classes, "nav-item")
+    a_class = _get_defaulted_classes(link_classes, "nav-link")
+
+    li_attrs = [li_class]
+    if hover:
+        li_attrs.append(attributes.Title(hover))
+
+    a_attrs = [a_class, attributes.Href(url)]
+
+    li = tags.Li(li_attrs, tags.A(a_attrs, title))
+    return mark_safe(li.render())
+
+
+def _defaulted_list(extra_attrs: ClassList, *base_attrs: str) -> Sequence[str]:
+    if not extra_attrs:
+        return base_attrs
+
+    return base_attrs + tuple(extra_attrs)
+
+
+def _get_class(classes: Sequence[str]) -> attributes.Class:
+    return attributes.Class(" ".join(classes))
+
+
+def _get_defaulted_classes(extra_attrs: ClassList, *base_attrs: str) -> attributes.Class:
+    return _get_class(_defaulted_list(extra_attrs, *base_attrs))

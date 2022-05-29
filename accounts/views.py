@@ -2,25 +2,33 @@
 
 from typing import Dict, Any
 
+import structlog
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-from django.http.response import HttpResponseBadRequest, HttpResponseRedirect, HttpResponseBase
+from django.http.response import HttpResponseRedirect, HttpResponseBase
 from django.http import HttpRequest
 from django.contrib.auth.views import LoginView
-from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth import REDIRECT_FIELD_NAME, logout as auth_logout
 from django.views.generic import TemplateView
 from django.contrib.auth import get_user_model, login
 from django.http import JsonResponse
 from django.urls import reverse
+from django.contrib import messages
 
 from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 
+log = structlog.get_logger()
+
+UserModel = get_user_model()
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
+USER_DID_LOGOUT_KEY = "user_did_logout"
+
+allowed_domains = [domain.lower() for domain in settings.GOOGLE_HOSTED_DOMAINS]
 
 
 class SocialLoginView(TemplateView):
@@ -41,39 +49,43 @@ class SocialLoginView(TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-
-        context["auth_data"] = {
-            'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
-            'hosted_domain': settings.GOOGLE_HOSTED_DOMAIN,
-        }
-
-        if REDIRECT_FIELD_NAME in self.request.GET:
-            context[REDIRECT_FIELD_NAME] = self.request.GET[REDIRECT_FIELD_NAME]
-        else:
-            context[REDIRECT_FIELD_NAME] = LOGIN_REDIRECT_URL
-
-        context["redirect_field_name"] = REDIRECT_FIELD_NAME
-
+        context = super().get_context_data()
+        context["disable_auto_login"] = True
+        next_parameter = self.request.GET.get(REDIRECT_FIELD_NAME)
+        if next_parameter:
+            context["next"] = next_parameter
         return context
 
-    def post(self, request):
+    def post(self, request: HttpRequest):
         """Handle the sign in token"""
 
-        token = request.POST["token"]
-        id_info = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID)
+        redirect_to = request.GET.get(REDIRECT_FIELD_NAME, "/")
+        credential = request.POST["credential"]
+        id_info = id_token.verify_oauth2_token(credential, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID)
 
         first_name = id_info["given_name"]
         last_name = id_info["family_name"]
         email = id_info["email"]
 
-        if settings.GOOGLE_HOSTED_DOMAIN:
-            if id_info["hd"] != settings.GOOGLE_HOSTED_DOMAIN:
-                return HttpResponseBadRequest()
+        if not _hosted_domain_allowed(id_info):
+            if request.POST.get("from_auto"):
+                request.session[USER_DID_LOGOUT_KEY] = True
+                return HttpResponseRedirect(redirect_to)
+
+            if len(allowed_domains) == 1:
+                msg = _("Login is only allowed from ")
+                msg += allowed_domains[0]
+            else:
+                msg = _("Login is only allowed from one of the following domains: ")
+                msg += ", ".join(allowed_domains)
+                msg += " " + _("domains")
+
+            messages.add_message(request, messages.ERROR, msg)
+
+            return HttpResponseRedirect(request.get_full_path())
 
         try:
             #  pylint: disable=invalid-name
-            UserModel = get_user_model()
             user = UserModel.objects.get(email=email)
 
             if not user.is_active:
@@ -104,14 +116,56 @@ class SocialLoginView(TemplateView):
             user.save()
 
         login(request, user)
-
-        # The JS can handle the rest
-        return JsonResponse({
-            'success': True
-        })
+        request.session[USER_DID_LOGOUT_KEY] = False
+        return HttpResponseRedirect(redirect_to)
 
 
 class NativeLoginView(LoginView):
     """Our login view"""
 
     template_name = "accounts/login_native.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        context['disable_auto_login'] = True
+        return context
+
+
+def logout(request: HttpRequest):
+    """Log out the user and flag their session to not log back in quickly"""
+
+    next_url = request.GET.get(REDIRECT_FIELD_NAME, "/")
+    auth_logout(request)
+    request.session[USER_DID_LOGOUT_KEY] = True
+    return HttpResponseRedirect(next_url)
+
+
+def reset_session(request: HttpRequest):
+    """Clear the user's session"""
+
+    next_url = request.GET.get(REDIRECT_FIELD_NAME, "/")
+    request.session.flush()
+    return HttpResponseRedirect(next_url)
+
+
+def _hosted_domain_allowed(id_info: dict) -> bool:
+    email = id_info["email"]
+
+    hosted_domain = id_info.get("hd", "").lower()
+
+    if not allowed_domains:
+        return True
+
+    if hosted_domain in allowed_domains:
+        return True
+
+    if UserModel.objects.filter(email=email, allow_google_hd_bypass=True).exists():
+        log.info("Bypassing hosted domain rejection due to existing email",
+                 email=email, hosted_domain=hosted_domain,
+                 allowed_domains=allowed_domains)
+        return True
+
+    log.info("Rejecting Google login hosted domain checked login", email=email,
+             hosted_domain=hosted_domain, allowed_domains=allowed_domains)
+    return False

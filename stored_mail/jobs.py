@@ -14,7 +14,7 @@ from . import models
 log = logging.getLogger(__name__)
 
 
-@register_job(300)
+@register_job(15)
 def send_emails(env: RunEnv):
     """Send all emails that have been scheduled"""
 

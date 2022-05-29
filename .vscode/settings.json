@@ -14,14 +14,20 @@
     ],
     "cSpell.words": [
         "adminsortable",
+        "ANYMAIL",
         "asgi",
         "csrf",
         "csrftoken",
+        "dotenv",
+        "firstweekday",
         "fullmigrate",
         "gapi",
+        "HEADERMAPPING",
         "helvetica",
         "kvstore",
         "kvstores",
+        "locmemcache",
+        "MAILGUN",
         "neue",
         "noprint",
         "nostatic",
@@ -31,10 +37,12 @@
         "safemigrate",
         "sorl",
         "sortid",
+        "structlog",
         "thumbnail",
         "token",
         "ttfonts",
-        "uvicorn"
+        "uvicorn",
+        "whitenoise"
     ],
     "python.testing.pytestArgs": [
         "."
