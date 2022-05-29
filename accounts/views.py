@@ -70,11 +70,11 @@ class SocialLoginView(TemplateView):
 
             if len(allowed_domains) == 1:
                 msg = _("Login is only allowed from ")
+                msg += allowed_domains[0]
             else:
                 msg = _("Login is only allowed from one of the following domains: ")
-
-            msg += ", ".join(allowed_domains)
-            msg += " " + _("domains")
+                msg += ", ".join(allowed_domains)
+                msg += " " + _("domains")
 
             messages.add_message(request, messages.ERROR, msg)
 
