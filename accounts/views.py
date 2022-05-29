@@ -2,6 +2,7 @@
 
 from typing import Dict, Any
 
+import structlog
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -20,10 +21,13 @@ from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 
+log = structlog.get_logger()
+
 UserModel = get_user_model()
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 USER_DID_LOGOUT_KEY = "user_did_logout"
+bypass_hd_check_on_existing_email = settings.GOOGLE_BYPASS_HD_CHECK_ON_EMAIL
 
 allowed_domains = [domain.lower() for domain in settings.GOOGLE_HOSTED_DOMAINS]
 
@@ -143,18 +147,21 @@ def reset_session(request: HttpRequest):
 def _hosted_domain_allowed(id_info: dict) -> bool:
     email = id_info["email"]
 
-    if UserModel.objects.filter(email=email).exists():
-
-        return True
-    hosted_domain = id_info.get("hd")
+    hosted_domain = id_info.get("hd", "").lower()
 
     if not allowed_domains:
         return True
 
-    if not hosted_domain:
-        return False
-
-    if hosted_domain.lower() in allowed_domains:
+    if hosted_domain in allowed_domains:
         return True
 
+    if bypass_hd_check_on_existing_email:
+        if UserModel.objects.filter(email=email).exists():
+            log.info("Bypassing hosted domain rejection due to existing email",
+                     email=email, hosted_domain=hosted_domain,
+                     allowed_domains=allowed_domains)
+            return True
+
+    log.info("Rejecting Google login hosted domain checked login", email=email,
+             hosted_domain=hosted_domain, allowed_domains=allowed_domains)
     return False
