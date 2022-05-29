@@ -14,9 +14,11 @@
     ],
     "cSpell.words": [
         "adminsortable",
+        "ANYMAIL",
         "asgi",
         "csrf",
         "csrftoken",
+        "dotenv",
         "firstweekday",
         "fullmigrate",
         "gapi",
@@ -24,6 +26,8 @@
         "helvetica",
         "kvstore",
         "kvstores",
+        "locmemcache",
+        "MAILGUN",
         "neue",
         "noprint",
         "nostatic",
@@ -36,7 +40,8 @@
         "thumbnail",
         "token",
         "ttfonts",
-        "uvicorn"
+        "uvicorn",
+        "whitenoise"
     ],
     "python.testing.pytestArgs": [
         "."
