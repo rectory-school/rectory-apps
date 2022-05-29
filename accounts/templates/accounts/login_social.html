@@ -23,18 +23,24 @@
     {% endif %}
 {% endif %}
 
-<div class="g_id_signin"
-    data-type="standard"
-    data-shape="rectangular"
-    data-theme="outline"
-    data-text="signin_with"
-    data-size="large"
-    data-logo_alignment="left">
+<div class="row">
+    <div class="col-12">
+        <div class="g_id_signin"
+            data-type="standard"
+            data-shape="rectangular"
+            data-theme="filled_blue"
+            data-text="signin_with"
+            data-size="large"
+            data-logo_alignment="left">
+        </div>
+    </div>
 </div>
 
-<div style="margin-top: 1rem;">
-    <a href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
-        Administrative Login (use only as directed)
-    </a>
+<div class="row">
+    <div class="col-12">
+        <a href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
+            Administrative Login (use only as directed)
+        </a>
+    </div>
 </div>
 {% endblock %}
