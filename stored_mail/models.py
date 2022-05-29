@@ -36,6 +36,7 @@ class OutgoingMessage(models.Model):
 
     sent_at = models.DateTimeField(null=True, db_index=True)
     last_send_attempt = models.DateTimeField(null=True, db_index=True)
+    discard_after = models.DateTimeField()
 
     @property
     def message_id(self) -> str:
