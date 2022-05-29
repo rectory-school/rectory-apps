@@ -41,7 +41,7 @@ MAILGUN_API_KEY = env('MAILGUN_API_KEY', default=None)
 MAILGUN_SENDER_DOMAIN = env('MAILGUN_SENDER_DOMAIN', default=None)
 SERVER_EMAIL = env('SERVER_EMAIL', default='root@localhost')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='root@localhost')
-BEHIND_LOAD_BALANCER = env('BEHIND_LOAD_BALANCER', default=False)
+HOSTED_ENVIRONMENT = env.bool("HOSTED_ENVIRONMENT", False)
 
 ADMINS = tuple(parseaddr(email) for email in env.list('DJANGO_ADMINS', default=[]))
 MANAGERS = tuple(parseaddr(email) for email in env.list('DJANGO_MANAGERS', default=[]))
@@ -54,7 +54,7 @@ if MAILGUN_API_KEY and MAILGUN_SENDER_DOMAIN:
         "MAILGUN_SENDER_DOMAIN": MAILGUN_SENDER_DOMAIN,
     }
 
-if BEHIND_LOAD_BALANCER:
+if HOSTED_ENVIRONMENT:
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
