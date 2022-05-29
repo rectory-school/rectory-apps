@@ -1,6 +1,7 @@
 """Periodic jobs for sending email"""
 
 import logging
+from typing import Optional
 
 from datetime import timedelta
 
@@ -29,15 +30,14 @@ def send_emails(env: RunEnv):
 
         candidate_query = last_attempt_query & not_discarded_query & sent_at_query
 
-        to_send = models.OutgoingMessage.objects.filter(candidate_query).select_for_update(skip_locked=True).first()
+        to_send: Optional[models.OutgoingMessage] = models.OutgoingMessage.objects.filter(
+            candidate_query).select_for_update(skip_locked=True).first()
 
         if not to_send:
             log.info("No messages to send")
             # Once we don't have an email to send, return without
             # requesting an immediate rerun
             return
-
-        assert isinstance(to_send, models.OutgoingMessage)
 
         try:
             msg = to_send.get_django_email()
