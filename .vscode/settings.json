@@ -37,6 +37,7 @@
         "safemigrate",
         "sorl",
         "sortid",
+        "structlog",
         "thumbnail",
         "token",
         "ttfonts",

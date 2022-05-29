@@ -2,6 +2,7 @@
 
 from typing import Dict, Any
 
+import structlog
 
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -20,6 +21,9 @@ from django.utils.translation import gettext_lazy as _
 
 from django.conf import settings
 
+log = structlog.get_logger()
+
+UserModel = get_user_model()
 
 LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
 USER_DID_LOGOUT_KEY = "user_did_logout"
@@ -70,11 +74,11 @@ class SocialLoginView(TemplateView):
 
             if len(allowed_domains) == 1:
                 msg = _("Login is only allowed from ")
+                msg += allowed_domains[0]
             else:
                 msg = _("Login is only allowed from one of the following domains: ")
-
-            msg += ", ".join(allowed_domains)
-            msg += " " + _("domains")
+                msg += ", ".join(allowed_domains)
+                msg += " " + _("domains")
 
             messages.add_message(request, messages.ERROR, msg)
 
@@ -82,7 +86,6 @@ class SocialLoginView(TemplateView):
 
         try:
             #  pylint: disable=invalid-name
-            UserModel = get_user_model()
             user = UserModel.objects.get(email=email)
 
             if not user.is_active:
@@ -122,6 +125,12 @@ class NativeLoginView(LoginView):
 
     template_name = "accounts/login_native.html"
 
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        context['disable_auto_login'] = True
+        return context
+
 
 def logout(request: HttpRequest):
     """Log out the user and flag their session to not log back in quickly"""
@@ -141,15 +150,22 @@ def reset_session(request: HttpRequest):
 
 
 def _hosted_domain_allowed(id_info: dict) -> bool:
-    hosted_domain = id_info.get("hd")
+    email = id_info["email"]
+
+    hosted_domain = id_info.get("hd", "").lower()
 
     if not allowed_domains:
         return True
 
-    if not hosted_domain:
-        return False
-
-    if hosted_domain.lower() in allowed_domains:
+    if hosted_domain in allowed_domains:
         return True
 
+    if UserModel.objects.filter(email=email, allow_google_hd_bypass=True).exists():
+        log.info("Bypassing hosted domain rejection due to existing email",
+                 email=email, hosted_domain=hosted_domain,
+                 allowed_domains=allowed_domains)
+        return True
+
+    log.info("Rejecting Google login hosted domain checked login", email=email,
+             hosted_domain=hosted_domain, allowed_domains=allowed_domains)
     return False
