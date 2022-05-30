@@ -10,59 +10,57 @@ pica = 12.0
 
 
 _color_sets = {
-    'Black and White': {
-        'title_color': 'Black',
-        'line_color': 'Black',
-        'inner_grid_color': 'White',
-        'label_color': 'Dark Gray',
-        'header_text_color': 'White',
-        'date_color': 'Black',
-        'letter_color': 'Black',
-        'divide_header': False,
+    "Black and White": {
+        "title_color": "Black",
+        "line_color": "Black",
+        "inner_grid_color": "White",
+        "label_color": "Dark Gray",
+        "header_text_color": "White",
+        "date_color": "Black",
+        "letter_color": "Black",
+        "divide_header": False,
     },
-    'Rectory Colors': {
-        'title_color': 'Rectory Orange',
-        'line_color': 'Rectory Orange',
-        'inner_grid_color': 'White',
-        'label_color': 'Dark Gray',
-        'header_text_color': 'White',
-        'date_color': 'Rectory Orange',
-        'letter_color': 'Black',
-        'divide_header': True,
-
+    "Rectory Colors": {
+        "title_color": "Rectory Orange",
+        "line_color": "Rectory Orange",
+        "inner_grid_color": "White",
+        "label_color": "Dark Gray",
+        "header_text_color": "White",
+        "date_color": "Rectory Orange",
+        "letter_color": "Black",
+        "divide_header": True,
     },
-    'Blue': {
-        'title_color': 'Dark Blue',
-        'line_color': 'Dark Blue',
-        'inner_grid_color': 'White',
-        'label_color': 'Dark Gray',
-        'header_text_color': 'White',
-        'date_color': 'Medium Blue',
-        'letter_color': 'Black',
-        'divide_header': True,
-    }
+    "Blue": {
+        "title_color": "Dark Blue",
+        "line_color": "Dark Blue",
+        "inner_grid_color": "White",
+        "label_color": "Dark Gray",
+        "header_text_color": "White",
+        "date_color": "Medium Blue",
+        "letter_color": "Black",
+        "divide_header": True,
+    },
 }
 
 
 def _quick_layout(width: float, height: float, margins: float):
     return {
-        'width': width,
-        'height': height,
-        'margins': margins,
-        'line_width': 1,
+        "width": width,
+        "height": height,
+        "margins": margins,
+        "line_width": 1,
     }
 
 
 _layouts = {
-    'Letter Landscape (Print)': _quick_layout(11 * inch, 8.5 * inch, .5 * inch),
-    'Letter Landscape (Embedded)': _quick_layout(11 * inch, 8.5 * inch, 0),
-    'Letter Portrait (Print)': _quick_layout(8.5 * inch, 11 * inch, .5 * inch),
-    'Letter Portrait (Embedded)': _quick_layout(8.5 * inch, 11 * inch, 0),
-
-    'A4 Landscape (Print)': _quick_layout(297*mm, 210 * mm, 17*mm),
-    'A4 Landscape (Embedded)': _quick_layout(297*mm, 210 * mm, 0),
-    'A4 Portrait (Print)': _quick_layout(210*mm, 297 * mm, 17*mm),
-    'A4 Portrait (Embedded)': _quick_layout(210*mm, 297 * mm, 0),
+    "Letter Landscape (Print)": _quick_layout(11 * inch, 8.5 * inch, 0.5 * inch),
+    "Letter Landscape (Embedded)": _quick_layout(11 * inch, 8.5 * inch, 0),
+    "Letter Portrait (Print)": _quick_layout(8.5 * inch, 11 * inch, 0.5 * inch),
+    "Letter Portrait (Embedded)": _quick_layout(8.5 * inch, 11 * inch, 0),
+    "A4 Landscape (Print)": _quick_layout(297 * mm, 210 * mm, 17 * mm),
+    "A4 Landscape (Embedded)": _quick_layout(297 * mm, 210 * mm, 0),
+    "A4 Portrait (Print)": _quick_layout(210 * mm, 297 * mm, 17 * mm),
+    "A4 Portrait (Embedded)": _quick_layout(210 * mm, 297 * mm, 0),
 }
 
 
@@ -71,13 +69,13 @@ def make_color_sets(apps, schema_editor):
 
     del schema_editor
 
-    RGBColor = apps.get_model('calendar_generator', 'RGBColor')
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
+    RGBColor = apps.get_model("calendar_generator", "RGBColor")
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
 
     colors_by_name = {obj.name: obj for obj in RGBColor.objects.all()}
 
     for name, vals in _color_sets.items():
-        params = {'name': name}
+        params = {"name": name}
 
         for key, val in vals.items():
             params[key] = colors_by_name.get(val, val)
@@ -90,7 +88,7 @@ def delete_color_sets(apps, schema_editor):
 
     del schema_editor
 
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
 
     for name in _color_sets:
         ColorSet.objects.get(name=name).delete()
@@ -100,11 +98,11 @@ def make_layouts(apps, schema_editor):
     """Make the default layouts"""
 
     del schema_editor
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    Layout = apps.get_model("calendar_generator", "Layout")
 
     for name, vals in _layouts.items():
         params = {k: v for k, v in vals.items()}
-        params['name'] = name
+        params["name"] = name
 
         Layout.objects.create(**params)
 
@@ -113,7 +111,7 @@ def delete_layouts(apps, schema_editor):
     """Delete the default layouts"""
 
     del schema_editor
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    Layout = apps.get_model("calendar_generator", "Layout")
 
     for name in _layouts:
         Layout.objects.get(name=name).delete()
@@ -124,14 +122,18 @@ def create_monthly_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    MonthlyDisplaySet = apps.get_model('calendar_generator', 'MonthlyDisplaySet')
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    MonthlyDisplaySet = apps.get_model("calendar_generator", "MonthlyDisplaySet")
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
+    Layout = apps.get_model("calendar_generator", "Layout")
 
     black_and_white = ColorSet.objects.get(name="Black and White")
     letter_landscape = Layout.objects.get(name="Letter Landscape (Print)")
 
-    MonthlyDisplaySet.objects.create(name='Black and White Letter', layout=letter_landscape, color_set=black_and_white)
+    MonthlyDisplaySet.objects.create(
+        name="Black and White Letter",
+        layout=letter_landscape,
+        color_set=black_and_white,
+    )
 
 
 def delete_monthly_display_sets(apps, schema_editor):
@@ -139,9 +141,9 @@ def delete_monthly_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    MonthlyDisplaySet = apps.get_model('calendar_generator', 'MonthlyDisplaySet')
+    MonthlyDisplaySet = apps.get_model("calendar_generator", "MonthlyDisplaySet")
 
-    MonthlyDisplaySet.objects.get(name='Black and White Letter').delete()
+    MonthlyDisplaySet.objects.get(name="Black and White Letter").delete()
 
 
 def create_one_page_display_sets(apps, schema_editor):
@@ -149,14 +151,18 @@ def create_one_page_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    OnePageDisplaySet = apps.get_model('calendar_generator', 'OnePageDisplaySet')
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    OnePageDisplaySet = apps.get_model("calendar_generator", "OnePageDisplaySet")
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
+    Layout = apps.get_model("calendar_generator", "Layout")
 
     black_and_white = ColorSet.objects.get(name="Black and White")
     letter_landscape = Layout.objects.get(name="Letter Portrait (Print)")
 
-    OnePageDisplaySet.objects.create(name='Black and White Letter', layout=letter_landscape, color_set=black_and_white)
+    OnePageDisplaySet.objects.create(
+        name="Black and White Letter",
+        layout=letter_landscape,
+        color_set=black_and_white,
+    )
 
 
 def delete_one_page_display_sets(apps, schema_editor):
@@ -164,20 +170,22 @@ def delete_one_page_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    OnePageDisplaySet = apps.get_model('calendar_generator', 'OnePageDisplaySet')
+    OnePageDisplaySet = apps.get_model("calendar_generator", "OnePageDisplaySet")
 
-    OnePageDisplaySet.objects.get(name='Black and White Letter').delete()
+    OnePageDisplaySet.objects.get(name="Black and White Letter").delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0016_auto_20220527_1436'),
+        ("calendar_generator", "0016_auto_20220527_1436"),
     ]
 
     operations = [
         migrations.RunPython(make_layouts, delete_layouts),
         migrations.RunPython(make_color_sets, delete_color_sets),
         migrations.RunPython(create_monthly_display_sets, delete_monthly_display_sets),
-        migrations.RunPython(create_one_page_display_sets, delete_one_page_display_sets),
+        migrations.RunPython(
+            create_one_page_display_sets, delete_one_page_display_sets
+        ),
     ]

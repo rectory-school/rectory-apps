@@ -10,14 +10,14 @@ def set_discard_after(apps, schema_editor):
 
     OutgoingMessage = apps.get_model("stored_mail", "OutgoingMessage")
     unset = OutgoingMessage.objects.filter(discard_after__isnull=True)
-    unset.update(discard_after=models.F('created_at') + timedelta(days=7))
+    unset.update(discard_after=models.F("created_at") + timedelta(days=7))
 
 
 class Migration(migrations.Migration):
     safe = Safe.always
 
     dependencies = [
-        ('stored_mail', '0002_outgoingmessage_discard_after'),
+        ("stored_mail", "0002_outgoingmessage_discard_after"),
     ]
 
     operations = [

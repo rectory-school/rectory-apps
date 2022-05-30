@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0019_fix_medium_blue'),
+        ("calendar_generator", "0019_fix_medium_blue"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='color',
-            options={'ordering': ['name']},
+            name="color",
+            options={"ordering": ["name"]},
         ),
     ]

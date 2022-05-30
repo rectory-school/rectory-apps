@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0001_initial'),
+        ("accounts", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='user',
-            options={'permissions': (('admin_login', 'Can log into admin site'),)},
+            name="user",
+            options={"permissions": (("admin_login", "Can log into admin site"),)},
         ),
     ]

@@ -8,7 +8,7 @@ def fix_medium_blue(apps, schema_editor):
 
     del schema_editor
 
-    RGBColor = apps.get_model('calendar_generator', 'RGBColor')
+    RGBColor = apps.get_model("calendar_generator", "RGBColor")
 
     medium_blue = RGBColor.objects.get(name="Medium Blue")
     medium_blue.red = 0
@@ -23,7 +23,7 @@ def unfix_medium_blue(apps, schema_editor):
 
     del schema_editor
 
-    RGBColor = apps.get_model('calendar_generator', 'RGBColor')
+    RGBColor = apps.get_model("calendar_generator", "RGBColor")
 
     medium_blue = RGBColor.objects.get(name="Medium Blue")
     medium_blue.red = 0.4
@@ -36,9 +36,7 @@ def unfix_medium_blue(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0013_auto_20220527_0903'),
+        ("calendar_generator", "0013_auto_20220527_0903"),
     ]
 
-    operations = [
-        migrations.RunPython(fix_medium_blue, unfix_medium_blue)
-    ]
+    operations = [migrations.RunPython(fix_medium_blue, unfix_medium_blue)]

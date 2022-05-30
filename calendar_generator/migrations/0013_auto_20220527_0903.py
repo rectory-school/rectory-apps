@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0012_auto_20220527_0844'),
+        ("calendar_generator", "0012_auto_20220527_0844"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='colorset',
-            name='name',
+            model_name="colorset",
+            name="name",
             field=models.CharField(max_length=255, unique=True),
         ),
         migrations.AlterField(
-            model_name='monthlydisplayset',
-            name='name',
+            model_name="monthlydisplayset",
+            name="name",
             field=models.CharField(max_length=255, unique=True),
         ),
         migrations.AlterField(
-            model_name='onepagedisplayset',
-            name='name',
+            model_name="onepagedisplayset",
+            name="name",
             field=models.CharField(max_length=255, unique=True),
         ),
         migrations.AlterField(
-            model_name='rgbcolor',
-            name='name',
+            model_name="rgbcolor",
+            name="name",
             field=models.CharField(max_length=255, unique=True),
         ),
     ]

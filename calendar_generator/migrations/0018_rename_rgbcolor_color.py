@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0017_new_presets'),
+        ("calendar_generator", "0017_new_presets"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='RGBColor',
-            new_name='Color',
+            old_name="RGBColor",
+            new_name="Color",
         ),
     ]

@@ -8,93 +8,117 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0015_reset_presets'),
+        ("calendar_generator", "0015_reset_presets"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='colorset',
-            name='frame_background_color',
+            model_name="colorset",
+            name="frame_background_color",
         ),
         migrations.RemoveField(
-            model_name='colorset',
-            name='grid_line_color',
+            model_name="colorset",
+            name="grid_line_color",
         ),
         migrations.RemoveField(
-            model_name='colorset',
-            name='header_background_color',
+            model_name="colorset",
+            name="header_background_color",
         ),
         migrations.RemoveField(
-            model_name='colorset',
-            name='header_divider_color',
+            model_name="colorset",
+            name="header_divider_color",
         ),
         migrations.RemoveField(
-            model_name='colorset',
-            name='outline_color',
+            model_name="colorset",
+            name="outline_color",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='bottom_margin',
+            model_name="layout",
+            name="bottom_margin",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='grid_line_width',
+            model_name="layout",
+            name="grid_line_width",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='header_divider_width',
+            model_name="layout",
+            name="header_divider_width",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='left_margin',
+            model_name="layout",
+            name="left_margin",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='outline_width',
+            model_name="layout",
+            name="outline_width",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='right_margin',
+            model_name="layout",
+            name="right_margin",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='title_font_size',
+            model_name="layout",
+            name="title_font_size",
         ),
         migrations.RemoveField(
-            model_name='layout',
-            name='top_margin',
+            model_name="layout",
+            name="top_margin",
         ),
         migrations.AddField(
-            model_name='colorset',
-            name='divide_header',
-            field=models.BooleanField(default=None, help_text='If the header should be divided using the inner grid color'),
+            model_name="colorset",
+            name="divide_header",
+            field=models.BooleanField(
+                default=None,
+                help_text="If the header should be divided using the inner grid color",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='colorset',
-            name='inner_grid_color',
-            field=models.ForeignKey(default=None, help_text='The color of the inner grid', on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='calendar_generator.rgbcolor'),
+            model_name="colorset",
+            name="inner_grid_color",
+            field=models.ForeignKey(
+                default=None,
+                help_text="The color of the inner grid",
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="+",
+                to="calendar_generator.rgbcolor",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='colorset',
-            name='line_color',
-            field=models.ForeignKey(default=None, help_text='The color to use for all lines', on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='calendar_generator.rgbcolor'),
+            model_name="colorset",
+            name="line_color",
+            field=models.ForeignKey(
+                default=None,
+                help_text="The color to use for all lines",
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="+",
+                to="calendar_generator.rgbcolor",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='layout',
-            name='line_width',
-            field=models.FloatField(default=1, validators=[django.core.validators.MinValueValidator(0)]),
+            model_name="layout",
+            name="line_width",
+            field=models.FloatField(
+                default=1, validators=[django.core.validators.MinValueValidator(0)]
+            ),
         ),
         migrations.AddField(
-            model_name='layout',
-            name='margins',
-            field=models.FloatField(default=36, validators=[django.core.validators.MinValueValidator(0)]),
+            model_name="layout",
+            name="margins",
+            field=models.FloatField(
+                default=36, validators=[django.core.validators.MinValueValidator(0)]
+            ),
         ),
         migrations.AlterField(
-            model_name='colorset',
-            name='title_color',
-            field=models.ForeignKey(help_text='The color used to the title of the calendar, such as "January 2021"', on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to='calendar_generator.rgbcolor'),
+            model_name="colorset",
+            name="title_color",
+            field=models.ForeignKey(
+                help_text='The color used to the title of the calendar, such as "January 2021"',
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="+",
+                to="calendar_generator.rgbcolor",
+            ),
         ),
     ]

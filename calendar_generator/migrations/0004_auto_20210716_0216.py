@@ -21,17 +21,23 @@ def create_groups(apps, schema_editor):
     migrate_permissions(apps, schema_editor)
 
     # pylint: disable=invalid-name
-    Group = apps.get_model('auth', 'Group')
-    Permission = apps.get_model('auth', 'Permission')
+    Group = apps.get_model("auth", "Group")
+    Permission = apps.get_model("auth", "Permission")
 
-    calendar_full_permission = Permission.objects.filter(content_type__app_label='calendar_generator')
-    calendar_view_permission = Permission.objects.get(content_type__app_label='calendar_generator',
-                                                      content_type__model='calendar',
-                                                      codename='view_calendar')
+    calendar_full_permission = Permission.objects.filter(
+        content_type__app_label="calendar_generator"
+    )
+    calendar_view_permission = Permission.objects.get(
+        content_type__app_label="calendar_generator",
+        content_type__model="calendar",
+        codename="view_calendar",
+    )
 
-    admin_login_permission = Permission.objects.get(content_type__app_label='accounts',
-                                                    content_type__model='user',
-                                                    codename='admin_login')
+    admin_login_permission = Permission.objects.get(
+        content_type__app_label="accounts",
+        content_type__model="user",
+        codename="admin_login",
+    )
 
     calendar_viewer, _ = Group.objects.get_or_create(name="Calendar viewers")
     calendar_viewer.permissions.add(calendar_view_permission)
@@ -44,7 +50,7 @@ def create_groups(apps, schema_editor):
 def delete_groups(apps, schema_editor):
     """Remove the appropriate groups"""
 
-    Group = apps.get_model('auth', 'Group')
+    Group = apps.get_model("auth", "Group")
     Group.objects.filter(name="Calendar viewers").delete()
     Group.objects.filter(name="Calendar managers").delete()
 
@@ -52,9 +58,7 @@ def delete_groups(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0003_auto_20210716_0216'),
+        ("calendar_generator", "0003_auto_20210716_0216"),
     ]
 
-    operations = [
-        migrations.RunPython(create_groups, delete_groups)
-    ]
+    operations = [migrations.RunPython(create_groups, delete_groups)]

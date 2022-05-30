@@ -20,7 +20,7 @@ def patched_has_permission(request) -> bool:
             return True
 
         # This was my custom addition
-        if request.user.has_perm('accounts.admin_login'):
+        if request.user.has_perm("accounts.admin_login"):
             return True
 
     return False

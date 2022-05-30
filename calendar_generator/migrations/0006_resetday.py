@@ -7,20 +7,40 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0005_alter_calendar_options'),
+        ("calendar_generator", "0005_alter_calendar_options"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ResetDay',
+            name="ResetDay",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('calendar', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='calendar_generator.calendar')),
-                ('day', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='calendar_generator.day')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                (
+                    "calendar",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="calendar_generator.calendar",
+                    ),
+                ),
+                (
+                    "day",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="calendar_generator.day",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('calendar', 'date')},
+                "unique_together": {("calendar", "date")},
             },
         ),
     ]

@@ -18,15 +18,15 @@ ClassList = Optional[List[str]]
 def auth_button(context):
     """Logout button for nav"""
 
-    request = context['request']
+    request = context["request"]
     current_path = request.path
     current_user = request.user
 
     if current_user.is_anonymous:
-        return _nav_item("Log in", reverse('accounts:login') + "?next=" + current_path)
+        return _nav_item("Log in", reverse("accounts:login") + "?next=" + current_path)
 
     title = f"Log off {current_user}"
-    href = reverse('accounts:logout') + "?next=" + current_path
+    href = reverse("accounts:logout") + "?next=" + current_path
     hover = f"ID: {current_user.pk}&#013;Email: {current_user.email}"
     return _nav_item(title, href, link_classes=["g_id_signout"], hover=hover)
 
@@ -35,7 +35,7 @@ def auth_button(context):
 def nav_item(context, title: str, url_name: str, required_permission: str = None):
     """Determine if the active URL is the current URL"""
 
-    request = context['request']
+    request = context["request"]
     current_path = request.path
 
     if required_permission:
@@ -58,10 +58,13 @@ def nav_item(context, title: str, url_name: str, required_permission: str = None
     return _nav_item(title, url)
 
 
-def _nav_item(title, url,
-              li_classes: ClassList = None,
-              link_classes: ClassList = None,
-              hover: str = "") -> str:
+def _nav_item(
+    title,
+    url,
+    li_classes: ClassList = None,
+    link_classes: ClassList = None,
+    hover: str = "",
+) -> str:
     """String for an available nav item"""
 
     li_class = _get_defaulted_classes(li_classes, "nav-item")
@@ -88,5 +91,7 @@ def _get_class(classes: Sequence[str]) -> attributes.Class:
     return attributes.Class(" ".join(classes))
 
 
-def _get_defaulted_classes(extra_attrs: ClassList, *base_attrs: str) -> attributes.Class:
+def _get_defaulted_classes(
+    extra_attrs: ClassList, *base_attrs: str
+) -> attributes.Class:
     return _get_class(_defaulted_list(extra_attrs, *base_attrs))

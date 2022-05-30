@@ -8,13 +8,13 @@ class Migration(migrations.Migration):
     safe = Safe.before_deploy
 
     dependencies = [
-        ('stored_mail', '0001_initial'),
+        ("stored_mail", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='outgoingmessage',
-            name='discard_after',
+            model_name="outgoingmessage",
+            name="discard_after",
             field=models.DateTimeField(null=True),
         ),
     ]

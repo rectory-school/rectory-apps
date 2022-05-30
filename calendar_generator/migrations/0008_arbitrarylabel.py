@@ -7,21 +7,36 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0007_auto_20210719_2117'),
+        ("calendar_generator", "0007_auto_20210719_2117"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ArbitraryLabel',
+            name="ArbitraryLabel",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('label', models.CharField(max_length=64)),
-                ('calendar', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='labels', to='calendar_generator.calendar')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("label", models.CharField(max_length=64)),
+                (
+                    "calendar",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="labels",
+                        to="calendar_generator.calendar",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['date'],
-                'unique_together': {('calendar', 'date')},
+                "ordering": ["date"],
+                "unique_together": {("calendar", "date")},
             },
         ),
     ]

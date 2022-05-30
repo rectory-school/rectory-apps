@@ -35,7 +35,7 @@ class ResetDayAdminFormset(forms.BaseInlineFormSet):
 
     def get_form_kwargs(self, *args, **kwargs):
         kwargs = super().get_form_kwargs(*args, **kwargs)
-        kwargs['parent_object'] = self.instance
+        kwargs["parent_object"] = self.instance
 
         return kwargs
 
@@ -47,11 +47,13 @@ class ResetDayAdminInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Restrict the days to those in this calendar
-        self.fields["day"].choices = ((obj.pk, obj.letter) for obj in parent_object.days.all())
+        self.fields["day"].choices = (
+            (obj.pk, obj.letter) for obj in parent_object.days.all()
+        )
 
     class Meta:
         model = models.ResetDay
-        fields = ['date', 'day']
+        fields = ["date", "day"]
 
 
 class ResetDayAdmin(admin.TabularInline):

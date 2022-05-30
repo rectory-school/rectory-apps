@@ -36,10 +36,12 @@ class SocialLoginView(TemplateView):
 
     template_name = "accounts/login_social.html"
 
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+    def dispatch(
+        self, request: HttpRequest, *args: Any, **kwargs: Any
+    ) -> HttpResponseBase:
         if not settings.GOOGLE_OAUTH_CLIENT_ID:
             next_parameter = request.GET.get(REDIRECT_FIELD_NAME)
-            url = reverse('accounts:login-native')
+            url = reverse("accounts:login-native")
 
             if next_parameter:
                 url = f"{url}?{REDIRECT_FIELD_NAME}={next_parameter}"
@@ -61,7 +63,9 @@ class SocialLoginView(TemplateView):
 
         redirect_to = request.GET.get(REDIRECT_FIELD_NAME, "/")
         credential = request.POST["credential"]
-        id_info = id_token.verify_oauth2_token(credential, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID)
+        id_info = id_token.verify_oauth2_token(
+            credential, requests.Request(), settings.GOOGLE_OAUTH_CLIENT_ID
+        )
 
         first_name = id_info["given_name"]
         last_name = id_info["family_name"]
@@ -89,17 +93,21 @@ class SocialLoginView(TemplateView):
             user = UserModel.objects.get(email=email)
 
             if not user.is_active:
-                return JsonResponse({
-                    'success': False,
-                    'error': _('Your account is not currently active',)
-                })
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": _(
+                            "Your account is not currently active",
+                        ),
+                    }
+                )
 
         except UserModel.DoesNotExist:
             user = UserModel(email=email)
 
         attr_map = {
-            'first_name': first_name,
-            'last_name': last_name,
+            "first_name": first_name,
+            "last_name": last_name,
         }
 
         do_save = False
@@ -128,7 +136,7 @@ class NativeLoginView(LoginView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        context['disable_auto_login'] = True
+        context["disable_auto_login"] = True
         return context
 
 
@@ -161,11 +169,18 @@ def _hosted_domain_allowed(id_info: dict) -> bool:
         return True
 
     if UserModel.objects.filter(email=email, allow_google_hd_bypass=True).exists():
-        log.info("Bypassing hosted domain rejection due to existing email",
-                 email=email, hosted_domain=hosted_domain,
-                 allowed_domains=allowed_domains)
+        log.info(
+            "Bypassing hosted domain rejection due to existing email",
+            email=email,
+            hosted_domain=hosted_domain,
+            allowed_domains=allowed_domains,
+        )
         return True
 
-    log.info("Rejecting Google login hosted domain checked login", email=email,
-             hosted_domain=hosted_domain, allowed_domains=allowed_domains)
+    log.info(
+        "Rejecting Google login hosted domain checked login",
+        email=email,
+        hosted_domain=hosted_domain,
+        allowed_domains=allowed_domains,
+    )
     return False

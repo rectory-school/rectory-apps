@@ -7,18 +7,26 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0002_alter_day_position'),
+        ("calendar_generator", "0002_alter_day_position"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='day',
-            name='calendar',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='days', to='calendar_generator.calendar'),
+            model_name="day",
+            name="calendar",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="days",
+                to="calendar_generator.calendar",
+            ),
         ),
         migrations.AlterField(
-            model_name='skipdate',
-            name='calendar',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='skips', to='calendar_generator.calendar'),
+            model_name="skipdate",
+            name="calendar",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="skips",
+                to="calendar_generator.calendar",
+            ),
         ),
     ]

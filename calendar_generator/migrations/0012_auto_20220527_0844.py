@@ -8,14 +8,18 @@ def create_monthly_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    MonthlyDisplaySet = apps.get_model('calendar_generator', 'MonthlyDisplaySet')
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    MonthlyDisplaySet = apps.get_model("calendar_generator", "MonthlyDisplaySet")
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
+    Layout = apps.get_model("calendar_generator", "Layout")
 
     black_and_white = ColorSet.objects.get(name="Black and White")
     letter_landscape = Layout.objects.get(name="Letter Landscape (Print)")
 
-    MonthlyDisplaySet.objects.create(name='Black and White Letter', layout=letter_landscape, color_set=black_and_white)
+    MonthlyDisplaySet.objects.create(
+        name="Black and White Letter",
+        layout=letter_landscape,
+        color_set=black_and_white,
+    )
 
 
 def delete_monthly_display_sets(apps, schema_editor):
@@ -23,9 +27,9 @@ def delete_monthly_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    MonthlyDisplaySet = apps.get_model('calendar_generator', 'MonthlyDisplaySet')
+    MonthlyDisplaySet = apps.get_model("calendar_generator", "MonthlyDisplaySet")
 
-    MonthlyDisplaySet.objects.get(name='Black and White Letter').delete()
+    MonthlyDisplaySet.objects.get(name="Black and White Letter").delete()
 
 
 def create_one_page_display_sets(apps, schema_editor):
@@ -33,14 +37,18 @@ def create_one_page_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    OnePageDisplaySet = apps.get_model('calendar_generator', 'OnePageDisplaySet')
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    OnePageDisplaySet = apps.get_model("calendar_generator", "OnePageDisplaySet")
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
+    Layout = apps.get_model("calendar_generator", "Layout")
 
     black_and_white = ColorSet.objects.get(name="Black and White")
     letter_landscape = Layout.objects.get(name="Letter Portrait (Print)")
 
-    OnePageDisplaySet.objects.create(name='Black and White Letter', layout=letter_landscape, color_set=black_and_white)
+    OnePageDisplaySet.objects.create(
+        name="Black and White Letter",
+        layout=letter_landscape,
+        color_set=black_and_white,
+    )
 
 
 def delete_one_page_display_sets(apps, schema_editor):
@@ -48,18 +56,20 @@ def delete_one_page_display_sets(apps, schema_editor):
 
     del schema_editor
 
-    OnePageDisplaySet = apps.get_model('calendar_generator', 'OnePageDisplaySet')
+    OnePageDisplaySet = apps.get_model("calendar_generator", "OnePageDisplaySet")
 
-    OnePageDisplaySet.objects.get(name='Black and White Letter').delete()
+    OnePageDisplaySet.objects.get(name="Black and White Letter").delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0011_monthlydisplayset_onepagedisplayset'),
+        ("calendar_generator", "0011_monthlydisplayset_onepagedisplayset"),
     ]
 
     operations = [
         migrations.RunPython(create_monthly_display_sets, delete_monthly_display_sets),
-        migrations.RunPython(create_one_page_display_sets, delete_one_page_display_sets)
+        migrations.RunPython(
+            create_one_page_display_sets, delete_one_page_display_sets
+        ),
     ]
