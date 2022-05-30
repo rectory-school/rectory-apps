@@ -9,12 +9,15 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import django_stubs_ext
 
 from pathlib import Path
 from email.utils import parseaddr
 from secrets import token_hex
 
 import environ
+
+django_stubs_ext.monkeypatch()  # This is for nicer typing
 
 env = environ.Env()
 
