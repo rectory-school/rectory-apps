@@ -73,13 +73,12 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-
-        assert isinstance(self.object, models.Calendar)
+        object: models.Calendar = self.get_object()
 
         months = set()
 
-        days_dict = self.object.get_date_letter_map()
-        labels_dict = self.object.get_arbitrary_labels()
+        days_dict = object.get_date_letter_map()
+        labels_dict = object.get_arbitrary_labels()
 
         for date_key in days_dict:
             months.add((date_key.year, date_key.month))
@@ -117,17 +116,17 @@ class Calendar(CalendarViewPermissionRequired, DetailView):
         if today in days_dict:
             context["today_letter"] = days_dict[today]
 
-        context["day_rotation"] = [d.letter for d in self.object.days.all()]
+        context["day_rotation"] = [d.letter for d in object.days.all()]
         context["skipped_days"] = sorted(
-            (s.date, s.end_date) for s in self.object.skips.all()
+            (s.date, s.end_date) for s in object.skips.all()
         )
         context["reset_days"] = [
             (obj.date, obj.day.letter)
-            for obj in self.object.reset_days.select_related("day").all()
+            for obj in object.reset_days.select_related("day").all()
         ]
 
         context["calendars"] = month_grids
-        context["custom_calendar_form"] = forms.CustomCalendarForm(calendar=self.object)
+        context["custom_calendar_form"] = forms.CustomCalendarForm(calendar=object)
 
         return context
 
