@@ -11,6 +11,8 @@ RUN python -m venv --copies /app/.venv
 RUN . /app/.venv/bin/activate && poetry install
 
 FROM python:3.10-slim-buster as prod
+RUN apt-get update && apt-get install -y postgresql-client
+
 COPY --from=builder /app/.venv /app/.venv/
 ENV PATH /app/.venv/bin:$PATH
 
