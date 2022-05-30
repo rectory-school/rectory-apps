@@ -20,7 +20,8 @@ def test_skip_date_range():
         date(2021, 1, 7),
         date(2021, 1, 8),
         date(2021, 1, 9),
-        date(2021, 1, 10), ]
+        date(2021, 1, 10),
+    ]
 
 
 def test_skip_date():
@@ -30,7 +31,9 @@ def test_skip_date():
 
     skips = list(obj.get_all_days())
 
-    assert skips == [date(2021, 1, 5), ]
+    assert skips == [
+        date(2021, 1, 5),
+    ]
 
 
 @pytest.mark.django_db
@@ -45,7 +48,9 @@ def test_skip_multiple_dates():
     cal.save()
 
     models.SkipDate.objects.create(calendar=cal, date=date(2021, 1, 5))
-    models.SkipDate.objects.create(calendar=cal, date=date(2021, 2, 1), end_date=date(2021, 2, 5))
+    models.SkipDate.objects.create(
+        calendar=cal, date=date(2021, 2, 1), end_date=date(2021, 2, 5)
+    )
 
     expected_days = {
         date(2021, 1, 5),
@@ -53,7 +58,8 @@ def test_skip_multiple_dates():
         date(2021, 2, 2),
         date(2021, 2, 3),
         date(2021, 2, 4),
-        date(2021, 2, 5), }
+        date(2021, 2, 5),
+    }
 
     assert cal.get_all_skip_days() == expected_days
 

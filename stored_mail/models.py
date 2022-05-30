@@ -11,10 +11,10 @@ from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 FIELD_OPTIONS = (
-    ('to', 'To'),
-    ('cc', 'Cc'),
-    ('bcc', 'Bcc'),
-    ('reply-to', 'Reply To'),
+    ("to", "To"),
+    ("cc", "Cc"),
+    ("bcc", "Bcc"),
+    ("reply-to", "Reply To"),
 )
 
 _field_option_length = max((len(o[0]) for o in FIELD_OPTIONS))
@@ -44,7 +44,7 @@ class OutgoingMessage(models.Model):
 
         server_email = settings.SERVER_EMAIL
 
-        _, domain = server_email.split('@')
+        _, domain = server_email.split("@")
 
         return f"{self.unique_id}@{domain}"
 
@@ -55,23 +55,23 @@ class OutgoingMessage(models.Model):
 
         # Django kwarg to related_address field key
         related_address_map = {
-            'to': 'to',
-            'cc': 'cc',
-            'bcc': 'bcc',
-            'reply_to': 'reply-to'
+            "to": "to",
+            "cc": "cc",
+            "bcc": "bcc",
+            "reply_to": "reply-to",
         }
 
         # Constructors are the same for both emails and email alternatives,
         # so do a little meta-programming and extract the commonalities
         kwargs = {
-            'from_email': email.utils.formataddr((self.from_name, self.from_address)),
-            'subject': self.subject,
-            'body': self.text,
-            'headers': {
-                'Message-ID': message_id,
-                'Date': email.utils.formatdate(self.created_at.timestamp())
+            "from_email": email.utils.formataddr((self.from_name, self.from_address)),
+            "subject": self.subject,
+            "body": self.text,
+            "headers": {
+                "Message-ID": message_id,
+                "Date": email.utils.formatdate(self.created_at.timestamp()),
             },
-            'connection': connection,
+            "connection": connection,
         }
 
         # Load to/cc/bcc/reply-to
@@ -100,7 +100,9 @@ class RelatedAddress(models.Model):
 
     name = models.CharField(max_length=255)
     address = models.EmailField()
-    message = models.ForeignKey(OutgoingMessage, on_delete=models.CASCADE, related_name='addresses')
+    message = models.ForeignKey(
+        OutgoingMessage, on_delete=models.CASCADE, related_name="addresses"
+    )
     field = models.CharField(choices=FIELD_OPTIONS, max_length=_field_option_length)
 
     def __str__(self):
@@ -110,15 +112,13 @@ class RelatedAddress(models.Model):
         return email.utils.formataddr((self.name, self.address))
 
     class Meta:
-        unique_together = (
-            ('address', 'message'),
-        )
+        unique_together = (("address", "message"),)
 
     @property
     def addr_obj(self) -> Address:
         """The address object to send from"""
 
-        username, domain = self.address.split('@', 1)
+        username, domain = self.address.split("@", 1)
 
         return Address(self.name, username, domain)
 

@@ -20,9 +20,7 @@ def fix(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0018_rename_rgbcolor_color'),
+        ("calendar_generator", "0018_rename_rgbcolor_color"),
     ]
 
-    operations = [
-        migrations.RunPython(fix, migrations.RunPython.noop)
-    ]
+    operations = [migrations.RunPython(fix, migrations.RunPython.noop)]

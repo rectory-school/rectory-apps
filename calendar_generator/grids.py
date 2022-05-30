@@ -7,13 +7,13 @@ import calendar
 from typing import Optional, List, Set, Dict
 
 HEADERMAPPING = {
-    0: 'Monday',
-    1: 'Tuesday',
-    2: 'Wednesday',
-    3: 'Thursday',
-    4: 'Friday',
-    5: 'Saturday',
-    6: 'Sunday',
+    0: "Monday",
+    1: "Tuesday",
+    2: "Wednesday",
+    3: "Thursday",
+    4: "Friday",
+    5: "Saturday",
+    6: "Sunday",
 }
 
 
@@ -71,7 +71,9 @@ class CalendarGridGenerator:
         cal = calendar.Calendar(firstweekday=self.week_start)
 
         # The weekdays as they should be in columns across our calendar
-        ordered_weekdays = [weekday for weekday in cal.iterweekdays() if weekday in used_weekdays]
+        ordered_weekdays = [
+            weekday for weekday in cal.iterweekdays() if weekday in used_weekdays
+        ]
 
         # Monday, Tuesday, Wednesday - just those weekdays that were used in this calendar
         used_headers = [HEADERMAPPING[weekday] for weekday in ordered_weekdays]
@@ -99,7 +101,7 @@ class CalendarGridGenerator:
         total_weeks = math.ceil((self.end_date - internal_start_date).days / 7) + 1
         full_grid = []
         for week_index in range(total_weeks):
-            week_start = internal_start_date + timedelta(days=week_index*7)
+            week_start = internal_start_date + timedelta(days=week_index * 7)
             row: List[Optional[date]] = []
             for day_index in range(len(used_weekdays)):
                 cell_date = week_start + timedelta(days=day_index)
@@ -135,7 +137,7 @@ class CalendarGridGenerator:
 
         for week in full_grid:
             week_entries = [get_entry(d) for d in week]
-            if week_entries != [None]*len(used_weekdays):
+            if week_entries != [None] * len(used_weekdays):
                 # The calendar grid can generate a phantom unused row over an unused day - don't keep it
                 out.grid.append(week_entries)
 
@@ -148,7 +150,10 @@ class CalendarGridGenerator:
         if self.custom_title:
             return self.custom_title
 
-        if self.start_date.year == self.end_date.year and self.start_date.month == self.end_date.month:
+        if (
+            self.start_date.year == self.end_date.year
+            and self.start_date.month == self.end_date.month
+        ):
             sample_date = date(self.start_date.year, self.end_date.month, 1)
 
             return sample_date.strftime("%B %Y")

@@ -69,12 +69,16 @@ def test_grid_jan_2022():
         ],
     ]
 
-    expected = grids.CalendarGrid(title="January 2022", headers=expected_headers, grid=expected_grid)
+    expected = grids.CalendarGrid(
+        title="January 2022", headers=expected_headers, grid=expected_grid
+    )
 
     generator = grids.CalendarGridGenerator(
-        date_letter_map=days, label_map={},
+        date_letter_map=days,
+        label_map={},
         start_date=date(2022, 1, 1),
-        end_date=date(2022, 1, 31))
+        end_date=date(2022, 1, 31),
+    )
 
     actual = generator.get_grid()
 
@@ -141,16 +145,19 @@ def test_grid_generation():
             grids.GridItem(date(2021, 3, 31), "O"),
             None,
             None,
-
-        ]
+        ],
     ]
 
-    expected = grids.CalendarGrid(title="March 2021", headers=expected_headers, grid=expected_grid)
+    expected = grids.CalendarGrid(
+        title="March 2021", headers=expected_headers, grid=expected_grid
+    )
 
     generator = grids.CalendarGridGenerator(
-        date_letter_map=days, label_map={},
+        date_letter_map=days,
+        label_map={},
         start_date=date(2021, 3, 1),
-        end_date=date(2021, 3, 31))
+        end_date=date(2021, 3, 31),
+    )
     actual = generator.get_grid()
 
     assert actual == expected
@@ -222,16 +229,20 @@ def test_last_empty():
             grids.GridItem(date(2021, 10, 27), "A"),
             grids.GridItem(date(2021, 10, 28), "B"),
             grids.GridItem(date(2021, 10, 29), "A"),
-        ]
+        ],
     ]
 
-    expected = grids.CalendarGrid(title="October 2021", headers=expected_headers, grid=expected_grid)
+    expected = grids.CalendarGrid(
+        title="October 2021", headers=expected_headers, grid=expected_grid
+    )
 
     generator = grids.CalendarGridGenerator(
-        date_letter_map=days, label_map={},
+        date_letter_map=days,
+        label_map={},
         start_date=date(2021, 10, 1),
         end_date=date(2021, 10, 29),
-        week_start=6)
+        week_start=6,
+    )
     actual = generator.get_grid()
 
     assert actual == expected

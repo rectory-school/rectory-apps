@@ -28,21 +28,21 @@ from accounts.admin_staff_monkeypatch import patched_has_permission
 import calendar_generator.urls
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name="home.html"), name='home'),
-    path('accounts/', include(accounts.urls)),
-
+    path("", TemplateView.as_view(template_name="home.html"), name="home"),
+    path("accounts/", include(accounts.urls)),
     # I want admin to use my login page - intercept it's call
-    path('admin/login/', accounts.views.SocialLoginView.as_view()),
-    path('admin/', admin.site.urls),
-
-    path('calendars/', include(calendar_generator.urls)),
+    path("admin/login/", accounts.views.SocialLoginView.as_view()),
+    path("admin/", admin.site.urls),
+    path("calendars/", include(calendar_generator.urls)),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
 
-    urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+    urlpatterns = urlpatterns + static(
+        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+    )
+    urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
 
 # This is bad. Do not do this. See the comments in the file with the patch to know why this is done
 admin.site.has_permission = patched_has_permission

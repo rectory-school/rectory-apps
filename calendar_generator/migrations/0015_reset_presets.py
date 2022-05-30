@@ -8,66 +8,64 @@ mm = cm * 0.1
 pica = 12.0
 
 _old_color_sets = {
-    'Black and White': {
-        'outline_color': 'Black',
-        'grid_line_color': 'Black',
-        'title_color': 'Black',
-        'label_color': 'Dark Gray',
-        'header_background_color': 'Black',
-        'header_text_color': 'White',
-        'letter_color': 'Black',
-        'date_color': 'Black'
+    "Black and White": {
+        "outline_color": "Black",
+        "grid_line_color": "Black",
+        "title_color": "Black",
+        "label_color": "Dark Gray",
+        "header_background_color": "Black",
+        "header_text_color": "White",
+        "letter_color": "Black",
+        "date_color": "Black",
     },
-    'Rectory Colors': {
-        'outline_color': 'Rectory Orange',
-        'grid_line_color': 'Rectory Orange',
-        'title_color': 'Rectory Orange',
-        'label_color': 'Dark Gray',
-        'header_background_color': 'Rectory Orange',
-        'header_divider_color': 'White',
-        'header_text_color': 'White',
-        'letter_color': 'Black',
-        'date_color': 'Rectory Orange'
+    "Rectory Colors": {
+        "outline_color": "Rectory Orange",
+        "grid_line_color": "Rectory Orange",
+        "title_color": "Rectory Orange",
+        "label_color": "Dark Gray",
+        "header_background_color": "Rectory Orange",
+        "header_divider_color": "White",
+        "header_text_color": "White",
+        "letter_color": "Black",
+        "date_color": "Rectory Orange",
     },
-    'Blue': {
-        'outline_color': 'Dark Blue',
-        'grid_line_color': 'Dark Blue',
-        'title_color': 'Dark Blue',
-        'label_color': 'Dark Gray',
-        'header_background_color': 'Dark Blue',
-        'header_divider_color': 'White',
-        'header_text_color': 'White',
-        'letter_color': 'Black',
-        'date_color': 'Medium Blue'
-    }
+    "Blue": {
+        "outline_color": "Dark Blue",
+        "grid_line_color": "Dark Blue",
+        "title_color": "Dark Blue",
+        "label_color": "Dark Gray",
+        "header_background_color": "Dark Blue",
+        "header_divider_color": "White",
+        "header_text_color": "White",
+        "letter_color": "Black",
+        "date_color": "Medium Blue",
+    },
 }
 
 
 def _old_quick_layout(width: float, height: float, margins: float):
     return {
-        'width': width,
-        'height': height,
-        'top_margin': margins,
-        'bottom_margin': margins,
-        'left_margin': margins,
-        'right_margin': margins,
-        'header_divider_width': 1,
-        'outline_width': 1,
-        'grid_line_width': 1,
-
+        "width": width,
+        "height": height,
+        "top_margin": margins,
+        "bottom_margin": margins,
+        "left_margin": margins,
+        "right_margin": margins,
+        "header_divider_width": 1,
+        "outline_width": 1,
+        "grid_line_width": 1,
     }
 
 
 _old_layouts = {
-    'Letter Landscape (Print)': _old_quick_layout(11 * inch, 8.5 * inch, .5 * inch),
-    'Letter Landscape (Embedded)': _old_quick_layout(11 * inch, 8.5 * inch, 0),
-    'Letter Portrait (Print)': _old_quick_layout(8.5 * inch, 11 * inch, .5 * inch),
-    'Letter Portrait (Embedded)': _old_quick_layout(8.5 * inch, 11 * inch, 0),
-
-    'A4 Landscape (Print)': _old_quick_layout(297*mm, 210 * mm, 17*mm),
-    'A4 Landscape (Embedded)': _old_quick_layout(297*mm, 210 * mm, 0),
-    'A4 Portrait (Print)': _old_quick_layout(210*mm, 297 * mm, 17*mm),
-    'A4 Portrait (Embedded)': _old_quick_layout(210*mm, 297 * mm, 0),
+    "Letter Landscape (Print)": _old_quick_layout(11 * inch, 8.5 * inch, 0.5 * inch),
+    "Letter Landscape (Embedded)": _old_quick_layout(11 * inch, 8.5 * inch, 0),
+    "Letter Portrait (Print)": _old_quick_layout(8.5 * inch, 11 * inch, 0.5 * inch),
+    "Letter Portrait (Embedded)": _old_quick_layout(8.5 * inch, 11 * inch, 0),
+    "A4 Landscape (Print)": _old_quick_layout(297 * mm, 210 * mm, 17 * mm),
+    "A4 Landscape (Embedded)": _old_quick_layout(297 * mm, 210 * mm, 0),
+    "A4 Portrait (Print)": _old_quick_layout(210 * mm, 297 * mm, 17 * mm),
+    "A4 Portrait (Embedded)": _old_quick_layout(210 * mm, 297 * mm, 0),
 }
 
 
@@ -76,13 +74,13 @@ def old_make_color_sets(apps, schema_editor):
 
     del schema_editor
 
-    RGBColor = apps.get_model('calendar_generator', 'RGBColor')
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
+    RGBColor = apps.get_model("calendar_generator", "RGBColor")
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
 
     colors_by_name = {obj.name: obj for obj in RGBColor.objects.all()}
 
     for name, vals in _old_color_sets.items():
-        params = {'name': name}
+        params = {"name": name}
 
         for key, val in vals.items():
             params[key] = colors_by_name[val]
@@ -95,7 +93,7 @@ def delete_color_sets(apps, schema_editor):
 
     del schema_editor
 
-    ColorSet = apps.get_model('calendar_generator', 'ColorSet')
+    ColorSet = apps.get_model("calendar_generator", "ColorSet")
     ColorSet.objects.all().delete()
 
 
@@ -103,11 +101,11 @@ def old_make_layouts(apps, schema_editor):
     """Make the default layouts"""
 
     del schema_editor
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    Layout = apps.get_model("calendar_generator", "Layout")
 
     for name, vals in _old_layouts.items():
         params = {k: v for k, v in vals.items()}
-        params['name'] = name
+        params["name"] = name
 
         Layout.objects.create(**params)
 
@@ -116,14 +114,14 @@ def delete_layouts(apps, schema_editor):
     """Delete the default layouts"""
 
     del schema_editor
-    Layout = apps.get_model('calendar_generator', 'Layout')
+    Layout = apps.get_model("calendar_generator", "Layout")
     Layout.objects.all().delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0014_auto_20220527_0950'),
+        ("calendar_generator", "0014_auto_20220527_0950"),
     ]
 
     operations = [

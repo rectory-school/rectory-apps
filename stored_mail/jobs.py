@@ -21,8 +21,9 @@ def send_emails(env: RunEnv):
 
     with transaction.atomic():
         # Wait at least an hour between attempts
-        last_attempt_query = (Q(last_send_attempt__isnull=True) |
-                              Q(last_send_attempt__lte=(timezone.now() - timedelta(hours=1))))
+        last_attempt_query = Q(last_send_attempt__isnull=True) | Q(
+            last_send_attempt__lte=(timezone.now() - timedelta(hours=1))
+        )
 
         not_discarded_query = Q(discard_after__gt=timezone.now())
 
@@ -30,8 +31,11 @@ def send_emails(env: RunEnv):
 
         candidate_query = last_attempt_query & not_discarded_query & sent_at_query
 
-        to_send: Optional[models.OutgoingMessage] = models.OutgoingMessage.objects.filter(
-            candidate_query).select_for_update(skip_locked=True).first()
+        to_send: Optional[models.OutgoingMessage] = (
+            models.OutgoingMessage.objects.filter(candidate_query)
+            .select_for_update(skip_locked=True)
+            .first()
+        )
 
         if not to_send:
             log.info("No messages to send")

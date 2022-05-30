@@ -8,13 +8,13 @@ class Migration(migrations.Migration):
     safe = Safe.always
 
     dependencies = [
-        ('stored_mail', '0003_set_discard_after'),
+        ("stored_mail", "0003_set_discard_after"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='outgoingmessage',
-            name='discard_after',
+            model_name="outgoingmessage",
+            name="discard_after",
             field=models.DateTimeField(),
         ),
     ]

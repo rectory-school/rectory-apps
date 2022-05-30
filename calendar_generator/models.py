@@ -31,7 +31,7 @@ class Calendar(models.Model):
     saturday = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['-start_date']
+        ordering = ["-start_date"]
 
     def clean(self):
         if self.start_date > self.end_date:
@@ -40,7 +40,7 @@ class Calendar(models.Model):
     def get_absolute_url(self):
         """Absolute URL for Django admin"""
 
-        return reverse_lazy('calendar_generator:calendar', kwargs={'pk': self.id})
+        return reverse_lazy("calendar_generator:calendar", kwargs={"pk": self.id})
 
     @property
     def day_flags(self) -> List[bool]:
@@ -128,11 +128,12 @@ class Calendar(models.Model):
 
         return out
 
-    def get_all_reset_days(self) -> Dict[datetime.date, 'Day']:
+    def get_all_reset_days(self) -> Dict[datetime.date, "Day"]:
         """Get all the reset days"""
 
         return {
-            obj.date: obj.day for obj in self.reset_days.filter(day__calendar=self).select_related('day')
+            obj.date: obj.day
+            for obj in self.reset_days.filter(day__calendar=self).select_related("day")
         }
 
     def get_all_days(self) -> Iterable[datetime.date]:
@@ -169,13 +170,15 @@ class Calendar(models.Model):
 class Day(models.Model):
     """A day is the kind of day - A, B, C - etc"""
 
-    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='days')
+    calendar = models.ForeignKey(
+        Calendar, on_delete=models.CASCADE, related_name="days"
+    )
     letter = models.CharField(max_length=1)
 
     position = models.PositiveIntegerField(default=0, blank=True, null=True)
 
     class Meta:
-        ordering = ['position']
+        ordering = ["position"]
 
     def __str__(self):
         return self.letter
@@ -184,7 +187,9 @@ class Day(models.Model):
 class SkipDate(models.Model):
     """Define a day or range of days to skip, such as for holidays"""
 
-    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='skips')
+    calendar = models.ForeignKey(
+        Calendar, on_delete=models.CASCADE, related_name="skips"
+    )
     date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
 
@@ -205,8 +210,8 @@ class SkipDate(models.Model):
             yield self.date + datetime.timedelta(days=offset)
 
     class Meta:
-        unique_together = (('calendar', 'date'), )
-        ordering = ['date']
+        unique_together = (("calendar", "date"),)
+        ordering = ["date"]
 
     def clean(self):
         if self.end_date and self.date >= self.end_date:
@@ -219,16 +224,16 @@ class SkipDate(models.Model):
 class ResetDay(models.Model):
     """Reset the calendar to a specific day"""
 
-    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='reset_days')
+    calendar = models.ForeignKey(
+        Calendar, on_delete=models.CASCADE, related_name="reset_days"
+    )
     day = models.ForeignKey(Day, on_delete=models.DO_NOTHING)
     date = models.DateField()
 
     class Meta:
-        unique_together = (
-            ('calendar', 'date'),
-        )
+        unique_together = (("calendar", "date"),)
 
-        ordering = ['date']
+        ordering = ["date"]
 
     def clean(self):
         assert isinstance(self.day, Day)
@@ -244,16 +249,16 @@ class ResetDay(models.Model):
 class ArbitraryLabel(models.Model):
     """An arbitrary label on the calendar"""
 
-    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='labels')
+    calendar = models.ForeignKey(
+        Calendar, on_delete=models.CASCADE, related_name="labels"
+    )
     date = models.DateField()
     label = models.CharField(max_length=64)
 
     class Meta:
-        unique_together = (
-            ('calendar', 'date'),
-        )
+        unique_together = (("calendar", "date"),)
 
-        ordering = ['date']
+        ordering = ["date"]
 
     def clean(self):
         assert isinstance(self.calendar, Calendar)
@@ -288,7 +293,6 @@ class Layout(models.Model):
             height=self.height,
             margins=self.margins,
             line_width=self.line_width,
-
             header_font_name=self.header_font_name,
             letter_font_name=self.letter_font_name,
             date_font_name=self.date_font_name,
@@ -310,7 +314,7 @@ class Color(models.Model):
     alpha = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(1)])
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]
 
     @property
     def reportlab_color(self) -> colors.Color:
@@ -327,41 +331,64 @@ class ColorSet(models.Model):
 
     name = models.CharField(max_length=255, unique=True)
 
-    title_color = models.ForeignKey(Color, related_name='+',
-                                    on_delete=models.DO_NOTHING,
-                                    help_text=('The color used to the title of the '
-                                               'calendar, such as "January 2021"'))
+    title_color = models.ForeignKey(
+        Color,
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        help_text=(
+            "The color used to the title of the " 'calendar, such as "January 2021"'
+        ),
+    )
 
-    line_color = models.ForeignKey(Color, related_name='+',
-                                   on_delete=models.DO_NOTHING,
-                                   help_text=('The color to use for all lines'))
+    line_color = models.ForeignKey(
+        Color,
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        help_text=("The color to use for all lines"),
+    )
 
-    inner_grid_color = models.ForeignKey(Color, related_name='+',
-                                         on_delete=models.DO_NOTHING,
-                                         help_text=('The color of the inner grid'))
+    inner_grid_color = models.ForeignKey(
+        Color,
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        help_text=("The color of the inner grid"),
+    )
 
-    header_text_color = models.ForeignKey(Color, related_name='+',
-                                          on_delete=models.DO_NOTHING,
-                                          help_text=("The color to use to draw the "
-                                                     "headers: Monday, Tuesday, etc"))
+    header_text_color = models.ForeignKey(
+        Color,
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        help_text=("The color to use to draw the " "headers: Monday, Tuesday, etc"),
+    )
 
-    date_color = models.ForeignKey(Color, related_name='+',
-                                   on_delete=models.DO_NOTHING,
-                                   help_text=("The color used to draw the day of the "
-                                              "month, such as 1, 2, 3 ... 31"))
+    date_color = models.ForeignKey(
+        Color,
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        help_text=(
+            "The color used to draw the day of the " "month, such as 1, 2, 3 ... 31"
+        ),
+    )
 
-    letter_color = models.ForeignKey(Color, related_name='+',
-                                     on_delete=models.DO_NOTHING,
-                                     help_text=('The color to use to "day of the week" '
-                                                'letters, such as A, B, and C'))
+    letter_color = models.ForeignKey(
+        Color,
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        help_text=(
+            'The color to use to "day of the week" ' "letters, such as A, B, and C"
+        ),
+    )
 
-    label_color = models.ForeignKey(Color, related_name='+',
-                                    on_delete=models.DO_NOTHING,
-                                    help_text=('The color used to draw arbitrary '
-                                               'labels such as "No school"'))
+    label_color = models.ForeignKey(
+        Color,
+        related_name="+",
+        on_delete=models.DO_NOTHING,
+        help_text=("The color used to draw arbitrary " 'labels such as "No school"'),
+    )
 
-    divide_header = models.BooleanField(help_text=('If the header should be divided '
-                                                   'using the inner grid color'))
+    divide_header = models.BooleanField(
+        help_text=("If the header should be divided " "using the inner grid color")
+    )
 
     def for_pdf(self) -> pdf.ColorSet:
         """Get the PDF version of a color set"""
@@ -374,7 +401,7 @@ class ColorSet(models.Model):
             date_color=self.date_color.reportlab_color,
             letter_color=self.letter_color.reportlab_color,
             label_color=self.label_color.reportlab_color,
-            divide_header=self.divide_header
+            divide_header=self.divide_header,
         )
 
     def __str__(self):
@@ -385,8 +412,8 @@ class MonthlyDisplaySet(models.Model):
     """A "favorite" view for a monthly calendar"""
 
     name = models.CharField(max_length=255, unique=True)
-    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name='+')
-    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name='+')
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name="+")
+    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name="+")
 
     def __str__(self):
         return self.name
@@ -396,8 +423,8 @@ class OnePageDisplaySet(models.Model):
     """A "favorite" view for a one page calendar"""
 
     name = models.CharField(max_length=255, unique=True)
-    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name='+')
-    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name='+')
+    layout = models.ForeignKey(Layout, on_delete=models.CASCADE, related_name="+")
+    color_set = models.ForeignKey(ColorSet, on_delete=models.CASCADE, related_name="+")
 
     def __str__(self):
         return self.name

@@ -8,49 +8,89 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Calendar',
+            name="Calendar",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=254)),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('sunday', models.BooleanField(default=False)),
-                ('monday', models.BooleanField(default=True)),
-                ('tuesday', models.BooleanField(default=True)),
-                ('wednesday', models.BooleanField(default=True)),
-                ('thursday', models.BooleanField(default=True)),
-                ('friday', models.BooleanField(default=True)),
-                ('saturday', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=254)),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("sunday", models.BooleanField(default=False)),
+                ("monday", models.BooleanField(default=True)),
+                ("tuesday", models.BooleanField(default=True)),
+                ("wednesday", models.BooleanField(default=True)),
+                ("thursday", models.BooleanField(default=True)),
+                ("friday", models.BooleanField(default=True)),
+                ("saturday", models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
-            name='Day',
+            name="Day",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('letter', models.CharField(max_length=1)),
-                ('position', models.PositiveIntegerField(db_index=True, default=0, editable=False)),
-                ('calendar', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='calendar_generator.calendar')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("letter", models.CharField(max_length=1)),
+                (
+                    "position",
+                    models.PositiveIntegerField(
+                        db_index=True, default=0, editable=False
+                    ),
+                ),
+                (
+                    "calendar",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="calendar_generator.calendar",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['position'],
+                "ordering": ["position"],
             },
         ),
         migrations.CreateModel(
-            name='SkipDate',
+            name="SkipDate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('end_date', models.DateField(blank=True, null=True)),
-                ('calendar', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='calendar_generator.calendar')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("end_date", models.DateField(blank=True, null=True)),
+                (
+                    "calendar",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="calendar_generator.calendar",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['date'],
-                'unique_together': {('calendar', 'date')},
+                "ordering": ["date"],
+                "unique_together": {("calendar", "date")},
             },
         ),
     ]

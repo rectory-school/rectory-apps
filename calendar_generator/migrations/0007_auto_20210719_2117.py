@@ -7,17 +7,21 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('calendar_generator', '0006_resetday'),
+        ("calendar_generator", "0006_resetday"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='resetday',
-            options={'ordering': ['date']},
+            name="resetday",
+            options={"ordering": ["date"]},
         ),
         migrations.AlterField(
-            model_name='resetday',
-            name='calendar',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reset_days', to='calendar_generator.calendar'),
+            model_name="resetday",
+            name="calendar",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="reset_days",
+                to="calendar_generator.calendar",
+            ),
         ),
     ]

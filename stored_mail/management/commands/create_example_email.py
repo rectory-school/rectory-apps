@@ -11,17 +11,17 @@ from stored_mail import models
 
 
 class Command(BaseCommand):
-    help = 'Create a sample email'
+    help = "Create a sample email"
 
     def add_arguments(self, parser) -> None:
-        parser.add_argument('from_address')
-        parser.add_argument('to_address')
-        parser.add_argument('--count', type=int, default=1)
+        parser.add_argument("from_address")
+        parser.add_argument("to_address")
+        parser.add_argument("--count", type=int, default=1)
 
     def handle(self, *args, **options):
-        from_name, from_address = email.utils.parseaddr(options['from_address'])
-        to_name, to_address = email.utils.parseaddr(options['to_address'])
-        count = options['count']
+        from_name, from_address = email.utils.parseaddr(options["from_address"])
+        to_name, to_address = email.utils.parseaddr(options["to_address"])
+        count = options["count"]
 
         now = timezone.now()
 
@@ -38,7 +38,7 @@ class Command(BaseCommand):
 
                 send_addr = models.RelatedAddress()
                 send_addr.message = outgoing
-                send_addr.field = 'to'
+                send_addr.field = "to"
                 send_addr.name = to_name
                 send_addr.address = to_address
                 send_addr.save()
