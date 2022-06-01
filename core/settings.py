@@ -207,4 +207,4 @@ LOGIN_REDIRECT_URL = "/"
 
 RESULTS_CACHE_SIZE = 2500
 
-ALIVENESS_URL = "/health-check/"
+ALIVENESS_URL = ["/health-check/", "/aliveness_check"]
