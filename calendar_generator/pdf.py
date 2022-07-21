@@ -416,7 +416,7 @@ class CalendarGenerator:
             stringWidth(letter, self.layout.letter_font_name, self._letter_font_size)
             for letter in all_letters
         )
-        max_letter_width = max(*letter_widths)
+        max_letter_width = max(letter_widths)
 
         # Allow up to the lesser of half the cell, or 60% of the remaining space
         space_available = min(
