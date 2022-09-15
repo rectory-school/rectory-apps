@@ -25,6 +25,10 @@ django-quick-jobs = "^0.3.0"
 htmlBuilder = "^1.0.0"
 structlog = "^21.5.0"
 django-stubs-ext = "^0.4.0"
+django-solo = "^2.0.0"
+types-requests = "^2.28.10"
+django-structlog = "^3.0.1"
+humanize = "^4.3.0"
 
 [tool.poetry.dev-dependencies]
 rope = "*"

@@ -5,6 +5,9 @@ from typing import Optional
 
 from datetime import timedelta
 
+from structlog import get_logger
+from structlog.stdlib import BoundLogger
+
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
@@ -12,7 +15,7 @@ from job_runner.registration import register_job
 from job_runner.environment import RunEnv
 from . import models
 
-log = logging.getLogger(__name__)
+log: BoundLogger = get_logger(__name__)
 
 
 @register_job(15)
