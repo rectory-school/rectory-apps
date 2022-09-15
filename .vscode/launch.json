@@ -22,6 +22,15 @@
             "args": [
                 "run_jobs"
             ]
+        },
+        {
+            "name": "SIS sync",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "sis_sync"
+            ]
         }
     ]
 }

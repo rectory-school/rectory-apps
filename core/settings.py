@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+from typing import Dict
 import django_stubs_ext
 
 from pathlib import Path
@@ -16,6 +17,9 @@ from email.utils import parseaddr
 from secrets import token_hex
 
 import environ
+
+import structlog
+
 
 django_stubs_ext.monkeypatch()  # This is for nicer typing
 
@@ -48,6 +52,14 @@ SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=None)
 
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default=None)
 GOOGLE_HOSTED_DOMAINS = env.list("GOOGLE_HOSTED_DOMAINS", default=[])
+
+# These are allowed to be empty so that PR checks can run
+BLACKBAUD_TOKEN_URL = env("BLACKBAUD_TOKEN_URL", default=None)
+BLACKBAUD_API_BASE = env("BLACKBAUD_API_BASE", default=None)
+BLACKBAUD_OAUTH_KEY = env("BLACKBAUD_OAUTH_KEY", default=None)
+BLACKBAUD_OAUTH_SECRET = env("BLACKBAUD_OAUTH_SECRET", default=None)
+
+SIS_SYNC_INTERVAL = env.int("SIS_SYNC_INTERVAL", default=3600)
 
 DEFAULT_FILE_STORAGE = env(
     "DEFAULT_FILE_STORAGE", default="django.core.files.storage.FileSystemStorage"
@@ -94,12 +106,19 @@ INSTALLED_APPS = [
     "django_safemigrate",
     "bootstrap4",
     "django_bootstrap_breadcrumbs",
+    "solo",
+    "job_runner",
+]
+
+LOCAL_APPS = [
     "accounts",
     "nav",
     "calendar_generator",
-    "job_runner",
     "stored_mail",
+    "blackbaud",
 ]
+
+INSTALLED_APPS += LOCAL_APPS
 
 MIDDLEWARE = [
     "lb_health_check.middleware.AliveCheck",
@@ -208,3 +227,68 @@ LOGIN_REDIRECT_URL = "/"
 RESULTS_CACHE_SIZE = 2500
 
 ALIVENESS_URL = "/aliveness_check"
+
+LOGGING: Dict = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json_formatter": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
+        },
+        "plain_console": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.dev.ConsoleRenderer(),
+        },
+        "key_value": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.KeyValueRenderer(
+                key_order=["timestamp", "level", "event", "logger"]
+            ),
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "plain_console",
+        }
+    },
+    "loggers": {
+        "root": {
+            "handlers": ["console"],
+            "level": "WARNING",
+        },
+    },
+}
+
+for app_name in LOCAL_APPS:
+    thing = LOGGING["loggers"]
+    LOGGING["loggers"][app_name] = {
+        "handlers": ["console"],
+        "level": "INFO",
+        "propagate": False,
+    }
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.CallsiteParameterAdder(
+            {
+                structlog.processors.CallsiteParameter.FILENAME,
+                structlog.processors.CallsiteParameter.FUNC_NAME,
+                structlog.processors.CallsiteParameter.LINENO,
+            }
+        ),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
