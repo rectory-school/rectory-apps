@@ -1,0 +1,21 @@
+<span 
+    class="slot-grid-item {% if data.editable %}editable{% else %}view-only{% endif %}"
+    editable="{{ data.editable }}"
+    data-slot-id="{{ data.slot.id }}"
+    data-student-id="{{ data.student.id }}"
+    data-preferred-options="{{ data.preferred_option_ids | join:','}}"
+    data-remaining-options="{{ data.remaining_option_ids | join:','}}"
+    data-current-item-id="{% if data.current_option %}{{ data.current_option.pk }}{% endif %}"
+    >
+    {% if data.editable %}
+        <i class="fa-solid fa-edit"></i>
+    {% endif %}
+    
+    <span class="current-selection">
+        {% if data.current_option %}
+            {{ data.current_option }}
+        {% else %}
+            No assignment
+        {% endif %}
+    </span>
+</span>

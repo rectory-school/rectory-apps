@@ -1,0 +1,46 @@
+{% extends "enrichment/base.html" %}
+
+{% load django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "My Advisees" 'enrichment:advisor-assign' %}
+{% endblock %}
+
+{% block headextra %}
+    {{ block.super }}
+    {{ all_options|json_script:"all-options"}}
+    {% url 'enrichment:advisor-assign-save' as assign_url %}
+    {{ assign_url|json_script:"assign-url" }}
+{% endblock %}
+
+{% block content %}
+    <h1>My Advisees</h1>
+
+    <h2>Week of {{ week_of }}</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Advisee</th>
+                {% for slot in slots %}
+                    <th>{{ slot.date }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for advisee, cols in grid %}
+                <tr>
+                    <th>{{ advisee }}</th>
+                    {% for slot_data in cols %}
+                        <td>
+                            <span>
+                                {% include "enrichment/partial/slot_grid_item.html" with data=slot_data student=advisee slot=slot %}
+                            </span>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+    </table>
+
+{% endblock %}

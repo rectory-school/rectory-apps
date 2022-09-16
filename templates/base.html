@@ -14,6 +14,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+    <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">    
+
     <link rel="apple-touch-icon" sizes="180x180" href={% static 'img/icons/apple-touch-icon.png' %}>
     <link rel="icon" type="image/png" sizes="32x32" href={% static 'img/icons/favicon-32x32.png' %}>
     <link rel="icon" type="image/png" sizes="16x16" href={% static 'img/icons/favicon-16x16.png' %}>
@@ -33,6 +37,9 @@
     {% bootstrap_javascript jquery='full' %}
 
     <link rel="stylesheet" href="{% static 'css/base.css'%}">
+    {{ csrf_token | stringformat:"s" | json_script:"csrf-token"}}
+
+    <script src="{% static 'js/base.js' %}"></script>
     
     {% block headextra %}{% endblock %}
     
@@ -40,7 +47,14 @@
 </head>
 
 <body>
+    {% csrf_token %}
     {% include "nav/nav.html" %}
+    {% if request.user.is_hijacked %}
+        <div class="alert alert-warning">
+            You are working on behalf of {{ request.user }}
+        </div>
+    {% endif %}
+
     <div class="container main">
         {% render_breadcrumbs "django_bootstrap_breadcrumbs/bootstrap4.html" %}
         {% bootstrap_messages %}

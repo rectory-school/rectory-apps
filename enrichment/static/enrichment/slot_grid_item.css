@@ -1,0 +1,7 @@
+.slot-grid-item.editable {
+    cursor: pointer;
+}
+
+.slot-grid-item.saving {
+    cursor: not-allowed
+}

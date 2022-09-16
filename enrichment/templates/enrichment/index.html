@@ -1,0 +1,19 @@
+{% extends "enrichment/base.html" %}
+
+{% load django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+{% endblock %}
+
+
+{% block content %}
+    <h1>Rectory Enrichment</h1>
+    <p>
+        <ul class="list-group">
+            <li class="list-group-item">
+                <a href="{% url 'enrichment:advisor-assign' %}">Assign my advisees</a>
+            </li>
+        </ul>
+    </p>
+{% endblock %}

@@ -109,6 +109,9 @@ INSTALLED_APPS = [
     "solo",
     "job_runner",
     "simple_history",
+    "hijack",
+    "hijack.contrib.admin",
+    "fontawesomefree",
 ]
 
 LOCAL_APPS = [
@@ -117,6 +120,7 @@ LOCAL_APPS = [
     "calendar_generator",
     "stored_mail",
     "blackbaud",
+    "enrichment",
 ]
 
 INSTALLED_APPS += LOCAL_APPS
@@ -131,6 +135,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "hijack.middleware.HijackUserMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
 ]
 

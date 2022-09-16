@@ -1,5 +1,6 @@
 """Advisory helper methods"""
 
+from datetime import date
 from typing import Iterable, NamedTuple, Optional, Set, Tuple
 
 from blackbaud.models import School, Teacher, Student, Course, Class
