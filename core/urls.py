@@ -26,6 +26,7 @@ import accounts.views
 from accounts.admin_staff_monkeypatch import patched_has_permission
 
 import calendar_generator.urls
+import blackbaud.urls
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
@@ -34,6 +35,7 @@ urlpatterns = [
     path("admin/login/", accounts.views.SocialLoginView.as_view()),
     path("admin/", admin.site.urls),
     path("calendars/", include(calendar_generator.urls)),
+    path("blackbaud/", include(blackbaud.urls)),
 ]
 
 if settings.DEBUG:

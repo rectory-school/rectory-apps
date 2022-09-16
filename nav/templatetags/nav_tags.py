@@ -2,7 +2,7 @@
 
 from typing import List, Optional, Sequence
 from django import template
-from django.utils.html import mark_safe
+from django.utils.safestring import mark_safe
 from django.urls import reverse, NoReverseMatch
 
 from htmlBuilder import tags, attributes

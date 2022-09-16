@@ -1,0 +1,46 @@
+{% extends "blackbaud/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title%}Advisee Report{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Advisee Report" 'blackbaud:report-advisors' %}
+{% endblock %}
+
+{% block content %}
+
+<h1>Advisee List</h1>
+<div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Advisee</th>
+                <th>Advisor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pair in advisee_list %}
+                <tr>
+                    <td>{{ pair.student.display_name }}</td>
+                    <td>{{ pair.teacher.full_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h1>Advisees by Advisor</h1>
+
+{% for teacher, advisees in advisees_by_advisor %}
+    <h2>{{ teacher }}</h2>
+    <ul>
+        {% for student in advisees %}
+            <li>{{ student.display_name }}</li>
+        {% endfor %}
+    </ul>
+{% endfor %}
+
+
+{% endblock %}

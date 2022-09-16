@@ -136,3 +136,20 @@ class StudentEnrollmentAdmin(ReadOnly, admin.ModelAdmin):
             .get_queryset(request)
             .select_related("student", "section", "section__course")
         )
+
+
+@admin.register(models.AdvisoryCourse)
+class AdvisoryClassAdmin(admin.ModelAdmin):
+    """Advisory class admin"""
+
+    autocomplete_fields = ["course"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("course")
+
+
+@admin.register(models.AdvisorySchool)
+class AdvisorySchoolAdmin(admin.ModelAdmin):
+    """Advisory school admin"""
+
+    autocomplete_fields = ["school"]
