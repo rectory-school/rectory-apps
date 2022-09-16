@@ -32,6 +32,7 @@
         "reportlab",
         "rostr",
         "safemigrate",
+        "signout",
         "sorl",
         "sortid",
         "structlog",

@@ -4,6 +4,8 @@ from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
 
+from simple_history.models import HistoricalRecords
+
 from solo.models import SingletonModel
 
 
@@ -147,3 +149,42 @@ class StudentEnrollment(SISModel):
 
     def __str__(self):
         return f"{self.section}: {self.student}"
+
+
+class AdvisoryCourse(models.Model):
+    """An indication that a given course is for the advisory links"""
+
+    course = models.OneToOneField(
+        Course,
+        on_delete=models.DO_NOTHING,
+        limit_choices_to={"active": True},
+        related_name="advisory_course",
+    )
+
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return str(self.course)
+
+    class Meta:
+        ordering = ["course"]
+        permissions = (("view_advisor_list_report", "Can view advisor list reports"),)
+
+
+class AdvisorySchool(models.Model):
+    """A limit on the schools that come up in advisory students"""
+
+    school = models.OneToOneField(
+        School,
+        on_delete=models.DO_NOTHING,
+        limit_choices_to={"active": True},
+        related_name="advisory_schools",
+    )
+
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return str(self.school)
+
+    class Meta:
+        ordering = ["school"]

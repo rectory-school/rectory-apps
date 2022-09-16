@@ -279,6 +279,14 @@ python-versions = ">=3.6,<4.0"
 django = ">=3.0,<5.0"
 
 [[package]]
+name = "django-simple-history"
+version = "3.1.1"
+description = "Store model history and view/revert changes from admin site."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "django-solo"
 version = "2.0.0"
 description = "Django Solo helps working with singletons"
@@ -979,7 +987,7 @@ brotli = ["Brotli"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "204b0fb9c5034cc080618e947c9d6f03f3f5f58cb586365a2df138db3c444c16"
+content-hash = "dfb462d647254c9a1ba9dc89fb975ecfbd070ee2d57dd2da9eb305de2a79480e"
 
 [metadata.files]
 appnope = [
@@ -1099,6 +1107,9 @@ django-quick-jobs = [
 django-safemigrate = [
     {file = "django-safemigrate-3.1.tar.gz", hash = "sha256:a6306cda415ca95d70c656411652fd8e8385a82c2742d21446ce7bb7595dd1fb"},
     {file = "django_safemigrate-3.1-py3-none-any.whl", hash = "sha256:245f114d1d93641c758a71efe339382108c273ff065deee4098c34ac350f3bf0"},
+]
+django-simple-history = [
+    {file = "django-simple-history-3.1.1.tar.gz", hash = "sha256:eab6dbddb7da756cc5579f7d6f28a32b2e8bb1697a5c37794d96309793ffec38"},
 ]
 django-solo = [
     {file = "django-solo-2.0.0.tar.gz", hash = "sha256:7c6dbe04ae858a4645b580ec83a31a960a067ad4525d8227cca50b7fc5983a62"},

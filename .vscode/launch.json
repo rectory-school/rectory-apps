@@ -31,6 +31,15 @@
             "args": [
                 "sis_sync"
             ]
+        },
+        {
+            "name": "Show permissions",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "show_permissions"
+            ]
         }
     ]
 }

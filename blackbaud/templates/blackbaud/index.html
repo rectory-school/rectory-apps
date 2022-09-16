@@ -1,0 +1,19 @@
+{% extends "blackbaud/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title%}Blackbaud Information{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+    <h1>Blackbaud Utilities</h1>
+    <p>
+        <ul class="list-group">
+            {% if perms.blackbaud.view_advisor_list_report %}
+                <li class="list-group-item"><a href="{% url 'blackbaud:report-advisors' %}">Advisee Reports</a></li>
+            {% endif %}
+        </ul>
+    </p>
+{% endblock %}
