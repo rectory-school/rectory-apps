@@ -281,7 +281,7 @@ def _inner_sync(
 
     # Only soft delete
     for source_id in to_remove:
-        obj = sis_data[source_id]
+        obj = objs_by_id[source_id]
         if obj.active:
             obj.active = False
             obj.save()
