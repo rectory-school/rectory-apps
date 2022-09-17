@@ -128,8 +128,16 @@ class Class(SISModel):
 
 
 class TeacherEnrollment(SISModel):
-    section = models.ForeignKey(Class, on_delete=models.DO_NOTHING)
-    teacher = models.ForeignKey(Teacher, on_delete=models.DO_NOTHING)
+    section = models.ForeignKey(
+        Class,
+        on_delete=models.DO_NOTHING,
+        related_name="teacher_enrollments",
+    )
+    teacher = models.ForeignKey(
+        Teacher,
+        on_delete=models.DO_NOTHING,
+        related_name="enrollments",
+    )
     school = models.ForeignKey(School, on_delete=models.DO_NOTHING)
 
     begin_date = models.DateField()
@@ -140,8 +148,16 @@ class TeacherEnrollment(SISModel):
 
 
 class StudentEnrollment(SISModel):
-    section = models.ForeignKey(Class, on_delete=models.DO_NOTHING)
-    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    section = models.ForeignKey(
+        Class,
+        on_delete=models.DO_NOTHING,
+        related_name="student_enrollments",
+    )
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.DO_NOTHING,
+        related_name="enrollments",
+    )
     school = models.ForeignKey(School, on_delete=models.DO_NOTHING)
 
     begin_date = models.DateField()
