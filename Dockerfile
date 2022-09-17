@@ -3,7 +3,7 @@ FROM python:3.10-buster as builder
 WORKDIR /app
 
 RUN pip install pip==22.2.2
-RUN pip install poetry==1.2.0
+RUN pip install poetry==1.2.1
 
 COPY poetry.lock pyproject.toml /app/
 
