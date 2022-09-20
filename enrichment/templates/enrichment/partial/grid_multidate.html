@@ -1,0 +1,20 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Advisee</th>
+            {% for slot in grid.slots %}
+                <th>{{ slot.date }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in grid.rows %}
+            <tr>
+                <th>{{ row.student.name }}</th>
+                
+                {% for slot in row.slots %}
+                    <td>{% include "enrichment/partial/slot_grid_item.html" with data=slot %}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+</table>

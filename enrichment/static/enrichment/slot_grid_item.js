@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             saving = false;
 
             if (currentOptionId) {
-                currentSelectionSpan.innerText = optionsById[currentOptionId].display;
+                const currentOption = optionsById[currentOptionId];
+                currentSelectionSpan.innerText = currentOption.display;
             } else {
                 currentSelectionSpan.innerText = "No assignment";
             }
@@ -70,10 +71,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // elem.classList.add("saving");
             editing = true;
 
-            // currentSelectionSpan.innerHTML = "Save in progress";
+            const getLabel = (label) => {
+                const out = document.createElement("option");
+                out.innerText = label
+                out.setAttribute("disabled", "disabled");
+                return out;
+            }
+
+            const getSpacer = () => {
+                return getLabel("---");
+            }
 
             const select = document.createElement('select');
             select.setAttribute("name", "optionId");
@@ -81,26 +90,26 @@ document.addEventListener('DOMContentLoaded', () => {
             noSelection.value = null
             noSelection.innerText = "Unassigned";
             select.appendChild(noSelection);
+            select.appendChild(getSpacer())
 
             preferredOptions.forEach((opt) => {
                 const optionElem = document.createElement('option');
                 optionElem.value = opt.id;
                 optionElem.innerText = opt.display;
+
                 if (currentOptionId === opt.id) {
                     optionElem.setAttribute("selected", "selected");
                 }
                 select.appendChild(optionElem);
             });
 
-            const spacer = document.createElement("option");
-            spacer.innerText = "---";
-            spacer.setAttribute("disabled", "disabled");
-            select.appendChild(spacer);
+            select.appendChild(getSpacer());
 
             remainingOptions.forEach((opt) => {
                 const optionElem = document.createElement('option');
                 optionElem.value = opt.id;
                 optionElem.innerText = opt.display;
+
                 if (currentOptionId === opt.id) {
                     optionElem.setAttribute("selected", "selected");
                 }

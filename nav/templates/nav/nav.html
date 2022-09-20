@@ -1,4 +1,7 @@
-{% load nav_tags %}
+{% load nav_tags blackbaud %}
+
+{% is_advisor as user_is_advisor %}
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="{% url 'home' %}">Rectory Apps</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -8,7 +11,9 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             {% nav_item "Admin" "admin:index" "special:staff" %}
-            {% nav_item "Enrichment" "enrichment:index" %}
+            {% if user_is_advisor or perms.enrichment.assign_all_advisees %}
+                {% nav_item "Enrichment" "enrichment:index" %}
+            {% endif %}
             {% nav_item "SIS Tools" "blackbaud:index" "special:staff" %}
             {% nav_item "Calendar Generator" "calendar_generator:calendar-list" "calendar_generator.view_calendar" %}
         </ul>
