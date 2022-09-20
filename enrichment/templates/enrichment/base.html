@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% load django_bootstrap_breadcrumbs static %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Enrichment" 'enrichment:index' %}
+{% endblock %}
+
+{% block headextra %}
+    {{ block.super }}
+
+    <script src="{% static 'enrichment/slot_grid_item.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'enrichment/slot_grid_item.css' %}">
+{% endblock %}

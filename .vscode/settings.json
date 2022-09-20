@@ -33,6 +33,7 @@
         "rostr",
         "safemigrate",
         "signout",
+        "signups",
         "sorl",
         "sortid",
         "structlog",

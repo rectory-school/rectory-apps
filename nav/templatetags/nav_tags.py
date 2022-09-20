@@ -25,6 +25,13 @@ def auth_button(context):
     if current_user.is_anonymous:
         return _nav_item("Log in", reverse("accounts:login") + "?next=" + current_path)
 
+    if current_user.is_hijacked:
+        release_url = reverse("hijack:release")
+        title = f"Release {current_user}"
+        href = release_url + "?next=" + current_path
+        hover = f"ID: {current_user.pk}&#013;Email: {current_user.email}"
+        return _nav_item(title, href, link_classes=["link-form-post"], hover=hover)
+
     title = f"Log off {current_user}"
     href = reverse("accounts:logout") + "?next=" + current_path
     hover = f"ID: {current_user.pk}&#013;Email: {current_user.email}"
