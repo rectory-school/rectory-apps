@@ -44,10 +44,10 @@ def get_advisees(
     school_students = Student.objects.filter(schools__in=get_advisory_schools())
     advisory_sections = advisory_sections.filter(students__in=school_students)
 
-    if limit_teachers:
+    if limit_teachers is not None:
         advisory_sections = advisory_sections.filter(teachers__in=limit_teachers)
 
-    if limit_students:
+    if limit_students is not None:
         advisory_sections = advisory_sections.filter(students__in=limit_students)
 
     pairs: Set[AdviseePair] = set()

@@ -33,6 +33,7 @@ django-simple-history = "^3.1.1"
 pydantic = "^1.10.2"
 django-hijack = "^3.2.1"
 fontawesomefree = "^6.2.0"
+frozendict = "^2.3.4"
 
 [tool.poetry.dev-dependencies]
 rope = "*"

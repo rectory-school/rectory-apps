@@ -1,7 +1,6 @@
 from datetime import date, timedelta
-from functools import cached_property
 import json
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, Optional, Set
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.decorators import login_required
@@ -9,13 +8,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_http_methods
 from django.http import HttpRequest, JsonResponse
+from django.utils import timezone
+from django.db.models import Max
 
 from pydantic import BaseModel, ValidationError, validator
 
+import accounts.models
 from blackbaud.models import Student, Teacher
 from blackbaud.advising import get_advisees
 from enrichment.models import Slot, Option, Signup
-from enrichment.slots import slot_assignment_data, SlotData
+from enrichment.slots import GridGenerator, SlotID
 
 
 class Index(LoginRequiredMixin, TemplateView):
@@ -27,6 +29,14 @@ class AdvisorView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        base_date = get_monday()
+        date_str = self.request.GET.get("date")
+        if date_str:
+            try:
+                base_date = _parse_date(date_str)
+            except ValueError:
+                # Just leave it as the original date
+                pass
 
         user = self.request.user
         assert isinstance(user, AbstractBaseUser)
@@ -37,10 +47,11 @@ class AdvisorView(LoginRequiredMixin, TemplateView):
             return context
 
         teachers: Set[Teacher] = set(Teacher.objects.filter(active=True, email=email))
-        monday = current_monday()
-        next_monday = monday + timedelta(days=7)
+
         slots = sorted(
-            Slot.objects.filter(date__gte=monday, date__lt=next_monday),
+            Slot.objects.filter(
+                date__gte=base_date, date__lt=(base_date + timedelta(days=7))
+            ),
             key=lambda slot: slot.date,
         )
 
@@ -53,39 +64,23 @@ class AdvisorView(LoginRequiredMixin, TemplateView):
             ),
         )
 
-        calc = slot_assignment_data(slots, advisees, user)
+        grid = GridGenerator(user, slots, advisees)
 
-        grid: List[Tuple[Student, List[SlotData]]] = []
+        jump_slot_dates = Slot.objects.filter(
+            date__gte=date.today(), date__lt=date.today() + timedelta(days=180)
+        ).values("date")
+        jump_weeks = sorted({get_monday(row["date"]) for row in jump_slot_dates})
 
-        for advisee in advisees:
-            row: Tuple[Student, List[SlotData]] = (advisee, [])
-
-            for slot in slots:
-                key = (slot, advisee)
-                row[1].append(calc[key])
-
-            grid.append(row)
-
-        options_by_pk: Dict[int, Dict] = {}
-        for slot_data in calc.values():
-            for option in slot_data.all_options:
-                options_by_pk[option.pk] = {
-                    "id": option.pk,
-                    "location": option.location,
-                    "description": option.description,
-                    "teacher": option.teacher.formal_name,
-                    "display": str(option),
-                }
-
-        context["week_of"] = current_monday()
-        context["slots"] = slots
-        context["advisees"] = advisees
+        context["week_of"] = base_date
         context["grid"] = grid
-        context["all_options"] = options_by_pk
+        context["next_week"] = base_date + timedelta(days=7)
+        context["last_week"] = base_date - timedelta(days=7)
+        context["jump_weeks"] = jump_weeks
+
         return context
 
 
-def current_monday(d: Optional[date] = None):
+def get_monday(d: Optional[date] = None):
     today = date.today()
     if d:
         today = d
@@ -167,12 +162,16 @@ def assign(request: HttpRequest) -> JsonResponse:
     slot = data.get_slot()
     option = data.get_option()
 
-    # We will always have a real user here since login is required
-    assert isinstance(request.user, AbstractBaseUser)
-    calc = slot_assignment_data([slot], [student], request.user)
-    calc_result = calc[(slot, student)]
+    assert isinstance(request.user, accounts.models.User)
+    generator = GridGenerator(request.user, [slot], [student])
 
-    if not calc_result.editable:
+    # One slot one student should have one row with one column
+    assert len(generator.rows) == 1
+    row = generator.rows[0]
+    assert len(row.slots) == 1
+    config = row.slots[0]
+
+    if not config.editable:
         return JsonResponse(
             {
                 "success": False,
@@ -184,7 +183,10 @@ def assign(request: HttpRequest) -> JsonResponse:
         Signup.objects.filter(slot=slot, student=student).delete()
         return JsonResponse({"success": True})
 
-    if not option in calc_result.all_options:
+    all_options = config.preferred_options + config.remaining_options
+    all_option_ids = [int(obj.id) for obj in all_options]
+
+    if not option.pk in all_option_ids:
         return JsonResponse(
             {
                 "success": False,
@@ -202,3 +204,13 @@ def assign(request: HttpRequest) -> JsonResponse:
     signup.save()
 
     return JsonResponse({"success": True})
+
+
+def _parse_date(s: str) -> date:
+    parts = s.split("-")
+    if len(parts) != 3:
+        raise ValueError("Date must be in form yyyy-mm-dd")
+
+    year, month, day = map(int, parts)
+
+    return date(year, month, day)

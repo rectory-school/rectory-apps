@@ -12,8 +12,8 @@
     {% endif %}
     
     <span class="current-selection">
-        {% if data.current_option %}
-            {{ data.current_option }}
+        {% if data.currently_selected %}
+            {{ data.currently_selected.display }}
         {% else %}
             No assignment
         {% endif %}

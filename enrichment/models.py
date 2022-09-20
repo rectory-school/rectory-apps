@@ -72,7 +72,13 @@ class LocationOverride(models.Model):
     """An overridden location for a single option on a single day"""
 
     slot = models.ForeignKey(Slot, on_delete=models.CASCADE)
-    option = models.ForeignKey(Option, on_delete=models.CASCADE)
+    option = models.ForeignKey(
+        Option,
+        on_delete=models.CASCADE,
+        related_name="location_overrides",
+    )
+
+    location = models.CharField(max_length=256)
 
     class Meta:
         unique_together = (("slot", "option"),)
@@ -102,6 +108,10 @@ class Signup(models.Model):
             (
                 "use_admin_only_options",
                 "Can assign students to admin only options",
+            ),
+            (
+                "assign_all_advisees",
+                "Can assign any advisees",
             ),
         )
 
