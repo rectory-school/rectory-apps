@@ -133,12 +133,14 @@ document.addEventListener('DOMContentLoaded', () => {
             $(placeholder).select2('open');
             $(placeholder).on('select2:close', () => reset());
             $(placeholder).on('select2:select', async (selectEvt) => {
-                let id = selectEvt.params.data.id;
+                let rawId = selectEvt.params.data.id;
                 let locked = false;
-                if (id.endsWith("-locked")) {
-                    id = id.slice(0, -7)
+                if (rawId.endsWith("-locked")) {
+                    rawId = rawId.slice(0, -7)
                     locked = true;
                 }
+
+                const id = mustInt(rawId);
 
                 saving = true;
                 elem.classList.add("saving");
