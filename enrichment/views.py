@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import date, timedelta
-from functools import cache
+from functools import cache, cached_property
 import json
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple
 import urllib.parse
@@ -11,7 +11,8 @@ from django.views.generic import TemplateView
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpRequest, JsonResponse
-
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from pydantic import BaseModel, ValidationError, validator
 
 import accounts.models
@@ -19,6 +20,10 @@ from blackbaud.models import Student, Teacher
 from blackbaud.advising import get_advisees
 from enrichment.models import Slot, Option, Signup
 from enrichment.slots import GridGenerator, SlotID
+
+
+class AssignAllPermissionRequired(PermissionRequiredMixin):
+    permission_required = ["enrichment.assign_all_advisees"]
 
 
 class Index(LoginRequiredMixin, TemplateView):
@@ -111,10 +116,8 @@ class AssignView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class AssignAllView(PermissionRequiredMixin, AssignView):
+class AssignAllView(AssignAllPermissionRequired, AssignView):
     """Assign all advisees"""
-
-    permission_required = ["enrichment.assign_all_advisees"]
 
     def get_title(self) -> str:
         return "All Advisees"
@@ -125,6 +128,25 @@ class AssignAllView(PermissionRequiredMixin, AssignView):
             all_students,
             key=lambda obj: (obj.family_name, obj.nickname, obj.given_name),
         )
+
+
+class AssignForAdvisorView(AssignAllPermissionRequired, AssignView):
+    """Assign the advisees for a specific advisor"""
+
+    def get_title(self) -> str:
+        return f"Advisees for {self.teacher.full_name}"
+
+    @cached_property
+    def teacher(self) -> Teacher:
+        return get_object_or_404(Teacher, pk=self.kwargs["teacher_id"])
+
+    def get_students(self) -> List[Student]:
+        students = sorted(
+            {pair.student for pair in get_advisees([self.teacher])},
+            key=lambda obj: (obj.family_name, obj.nickname, obj.given_name),
+        )
+
+        return students
 
 
 class AssignUnassignedView(AssignAllView):
@@ -149,8 +171,70 @@ class AssignUnassignedView(AssignAllView):
             return assigned == slots
             return not (signups_by_student[student] - slots)
 
-        print(students)
         return [obj for obj in students if not is_fully_assigned(obj)]
+
+
+class AdviseeListView(AssignAllPermissionRequired, TemplateView):
+    template_name = "enrichment/advisee_list.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        advisees = sorted(
+            {p.student for p in get_advisees()},
+            key=lambda student: (
+                student.family_name,
+                student.nickname,
+                student.given_name,
+            ),
+        )
+
+        context["advisees"] = advisees
+        return context
+
+
+class AdvisorListView(AssignAllPermissionRequired, TemplateView):
+    template_name = "enrichment/advisor_list.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        advisors = sorted(
+            {p.teacher for p in get_advisees()},
+            key=lambda teacher: (
+                teacher.family_name,
+                teacher.given_name,
+            ),
+        )
+
+        context["advisors"] = advisors
+        return context
+
+
+class AssignByStudentView(AssignAllView):
+    """Assignment view for only a single student"""
+
+    template_name = "enrichment/grid_flipped.html"
+
+    def get_title(self) -> str:
+        return self.student.display_name
+
+    @cached_property
+    def student(self) -> Student:
+        return get_object_or_404(Student, pk=self.kwargs["student_id"])
+
+    def get_students(self) -> List[Student]:
+        return [self.student]
+
+    @cache
+    def get_slots(self) -> List[Slot]:
+        date_from = self.get_base_date()
+        date_to = date_from + timedelta(days=180)
+
+        date_q = Q(date__gte=date_from, date__lte=date_to)
+
+        slots = Slot.objects.filter(date_q).order_by("date")
+        return list(slots)
 
 
 def get_monday(d: Optional[date] = None):

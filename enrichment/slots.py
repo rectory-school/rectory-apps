@@ -142,6 +142,11 @@ class GridRow(NamedTuple):
     slots: List[GridRowSlot]
 
 
+class PivotedGridRow(NamedTuple):
+    slot: GridSlot
+    students: List[GridRowSlot]
+
+
 class SignupSpec(NamedTuple):
     slot_id: SlotID
     student_id: StudentID
@@ -317,10 +322,8 @@ class GridGenerator:
         return {obj.id: obj.jsonable for obj in self.all_options}
 
     @cached_property
-    def rows(self) -> List[GridRow]:
-        """Get the grid rows"""
-
-        out: List[GridRow] = []
+    def grid_row_slots(self) -> Dict[Tuple[GridStudent, GridSlot], GridRowSlot]:
+        out: Dict[Tuple[GridStudent, GridSlot], GridRowSlot] = {}
 
         organized_signups = {(row[0], row[1]): row for row in self.signups}
 
@@ -370,12 +373,36 @@ class GridGenerator:
             )
 
         for student in self.students:
-            row = GridRow(
-                student=student,
-                slots=[get_grid_row(student, slot) for slot in self.slots],
-            )
+            for slot in self.slots:
+                key = (student, slot)
+                grid_row = get_grid_row(student, slot)
+                out[key] = grid_row
 
-            out.append(row)
+        return out
+
+    @cached_property
+    def rows(self) -> List[GridRow]:
+        """Get the grid rows"""
+
+        out: List[GridRow] = []
+
+        for student in self.students:
+            grid_rows = [self.grid_row_slots[(student, slot)] for slot in self.slots]
+            out.append(GridRow(student=student, slots=grid_rows))
+
+        return out
+
+    @cached_property
+    def pivoted_rows(self) -> List[PivotedGridRow]:
+        """The pivoted rows, where each row is a date"""
+
+        out: list[PivotedGridRow] = []
+
+        for slot in self.slots:
+            grid_rows = [
+                self.grid_row_slots[(student, slot)] for student in self.students
+            ]
+            out.append(PivotedGridRow(slot=slot, students=grid_rows))
 
         return out
 

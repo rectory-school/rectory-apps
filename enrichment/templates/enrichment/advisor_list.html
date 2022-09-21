@@ -1,0 +1,33 @@
+{% extends "enrichment/base.html" %}
+
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title %}Advisors{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Advisor List" "enrichment:teacher-list" %}
+{% endblock %}
+
+{% block content %}
+    <h1>Advisors</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Advisor</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for advisor in advisors %}
+                <tr>
+                    <th>{{ advisor.full_name }}</th>
+                    <td><a class="btn btn-primary" href="{% url 'enrichment:assign-for-teacher' teacher_id=advisor.pk %}">View Advisees</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+        

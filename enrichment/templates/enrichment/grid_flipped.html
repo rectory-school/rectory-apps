@@ -25,45 +25,28 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-9">
-            <h2>Week of {{ week_of }}</h2>
+        <div class="col-12">
             <table class="table slot-grid-table">
                 <thead>
                     <tr>
-                        <th>Advisee</th>
-                        {% for slot in grid.slots %}
-                            <th>{{ slot.date }}</th>
+                        <th>Date</th>
+                        {% for student in grid.students %}
+                            <th>{{ student.name }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in grid.rows %}
+                    {% for row in grid.pivoted_rows %}
                         <tr>
-                            <th>{{ row.student.name }}</th>
+                            <th>{{ row.slot.date }}</th>
                             
-                            {% for slot in row.slots %}
-                                <td>{% include "enrichment/partial/slot_grid_item.html" with data=slot %}</td>
+                            {% for student in row.students %}
+                                <td>{% include "enrichment/partial/slot_grid_item.html" with data=student %}</td>
                             {% endfor %}
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-        <div class="col-3">
-            {% if jump_weeks %}
-                <h3>Jump to</h3>
-                <ul class="list-group">
-                    {% for jump_to, date in jump_weeks %}
-                        <li class="list-group-item">
-                            {% if week_of == date %}
-                                {{ date }}
-                            {% else %}
-                                <a href="{{ jump_to }}">{{ date }}</a>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
         </div>
     </div>
 {% endblock %}
