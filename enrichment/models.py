@@ -9,7 +9,7 @@ from blackbaud.models import Teacher, School, Course, Student
 class Slot(models.Model):
     """A time slot that Enrichment will run on"""
 
-    date = models.DateField()
+    date = models.DateField(db_index=True)
     title = models.CharField(
         max_length=256,
         blank=True,
@@ -21,6 +21,9 @@ class Slot(models.Model):
     active = models.BooleanField(default=True)
 
     history = HistoricalRecords()
+
+    class Meta:
+        ordering = ["date", "title"]
 
     def __str__(self):
         if self.title:
@@ -87,9 +90,9 @@ class LocationOverride(models.Model):
 class Signup(models.Model):
     """A student signed up for a slot"""
 
-    slot = models.ForeignKey(Slot, on_delete=models.CASCADE)
-    option = models.ForeignKey(Option, on_delete=models.DO_NOTHING)
-    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING)
+    slot = models.ForeignKey(Slot, on_delete=models.CASCADE, db_index=True)
+    option = models.ForeignKey(Option, on_delete=models.DO_NOTHING, db_index=True)
+    student = models.ForeignKey(Student, on_delete=models.DO_NOTHING, db_index=True)
     admin_locked = models.BooleanField()
 
     history = HistoricalRecords()

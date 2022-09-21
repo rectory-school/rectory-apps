@@ -1,15 +1,16 @@
+from collections import defaultdict
 from datetime import date, timedelta
+from functools import cache
 import json
-from typing import Any, Dict, Optional, Set
+from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple
+import urllib.parse
 
-from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_http_methods
+from django.core.exceptions import SuspiciousOperation
 from django.http import HttpRequest, JsonResponse
-from django.utils import timezone
-from django.db.models import Max
 
 from pydantic import BaseModel, ValidationError, validator
 
@@ -24,38 +25,29 @@ class Index(LoginRequiredMixin, TemplateView):
     template_name = "enrichment/index.html"
 
 
-class AdvisorView(LoginRequiredMixin, TemplateView):
-    template_name = "enrichment/advisor.html"
+class AssignView(LoginRequiredMixin, TemplateView):
+    """Default assignment view, which is for the user's advisees"""
 
-    def get_context_data(self, **kwargs) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        base_date = get_monday()
-        date_str = self.request.GET.get("date")
-        if date_str:
-            try:
-                base_date = _parse_date(date_str)
-            except ValueError:
-                # Just leave it as the original date
-                pass
+    template_name = "enrichment/grid_standard.html"
 
+    def get_title(self) -> str:
+        return "My Advisees"
+
+    @property
+    def user(self) -> accounts.models.User:
         user = self.request.user
-        assert isinstance(user, AbstractBaseUser)
+        if user.is_anonymous:
+            raise ValueError("How did I get an anonymous user")
 
-        email: str = user.email  # type: ignore[assignment,union-attr]
+        assert isinstance(user, accounts.models.User)
+        return user
 
-        if not email:
-            return context
-
-        teachers: Set[Teacher] = set(Teacher.objects.filter(active=True, email=email))
-
-        slots = sorted(
-            Slot.objects.filter(
-                date__gte=base_date, date__lt=(base_date + timedelta(days=7))
-            ),
-            key=lambda slot: slot.date,
+    def get_students(self) -> List[Student]:
+        teachers: Set[Teacher] = set(
+            Teacher.objects.filter(active=True, email=self.user.email)
         )
 
-        advisees = sorted(
+        return sorted(
             {p.student for p in get_advisees(teachers)},
             key=lambda student: (
                 student.family_name,
@@ -64,20 +56,101 @@ class AdvisorView(LoginRequiredMixin, TemplateView):
             ),
         )
 
-        grid = GridGenerator(user, slots, advisees)
+    @cache
+    def get_slots(self) -> List[Slot]:
+        base_date = self.get_base_date()
 
-        jump_slot_dates = Slot.objects.filter(
-            date__gte=date.today(), date__lt=date.today() + timedelta(days=180)
-        ).values("date")
-        jump_weeks = sorted({get_monday(row["date"]) for row in jump_slot_dates})
+        return sorted(
+            Slot.objects.filter(
+                date__gte=base_date, date__lt=(base_date + timedelta(days=7))
+            ),
+            key=lambda slot: slot.date,
+        )
+
+    def get_base_date(self) -> date:
+        if val := self.request.GET.get("date"):
+            try:
+                return _parse_date(val)
+            except ValueError as exc:
+                raise SuspiciousOperation from exc
+
+        return get_monday()
+
+    def get_generator(self) -> GridGenerator:
+        return GridGenerator(self.user, self.get_slots(), self.get_students())
+
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        base_date = self.get_base_date()
+        today = get_monday()
+
+        jump_slots = Slot.objects.all()
+        jump_slots = jump_slots.filter(date__gte=today)
+        jump_slots = jump_slots.filter(date__lt=(today + timedelta(days=180)))
+        jump_slot_dates = {row["date"] for row in jump_slots.values("date")}
+        jump_dates = sorted({get_monday(d) for d in jump_slot_dates})
+
+        current_url = self.request.get_full_path()
+
+        def get_week_jump(d: date) -> Tuple[str, date]:
+            url_parts = urllib.parse.urlparse(current_url)
+            query_params = dict(urllib.parse.parse_qsl(url_parts.query))
+            query_params.update({"date": d.strftime("%Y-%m-%d")})
+            encoded_query_params = urllib.parse.urlencode(query_params)
+            new_url_parts = url_parts._replace(query=encoded_query_params)
+
+            return new_url_parts.geturl(), d
+
+        jumps = [get_week_jump(d) for d in jump_dates]
 
         context["week_of"] = base_date
-        context["grid"] = grid
-        context["next_week"] = base_date + timedelta(days=7)
-        context["last_week"] = base_date - timedelta(days=7)
-        context["jump_weeks"] = jump_weeks
+        context["grid"] = self.get_generator()
+        context["jump_weeks"] = jumps
+        context["title"] = self.get_title()
 
         return context
+
+
+class AssignAllView(PermissionRequiredMixin, AssignView):
+    """Assign all advisees"""
+
+    permission_required = ["enrichment.assign_all_advisees"]
+
+    def get_title(self) -> str:
+        return "All Advisees"
+
+    def get_students(self) -> List[Student]:
+        all_students = {pair.student for pair in get_advisees()}
+        return sorted(
+            all_students,
+            key=lambda obj: (obj.family_name, obj.nickname, obj.given_name),
+        )
+
+
+class AssignUnassignedView(AssignAllView):
+    """Assignment view for only unassigned advisees"""
+
+    def get_title(self) -> str:
+        return "Unassigned Advisees"
+
+    def get_students(self) -> List[Student]:
+        slots = set(self.get_slots())
+        students = super().get_students()
+
+        signups = Signup.objects.filter(
+            slot__in=slots, student__in=students
+        ).select_related("student", "slot")
+        signups_by_student: DefaultDict[Student, Set[Slot]] = defaultdict(set)
+        for signup in signups:
+            signups_by_student[signup.student].add(signup.slot)
+
+        def is_fully_assigned(student: Student) -> bool:
+            assigned = signups_by_student[student]
+            return assigned == slots
+            return not (signups_by_student[student] - slots)
+
+        print(students)
+        return [obj for obj in students if not is_fully_assigned(obj)]
 
 
 def get_monday(d: Optional[date] = None):

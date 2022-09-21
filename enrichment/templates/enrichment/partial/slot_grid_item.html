@@ -5,7 +5,7 @@
     data-student-id="{{ data.student.id }}"
     data-preferred-options="{{ data.preferred_option_ids | join:','}}"
     data-remaining-options="{{ data.remaining_option_ids | join:','}}"
-    data-current-item-id="{% if data.current_option %}{{ data.current_option.pk }}{% endif %}"
+    data-current-item-id="{% if data.currently_selected %}{{ data.currently_selected.id }}{% endif %}"
     >
     {% if data.editable %}
         <i class="fa-solid fa-edit"></i>
