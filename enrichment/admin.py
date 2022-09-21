@@ -129,6 +129,7 @@ class OptionAdmin(admin.ModelAdmin):
             "Limits",
             {
                 "fields": (
+                    "admin_only",
                     "only_available_on",
                     "not_available_on",
                 ),
@@ -159,6 +160,8 @@ class SignupAdmin(admin.ModelAdmin):
 @admin.register(models.EditConfig)
 class EditConfigAdmin(admin.ModelAdmin):
     """Config for editable config"""
+
+    list_display = ["__str__", "days_before", "time"]
 
 
 def default_editable_until(for_date: date, tzinfo) -> datetime:

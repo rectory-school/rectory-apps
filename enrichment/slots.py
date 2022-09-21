@@ -349,7 +349,7 @@ class GridGenerator:
                 )
 
             def is_editable() -> bool:
-                if slot.editable_until > timezone.now() and not self._edit_past_lockout:
+                if slot.editable_until < timezone.now() and not self._edit_past_lockout:
                     return False
 
                 if (

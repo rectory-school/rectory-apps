@@ -75,7 +75,7 @@ class Teacher(SISModel):
         if self.honorific:
             return f"{self.honorific} {self.family_name}"
 
-        return f"M. {self.family_name}"
+        return self.full_name
 
     def __str__(self):
         return self.full_name

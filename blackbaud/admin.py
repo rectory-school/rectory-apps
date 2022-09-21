@@ -75,12 +75,39 @@ class SchoolAdmin(ReadOnly):
     list_display = ["name", "sis_id", "active"]
 
 
+class HonorificIsBlankFilter(admin.SimpleListFilter):
+    title = "honorific"
+    parameter_name = "honorific_status"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("exists", _("Has honorific")),
+            ("empty", _("Lacks honorific")),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "exists":
+            return queryset.exclude(honorific="")
+
+        if self.value() == "empty":
+            return queryset.filter(honorific="")
+
+        return queryset
+
+
 @admin.register(models.Teacher)
 class TeacherAdmin(ChangeOnly):
     editable_fields = {"honorific", "formal_name_override"}
     search_fields = ["given_name", "family_name", "email"]
-    list_display = ["__str__", "given_name", "family_name", "email", "active"]
-    list_filter = ["active", "schools"]
+    list_display = [
+        "__str__",
+        "given_name",
+        "family_name",
+        "honorific",
+        "email",
+        "active",
+    ]
+    list_filter = ["active", "schools", HonorificIsBlankFilter]
 
 
 @admin.register(models.Student)
