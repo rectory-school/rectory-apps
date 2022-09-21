@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editing = false;
             saving = false;
 
-            if (currentOptionId) {
+            if (currentOptionId && currentOptionId != 0) {
                 const currentOption = optionsById[currentOptionId];
                 currentSelectionSpan.innerText = currentOption.display;
             } else {
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             i.classList.add("fa-edit");
             const space = document.createElement("span");
             space.innerText = " "
-
+            elem.classList.remove("saving");
             elem.replaceChildren(i, space, currentSelectionSpan);
         }
 
@@ -73,60 +73,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
             editing = true;
 
-            const getLabel = (label) => {
-                const out = document.createElement("option");
-                out.innerText = label
-                out.setAttribute("disabled", "disabled");
-                return out;
-            }
-
-            const getSpacer = () => {
-                return getLabel("---");
-            }
-
-            const select = document.createElement('select');
-            select.setAttribute("name", "optionId");
-            const noSelection = document.createElement('option');
-            noSelection.value = null
-            noSelection.innerText = "Unassigned";
-            select.appendChild(noSelection);
-            select.appendChild(getSpacer())
-
-            preferredOptions.forEach((opt) => {
-                const optionElem = document.createElement('option');
-                optionElem.value = opt.id;
-                optionElem.innerText = opt.display;
-
-                if (currentOptionId === opt.id) {
-                    optionElem.setAttribute("selected", "selected");
+            const selectOptions = [
+                {
+                    "id": 0,
+                    "text": "Unassigned",
+                },
+                {
+                    "text": "Preferred",
+                    "children": preferredOptions.map((item) => ({ id: item.id, text: item.display, selected: item.id === currentOptionId }))
+                },
+                {
+                    "text": "Other",
+                    "children": remainingOptions.map((item) => ({ id: item.id, text: item.display, selected: item.id === currentOptionId }))
                 }
-                select.appendChild(optionElem);
+            ]
+
+            const placeholder = document.createElement('select');
+            elem.replaceChildren(placeholder);
+            $(placeholder).select2({
+                data: selectOptions
             });
+            $(placeholder).select2('open');
+            $(placeholder).on('select2:close', () => reset());
+            $(placeholder).on('select2:select', async (selectEvt) => {
+                const id = selectEvt.params.data.id;
 
-            select.appendChild(getSpacer());
-
-            remainingOptions.forEach((opt) => {
-                const optionElem = document.createElement('option');
-                optionElem.value = opt.id;
-                optionElem.innerText = opt.display;
-
-                if (currentOptionId === opt.id) {
-                    optionElem.setAttribute("selected", "selected");
-                }
-                select.appendChild(optionElem);
-            });
-
-            elem.replaceChildren(select);
-            select.addEventListener('change', async (evt) => {
                 saving = true;
-
-                const newOptionId = mustInt(select.value);
+                elem.classList.add("saving");
 
                 const postData = {
                     slot_id: slotId,
                     student_id: studentId,
-                    option_id: newOptionId,
+                    option_id: id,
                 }
+
+                const spinner = document.createElement("i");
+                spinner.classList.add("fa-solid", "fa-spinner", "fa-spin");
+
+                elem.replaceChildren(spinner);
 
                 const resp = await fetch(assignURL, {
                     method: 'POST',
@@ -146,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                currentOptionId = newOptionId;
+                currentOptionId = id;
                 reset();
             });
         });

@@ -3,5 +3,18 @@
 }
 
 .slot-grid-item.saving {
+    cursor: not-allowed;
+}
+
+.slot-grid-item.saving {
     cursor: not-allowed
+}
+
+.slot-grid-item select {
+    width: 100%;
+}
+
+.slot-grid-table {
+    width: 100%;
+    table-layout: fixed;
 }
