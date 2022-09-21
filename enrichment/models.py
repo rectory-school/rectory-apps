@@ -3,7 +3,18 @@ from django.utils import timezone
 
 from simple_history.models import HistoricalRecords
 
-from blackbaud.models import Teacher, School, Course, Student
+from solo.models import SingletonModel
+from blackbaud.models import Teacher, Student
+
+WEEKDAY_CHOICES = (
+    (0, "Monday"),
+    (1, "Tuesday"),
+    (2, "Wednesday"),
+    (3, "Thursday"),
+    (4, "Friday"),
+    (5, "Saturday"),
+    (6, "Sunday"),
+)
 
 
 class Slot(models.Model):
@@ -120,3 +131,21 @@ class Signup(models.Model):
 
     def __str__(self):
         return f"{self.slot}/{self.student}: {self.option}"
+
+
+class EditConfig(models.Model):
+
+    weekday = models.SmallIntegerField(
+        choices=WEEKDAY_CHOICES,
+        unique=True,
+        help_text="What weekday this applies to",
+    )
+    days_before = models.PositiveSmallIntegerField(
+        help_text="How many days before the slot date the lockout should be effective",
+    )
+    time = models.TimeField(
+        help_text="When the slot should be locked out",
+    )
+
+    def __str__(self):
+        return self.get_weekday_display()

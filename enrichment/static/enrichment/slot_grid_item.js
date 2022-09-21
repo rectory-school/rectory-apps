@@ -37,16 +37,44 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotId = mustInt(data.slotId);
         const studentId = mustInt(data.studentId);
         let currentOptionId = mustInt(data.currentItemId);
+        let currentLocked = mustInt(data.locked) === 1;
         const preferredOptionIds = mustInts(data.preferredOptions);
         const remainingOptionIds = mustInts(data.remainingOptions);
         const preferredOptions = preferredOptionIds.map((id) => optionsById[id]);
         const remainingOptions = remainingOptionIds.map((id) => optionsById[id]);
+        const allowLocking = mustInt(data.allowLocking) === 1;
 
         const currentSelectionSpan = elem.getElementsByClassName("current-selection")[0];
 
         const reset = () => {
             editing = false;
             saving = false;
+
+            const getSpace = () => {
+                const space = document.createElement("span");
+                space.innerText = " "
+
+                return space;
+            }
+
+            const getIcon = (...classes) => {
+                const icon = document.createElement("i");
+                for (const s of classes) {
+                    icon.classList.add(s);
+                }
+
+                return icon;
+            }
+
+            const elems = [getIcon("fa-solid", "fa-edit")];
+
+            if (currentLocked) {
+                elems.push(getSpace());
+                elems.push(getIcon("fa-solid", "fa-lock"));
+            }
+
+
+            elems.push(getSpace());
 
             if (currentOptionId && currentOptionId != 0) {
                 const currentOption = optionsById[currentOptionId];
@@ -55,15 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSelectionSpan.innerText = "No assignment";
             }
 
-            currentSelectionSpan.innerText += " ";
+            elems.push(currentSelectionSpan);
 
-            const i = document.createElement("i")
-            i.classList.add("fa-solid");
-            i.classList.add("fa-edit");
-            const space = document.createElement("span");
-            space.innerText = " "
             elem.classList.remove("saving");
-            elem.replaceChildren(i, space, currentSelectionSpan);
+            elem.replaceChildren(...elems);
         }
 
         elem.addEventListener('click', (evt) => {
@@ -73,20 +96,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
             editing = true;
 
-            const selectOptions = [
-                {
-                    "id": 0,
-                    "text": "Unassigned",
-                },
-                {
-                    "text": "Preferred",
-                    "children": preferredOptions.map((item) => ({ id: item.id, text: item.display, selected: item.id === currentOptionId }))
-                },
-                {
-                    "text": "Other",
-                    "children": remainingOptions.map((item) => ({ id: item.id, text: item.display, selected: item.id === currentOptionId }))
-                }
-            ]
+            const selectOptions = [{
+                "id": 0,
+                "text": "Unassigned",
+            }]
+
+            selectOptions.push({
+                "text": "Preferred",
+                "children": preferredOptions.map((item) => ({ id: `${item.id}`, text: item.display, selected: (item.id === currentOptionId && !currentLocked) }))
+            });
+
+            if (allowLocking) {
+                selectOptions.push({
+                    "text": "Preferred (locked)",
+                    "children": preferredOptions.map((item) => ({ id: `${item.id}-locked`, text: item.display, selected: (item.id === currentOptionId && currentLocked) }))
+                });
+            }
+
+            selectOptions.push({
+                "text": "Other",
+                "children": remainingOptions.map((item) => ({ id: `${item.id}`, text: item.display, selected: item.id === currentOptionId }))
+            });
+
+            if (allowLocking) {
+                selectOptions.push({
+                    "text": "Other (locked)",
+                    "children": remainingOptions.map((item) => ({ id: `${item.id}-locked`, text: item.display, selected: (item.id === currentOptionId && currentLocked) }))
+                });
+            }
 
             const placeholder = document.createElement('select');
             elem.replaceChildren(placeholder);
@@ -96,7 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
             $(placeholder).select2('open');
             $(placeholder).on('select2:close', () => reset());
             $(placeholder).on('select2:select', async (selectEvt) => {
-                const id = selectEvt.params.data.id;
+                let id = selectEvt.params.data.id;
+                let locked = false;
+                if (id.endsWith("-locked")) {
+                    id = id.slice(0, -7)
+                    locked = true;
+                }
 
                 saving = true;
                 elem.classList.add("saving");
@@ -105,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     slot_id: slotId,
                     student_id: studentId,
                     option_id: id,
+                    admin_lock: locked,
                 }
 
                 const spinner = document.createElement("i");
@@ -131,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 currentOptionId = id;
+                currentLocked = locked;
                 reset();
             });
         });

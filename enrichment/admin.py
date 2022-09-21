@@ -1,9 +1,13 @@
-from datetime import date
-from typing import Any, List, Tuple
+from datetime import date, datetime, time, timedelta
+from typing import Optional
 from django.contrib import admin
+from django.contrib.admin.widgets import AdminSplitDateTime
+from django import forms
+from django.utils import timezone
+
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
-
+from django import forms
 from enrichment import models
 
 
@@ -27,11 +31,46 @@ class DateFilter(admin.SimpleListFilter):
         return queryset
 
 
+class SlotForm(forms.ModelForm):
+    editable_until = forms.SplitDateTimeField(
+        required=False, widget=AdminSplitDateTime()
+    )
+
+    class Meta:
+        model = models.Slot
+        fields = "__all__"
+
+
 @admin.register(models.Slot)
 class SlotAdmin(admin.ModelAdmin):
     """Admin for slots"""
 
     list_filter = [DateFilter]
+    form = SlotForm
+    list_display = ["__str__", "date", "weekday", "editable_until"]
+    actions = ["reset_edit_time"]
+
+    def save_model(self, request, obj: models.Slot, form, change) -> None:
+        if not obj.editable_until:
+            obj.editable_until = default_editable_until(
+                obj.date,
+                timezone.get_current_timezone(),
+            )
+        return super().save_model(request, obj, form, change)
+
+    @admin.action(description="Reset edit time")
+    def reset_edit_time(self, request, queryset):
+        for slot in queryset:
+            assert isinstance(slot, models.Slot)
+
+            slot.editable_until = default_editable_until(
+                slot.date, timezone.get_current_timezone()
+            )
+            slot.save()
+
+    @admin.display(description="Weekday")
+    def weekday(self, obj: models.Slot) -> str:
+        return obj.date.strftime("%A")
 
 
 class OptionAvailableFilter(admin.SimpleListFilter):
@@ -115,3 +154,24 @@ class SignupAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("slot", "student", "option")
+
+
+@admin.register(models.EditConfig)
+class EditConfigAdmin(admin.ModelAdmin):
+    """Config for editable config"""
+
+
+def default_editable_until(for_date: date, tzinfo) -> datetime:
+    weekday = for_date.weekday()
+
+    # Default to midnight UTC the day before
+
+    try:
+        config: models.EditConfig = models.EditConfig.objects.get(weekday=weekday)
+        out = datetime.combine(for_date, config.time)
+        out += timedelta(days=config.days_before * -1)
+        return tzinfo.localize(out)
+
+    except models.EditConfig.DoesNotExist:
+        out = datetime.combine(for_date + timedelta(days=-1), time(23, 59, 59))
+        return tzinfo.localize(out)

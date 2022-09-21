@@ -5,7 +5,9 @@
     data-student-id="{{ data.student.id }}"
     data-preferred-options="{{ data.preferred_option_ids | join:','}}"
     data-remaining-options="{{ data.remaining_option_ids | join:','}}"
-    data-current-item-id="{% if data.currently_selected %}{{ data.currently_selected.id }}{% endif %}"
+    data-current-item-id="{% if data.currently_selected %}{{ data.currently_selected.current_option.id }}{% endif %}"
+    data-allow-locking="{% if perms.enrichment.change_signup %}1{% else %}0{% endif %}"
+    data-locked="{% if data.currently_selected and data.currently_selected.admin_locked%}1{% else %}0{% endif %}"
     >
     {% if data.editable %}
         <i class="fa-solid fa-edit"></i>
@@ -13,9 +15,14 @@
     
     <span class="current-selection">
         {% if data.currently_selected %}
-            {{ data.currently_selected.display }}
+            {% if data.currently_selected.admin_locked %}
+                <i class="fa-solid fa-lock"></i>
+            {% endif %}
+
+            {{ data.currently_selected.current_option.display }}
         {% else %}
             No assignment
         {% endif %}
     </span>
 </span>
+
