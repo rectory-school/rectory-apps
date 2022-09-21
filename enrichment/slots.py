@@ -113,10 +113,15 @@ class GridStudent(NamedTuple):
     nickname: str
 
 
+class CurrentSelection(NamedTuple):
+    current_option: GridOption
+    admin_locked: bool
+
+
 class GridRowSlot(NamedTuple):
     student: GridStudent
     slot: GridSlot
-    currently_selected: Optional[GridOption]
+    currently_selected: Optional[CurrentSelection]
     preferred_options: List[GridOption]
     remaining_options: List[GridOption]
     editable: bool
@@ -132,9 +137,16 @@ class GridRowSlot(NamedTuple):
     @property
     def current_option_id(self) -> Optional[int]:
         if self.currently_selected:
-            return self.currently_selected.id
+            return self.currently_selected.current_option.id
 
         return None
+
+    @property
+    def admin_locked(self) -> bool:
+        if not self.currently_selected:
+            return False
+
+        return self.currently_selected.admin_locked
 
 
 class GridRow(NamedTuple):
@@ -329,9 +341,12 @@ class GridGenerator:
 
         def get_grid_row(student: GridStudent, slot: GridSlot) -> GridRowSlot:
             current_signup_data = organized_signups.get((slot.id, student.id))
-            current_signup: Optional[GridOption] = None
+            current_signup: Optional[CurrentSelection] = None
             if current_signup_data:
-                current_signup = self.options_by_id[current_signup_data.option_id]
+                current_signup = CurrentSelection(
+                    self.options_by_id[current_signup_data.option_id],
+                    current_signup_data.admin_locked,
+                )
 
             def is_editable() -> bool:
                 if slot.editable_until > timezone.now() and not self._edit_past_lockout:
@@ -341,6 +356,15 @@ class GridGenerator:
                     current_signup_data
                     and current_signup_data.admin_locked
                     and not self._can_override_admin_lock
+                ):
+                    return False
+
+                # If a student is set to an admin only option and the
+                # editor can't use admin only options, that's a lock
+                if (
+                    current_signup
+                    and current_signup.current_option.admin_only
+                    and not self._alow_admin_only
                 ):
                     return False
 
