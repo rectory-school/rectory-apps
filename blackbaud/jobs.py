@@ -21,7 +21,7 @@ def sync_sis(env: RunEnv):
     try:
         auto_sync()
     except SyncNotEnabled:
-        log.info("Sync is not currently enabled")
+        log.debug("Sync is not currently enabled")
         return
     except SyncNotReady as exc:
-        log.info("Sync not ready")
+        log.debug("Sync not ready")

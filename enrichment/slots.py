@@ -178,8 +178,8 @@ class GridGenerator:
         self._students = students
 
     @cached_property
-    def _can_override_admin_lock(self) -> bool:
-        return self._user.has_perm("enrichment.ignore_admin_locked")
+    def _can_set_admin_locked(self) -> bool:
+        return self._user.has_perm("enrichment.set_admin_locked")
 
     @cached_property
     def _edit_past_lockout(self) -> bool:
@@ -355,7 +355,7 @@ class GridGenerator:
                 if (
                     current_signup_data
                     and current_signup_data.admin_locked
-                    and not self._can_override_admin_lock
+                    and not self._can_set_admin_locked
                 ):
                     return False
 

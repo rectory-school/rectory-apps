@@ -116,8 +116,8 @@ class Signup(models.Model):
                 "Can edit enrichment signups past the lockout time",
             ),
             (
-                "ignore_admin_locked",
-                "Can edit enrichment signups regardless of admin lock",
+                "set_admin_locked",
+                "Can set/unset admin locked, as well as ignore the flag usage",
             ),
             (
                 "use_admin_only_options",

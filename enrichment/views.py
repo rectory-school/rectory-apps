@@ -10,16 +10,18 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import SuspiciousOperation
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.urls import reverse
+
 from pydantic import BaseModel, ValidationError, validator
 
 import accounts.models
 from blackbaud.models import Student, Teacher
 from blackbaud.advising import get_advisees
 from enrichment.models import Slot, Option, Signup
-from enrichment.slots import GridGenerator, SlotID
+from enrichment.slots import GridGenerator, SlotID, StudentID
 
 
 class AssignAllPermissionRequired(PermissionRequiredMixin):
@@ -47,7 +49,8 @@ class AssignView(LoginRequiredMixin, TemplateView):
         assert isinstance(user, accounts.models.User)
         return user
 
-    def get_students(self) -> List[Student]:
+    @cached_property
+    def students(self) -> List[Student]:
         teachers: Set[Teacher] = set(
             Teacher.objects.filter(active=True, email=self.user.email)
         )
@@ -61,8 +64,8 @@ class AssignView(LoginRequiredMixin, TemplateView):
             ),
         )
 
-    @cache
-    def get_slots(self) -> List[Slot]:
+    @cached_property
+    def slots(self) -> List[Slot]:
         base_date = self.get_base_date()
 
         return sorted(
@@ -82,7 +85,13 @@ class AssignView(LoginRequiredMixin, TemplateView):
         return get_monday()
 
     def get_generator(self) -> GridGenerator:
-        return GridGenerator(self.user, self.get_slots(), self.get_students())
+        return GridGenerator(self.user, self.slots, self.students)
+
+    def get(self, request, *args: Any, **kwargs: Any):
+        if not self.students:
+            return HttpResponseRedirect(reverse("enrichment:index"))
+
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -122,7 +131,8 @@ class AssignAllView(AssignAllPermissionRequired, AssignView):
     def get_title(self) -> str:
         return "All Advisees"
 
-    def get_students(self) -> List[Student]:
+    @cached_property
+    def students(self) -> List[Student]:
         all_students = {pair.student for pair in get_advisees()}
         return sorted(
             all_students,
@@ -140,7 +150,8 @@ class AssignForAdvisorView(AssignAllPermissionRequired, AssignView):
     def teacher(self) -> Teacher:
         return get_object_or_404(Teacher, pk=self.kwargs["teacher_id"])
 
-    def get_students(self) -> List[Student]:
+    @cached_property
+    def students(self) -> List[Student]:
         students = sorted(
             {pair.student for pair in get_advisees([self.teacher])},
             key=lambda obj: (obj.family_name, obj.nickname, obj.given_name),
@@ -155,9 +166,10 @@ class AssignUnassignedView(AssignAllView):
     def get_title(self) -> str:
         return "Unassigned Advisees"
 
-    def get_students(self) -> List[Student]:
-        slots = set(self.get_slots())
-        students = super().get_students()
+    @cached_property
+    def students(self) -> List[Student]:
+        slots = set(self.slots)
+        students = super().students
 
         signups = Signup.objects.filter(
             slot__in=slots, student__in=students
@@ -169,7 +181,6 @@ class AssignUnassignedView(AssignAllView):
         def is_fully_assigned(student: Student) -> bool:
             assigned = signups_by_student[student]
             return assigned == slots
-            return not (signups_by_student[student] - slots)
 
         return [obj for obj in students if not is_fully_assigned(obj)]
 
@@ -223,11 +234,12 @@ class AssignByStudentView(AssignAllView):
     def student(self) -> Student:
         return get_object_or_404(Student, pk=self.kwargs["student_id"])
 
-    def get_students(self) -> List[Student]:
+    @cached_property
+    def students(self) -> List[Student]:
         return [self.student]
 
-    @cache
-    def get_slots(self) -> List[Slot]:
+    @cached_property
+    def slots(self) -> List[Slot]:
         date_from = self.get_base_date()
         date_to = date_from + timedelta(days=180)
 
@@ -322,11 +334,10 @@ def assign(request: HttpRequest) -> JsonResponse:
     assert isinstance(request.user, accounts.models.User)
     generator = GridGenerator(request.user, [slot], [student])
 
-    # One slot one student should have one row with one column
-    assert len(generator.rows) == 1
-    row = generator.rows[0]
-    assert len(row.slots) == 1
-    config = row.slots[0]
+    grid_slot = generator.slots_by_id[SlotID(data.slot_id)]
+    grid_student = generator.students_by_id[StudentID(data.student_id)]
+
+    config = generator.grid_row_slots[(grid_student, grid_slot)]
 
     if not config.editable:
         return JsonResponse(
@@ -348,6 +359,16 @@ def assign(request: HttpRequest) -> JsonResponse:
             {
                 "success": False,
                 "code": "option-not-applicable",
+            }
+        )
+
+    # Edge case: Make sure nobody sends the admin locked flag on a slot
+    # they could edit, but can't set the admin lock for
+    if data.admin_lock and not generator._can_set_admin_locked:
+        return JsonResponse(
+            {
+                "success": False,
+                "code": "no-admin-lock-permission",
             }
         )
 

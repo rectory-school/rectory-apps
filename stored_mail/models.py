@@ -84,8 +84,9 @@ class OutgoingMessage(models.Model):
         kwargs = {k: v for k, v in kwargs.items() if v}
 
         if self.html:
-            msg = EmailMultiAlternatives(**kwargs)
-            msg.attach_alternative(self.html, "text/html")
+            alts = EmailMultiAlternatives(**kwargs)
+            alts.attach_alternative(self.html, "text/html")
+            msg: EmailMessage = alts
         else:
             msg = EmailMessage(**kwargs)
 
