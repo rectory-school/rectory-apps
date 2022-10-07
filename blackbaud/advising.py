@@ -1,7 +1,7 @@
 """Advisory helper methods"""
 
-from datetime import date
-from typing import Iterable, NamedTuple, Optional, Set, Tuple
+from collections import defaultdict
+from typing import Iterable, NamedTuple, Optional
 
 from blackbaud.models import School, Teacher, Student, Course, Class
 
@@ -36,7 +36,7 @@ def get_advisory_schools() -> QuerySet[School]:
 def get_advisees(
     limit_teachers: Optional[Iterable[Teacher]] = None,
     limit_students: Optional[Iterable[Student]] = None,
-) -> Set[AdviseePair]:
+) -> set[AdviseePair]:
     """Get the advisee/advisor pairs for a given set of students and/or teachers"""
 
     advisory_sections = get_advisory_sections().prefetch_related("students", "teachers")
@@ -50,7 +50,7 @@ def get_advisees(
     if limit_students is not None:
         advisory_sections = advisory_sections.filter(students__in=limit_students)
 
-    pairs: Set[AdviseePair] = set()
+    pairs: set[AdviseePair] = set()
 
     for section in advisory_sections:
         for teacher in section.teachers.all():
@@ -63,3 +63,19 @@ def get_advisees(
                 )
 
     return pairs
+
+
+def get_advisees_by_advisors(
+    limit_teachers: Optional[Iterable[Teacher]] = None,
+    limit_students: Optional[Iterable[Student]] = None,
+) -> dict[Teacher, set[Student]]:
+
+    out: dict[Teacher, set[Student]] = {}
+
+    for pair in get_advisees(limit_teachers, limit_students):
+        if not pair.teacher in out:
+            out[pair.teacher] = set()
+
+        out[pair.teacher].add(pair.student)
+
+    return out

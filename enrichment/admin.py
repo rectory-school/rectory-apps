@@ -178,3 +178,66 @@ def default_editable_until(for_date: date, tzinfo) -> datetime:
     except models.EditConfig.DoesNotExist:
         out = datetime.combine(for_date + timedelta(days=-1), time(23, 59, 59))
         return tzinfo.localize(out)
+
+
+class RelatedAddressInline(admin.TabularInline):
+    model = models.RelatedAddress
+
+
+@admin.register(models.EmailConfig)
+class EmailConfigAdmin(admin.ModelAdmin):
+    """Email config admin"""
+
+    inlines = [RelatedAddressInline]
+
+    readonly_fields = ("last_sent", "next_run")
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "report",
+                    "start",
+                    "end",
+                    "enabled",
+                    "last_sent",
+                    "next_run",
+                )
+            },
+        ),
+        (
+            "From",
+            {
+                "fields": (
+                    "from_name",
+                    "from_address",
+                ),
+            },
+        ),
+        (
+            "Scheduling",
+            {
+                "fields": (
+                    "timezone",
+                    "time",
+                    "monday",
+                    "tuesday",
+                    "wednesday",
+                    "thursday",
+                    "friday",
+                    "saturday",
+                    "sunday",
+                ),
+            },
+        ),
+    )
+
+    @admin.display(description="Next send")
+    def next_run(self, obj: models.EmailConfig):
+        val = obj.next_run
+
+        if not val:
+            return None
+
+        return val
