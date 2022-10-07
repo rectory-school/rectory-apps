@@ -100,9 +100,7 @@ class OutgoingEmail(NamedTuple):
         return outgoing_message
 
 
-def unassigned_administrator(
-    cfg: EmailConfig, slots: set[Slot]
-) -> Iterable[OutgoingEmail]:
+def unassigned_admin(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
     """Generate report for unassigned advisees to admins"""
 
     advisees_by_advisor = get_advisees_by_advisors()
@@ -170,7 +168,7 @@ def unassigned_administrator(
 
     yield OutgoingEmail(
         cfg=cfg,
-        template_name="unassigned_administrator",
+        template_name="unassigned_admin",
         context=context,
         subject=f"Unassigned advisee report: {len(unassigned_students)} total",
         from_address=AddressPair(name=cfg.from_name, address=cfg.from_address),
@@ -181,9 +179,7 @@ def unassigned_administrator(
     )
 
 
-def unassigned_for_advisors(
-    cfg: EmailConfig, slots: set[Slot]
-) -> Iterable[OutgoingEmail]:
+def unassigned_advisor(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
     """Generate reports for unassigned advisees to advisors"""
 
     data = get_advisees_by_advisors()
@@ -260,8 +256,8 @@ def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmai
     slots = set(Slot.objects.filter(date__gte=start_date, date__lte=end_date))
 
     callable_map = {
-        "unassigned_advisor": unassigned_for_advisors,
-        "unassigned_admin": unassigned_administrator,
+        "unassigned_advisor": unassigned_advisor,
+        "unassigned_admin": unassigned_admin,
     }
 
     func = callable_map[cfg.report]

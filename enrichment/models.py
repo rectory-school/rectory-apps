@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Callable, Iterable, Iterator, Sequence
+from typing import Iterator, Sequence
 from zoneinfo import available_timezones, ZoneInfo
 
 from django.db import models
@@ -21,11 +21,11 @@ WEEKDAY_CHOICES = (
 )
 
 EMAIL_REPORT_CHOICES = (
-    ("unassigned_advisor", "Unassigned reminder to advisors"),
-    ("unassigned_admin", "Report of unassigned list to admins"),
-    ("advisor_signups", "Signup report of advisee locations to advisors"),
-    ("advisee_signups", "Signup report to each advisee with their locations"),
-    ("facilitator_signups", "Signup report to each facilitator with their attendees"),
+    ("unassigned_advisor", "Unassigned advisees to advisors"),
+    ("unassigned_admin", "Unassigned advisees to admins"),
+    ("advisor_signups", "Advisee locations to advisors"),
+    ("advisee_signups", "Advisee locations to advisees"),
+    ("facilitator_signups", "Advisee locations to facilitators"),
     ("all_signups", "Full signup report"),
 )
 

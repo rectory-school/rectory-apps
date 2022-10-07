@@ -11,7 +11,7 @@ from django.conf import settings
 import blackbaud.models
 import enrichment.models
 
-from enrichment.emails import unassigned_for_advisors, OutgoingEmail, AddressPair
+from enrichment.emails import unassigned_advisor, OutgoingEmail, AddressPair
 
 
 @pytest.mark.django_db
@@ -44,7 +44,7 @@ def test_advisor_unassigned():
         message=cfg,
     )
 
-    msgs = list(unassigned_for_advisors(cfg, {slot}))
+    msgs = list(unassigned_advisor(cfg, {slot}))
     assert len(msgs) == 1
 
     actual = msgs.pop()
