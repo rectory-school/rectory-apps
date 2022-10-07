@@ -1,0 +1,54 @@
+{% extends "enrichment/email/base.html" %}
+
+{% block title %}Unassigned Advisee List{% endblock %}
+
+{% block content %}
+  <table class="main" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="alert alert-warning">
+        {% if count == 0 %}
+          All advisees are assigned - it is a glorious day!
+        {% elif count == 1 %}
+          There is <strong>one advisee</strong> that needs to be assigned to an enrichment session.
+        {% else %}
+          There are <strong>{{ count }} advisees</strong> that need to be assigned to enrichment sessions.
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td class="content-wrap">
+        <table width="100%" cellpadding="0" cellspacing="0">								
+          {% if count > 0 %}
+            <tr>
+              <td class="content-block">
+                <a href="{{base_url}}{% url 'enrichment:assign-unassigned' %}" class="btn-primary">Assign unassigned students</a>
+              </td>
+            </tr>
+          {% endif %}
+          
+          <tr>
+            <td class="content-block">
+              {% for slot, slotData in slots %}
+                <p style="font-size: 20pt">{{ slot.date | date:"l, F j"}}<sup style="font-size: smaller;">{{ slot.date | date:"S"}}</sup></p>
+                {% if slotData %}
+                  <ul>
+                    {% for advisor, students in slotData %}
+                      <li><strong>{{ advisor.full_name }}</strong><ul>
+                        {% for student in students %}
+                          <li>{{ student.display_name }}</li>
+                        {% endfor %}
+                      </ul></li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <ul><li>All students are assigned</li></ul>
+                {% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+{% endblock %}
+			

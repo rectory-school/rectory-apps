@@ -100,9 +100,92 @@ class OutgoingEmail(NamedTuple):
         return outgoing_message
 
 
+def unassigned_administrator(
+    cfg: EmailConfig, slots: set[Slot]
+) -> Iterable[OutgoingEmail]:
+    """Generate report for unassigned advisees to admins"""
+
+    advisees_by_advisor = get_advisees_by_advisors()
+
+    advisors_by_advisees: dict[Student, set[Teacher]] = {}
+    all_students: set[Student] = set()
+
+    for advisor, advisees in advisees_by_advisor.items():
+        for student in advisees:
+            if not student in advisors_by_advisees:
+                advisors_by_advisees[student] = set()
+
+            advisors_by_advisees[student].add(advisor)
+            all_students.add(student)
+
+    all_signups = {
+        (SlotID(row["slot_id"]), StudentID(row["student_id"]))
+        for row in Signup.objects.filter(slot__in=slots).values("slot_id", "student_id")
+    }
+
+    unassigned_by_slot: dict[Slot, set[Student]] = {}
+    unassigned_students: set[Student] = set()
+
+    # Calculate all unassigned students by slot
+    for slot in slots:
+        unassigned_by_slot[slot] = set()
+        slot_id = SlotID(slot.pk)
+
+        for student in all_students:
+            student_id = StudentID(student.pk)
+            key = (slot_id, student_id)
+
+            if key not in all_signups:
+                unassigned_by_slot[slot].add(student)
+                unassigned_students.add(student)
+
+    organized: list[tuple[Slot, list[tuple[Teacher, list[Student]]]]] = []
+
+    # Organize into slot/advisor
+    for slot in sorted(slots, key=lambda slot: slot.date):
+        organized_slot: list[tuple[Teacher, list[Student]]] = []
+
+        teachers = sorted(
+            advisees_by_advisor.keys(),
+            key=lambda teacher: (teacher.family_name, teacher.given_name),
+        )
+
+        for teacher in teachers:
+            advisees = advisees_by_advisor[teacher]
+            unassigned_advisees = sorted(
+                unassigned_by_slot[slot] & advisees,
+                key=lambda student: student.sort_key,
+            )
+
+            if unassigned_advisees:
+                organized_slot.append((teacher, unassigned_advisees))
+
+        organized.append((slot, organized_slot))
+
+    context = {
+        "count": len(unassigned_students),
+        "base_url": BASE_URL,
+        "slots": organized,
+    }
+
+    yield OutgoingEmail(
+        cfg=cfg,
+        template_name="unassigned_administrator",
+        context=context,
+        subject=f"Unassigned advisee report: {len(unassigned_students)} total",
+        from_address=AddressPair(name=cfg.from_name, address=cfg.from_address),
+        to_addresses=set(),
+        cc_addresses=set(),
+        bcc_addresses=set(),
+        reply_to_addresses=set(),
+    )
+
+
 def unassigned_for_advisors(
     cfg: EmailConfig, slots: set[Slot]
 ) -> Iterable[OutgoingEmail]:
+    """Generate reports for unassigned advisees to advisors"""
+
     data = get_advisees_by_advisors()
     all_students: set[Student] = set()
     for students in data.values():
@@ -178,6 +261,7 @@ def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmai
 
     callable_map = {
         "unassigned_advisor": unassigned_for_advisors,
+        "unassigned_admin": unassigned_administrator,
     }
 
     func = callable_map[cfg.report]
