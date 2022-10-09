@@ -186,10 +186,6 @@ def test_advisor_unassigned():
             "deadline": slot.editable_until - timedelta(hours=1),
         },
         subject="You have unassigned advisees",
-        from_address=AddressPair(
-            "Rectory Enrichment System",
-            "server@apps.rectoryschool.org",
-        ),
         to_addresses={AddressPair("Adam Peacock", "example@example.org")},
         cc_addresses=set(),
         bcc_addresses=set(),
