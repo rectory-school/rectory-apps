@@ -34,6 +34,7 @@ pydantic = "^1.10.2"
 django-hijack = "^3.2.1"
 fontawesomefree = "^6.2.0"
 frozendict = "^2.3.4"
+django-node-assets = "^0.9.11"
 
 [tool.poetry.dev-dependencies]
 rope = "*"
