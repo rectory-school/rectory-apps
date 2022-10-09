@@ -13,6 +13,7 @@ from enrichment.models import (
     EmailConfig,
     RelatedAddress,
     Option,
+    Signup,
     Slot,
     EMAIL_REPORT_CHOICES,
     RELATED_ADDRESS_CHOICES,
@@ -37,6 +38,9 @@ class Command(BaseCommand):
 
 
 def _make_samples():
+    blackbaud.models.AdvisoryCourse.objects.all().delete()
+    blackbaud.models.AdvisorySchool.objects.all().delete()
+
     middle_school = blackbaud.models.School(
         sis_id=uuid4().hex,
         active=True,
@@ -51,39 +55,58 @@ def _make_samples():
     )
     course.save()
 
-    student = blackbaud.models.Student(
+    student_jimmy = blackbaud.models.Student(
         sis_id=uuid4().hex,
         active=True,
         given_name="Jimmy",
         family_name="Neutron",
         email="example@example.org",
     )
-    student.save()
-    student.schools.add(middle_school)
+    student_jimmy.save()
+    student_jimmy.schools.add(middle_school)
 
-    teacher = blackbaud.models.Teacher(
+    student_peachick = blackbaud.models.Student(
+        sis_id=uuid4().hex,
+        active=True,
+        given_name="Little",
+        family_name="Peachick",
+        email="example@example.org",
+    )
+    student_peachick.save()
+    student_peachick.schools.add(middle_school)
+
+    teacher_peacock = blackbaud.models.Teacher(
         sis_id=uuid4().hex,
         active=True,
         given_name="Adam",
         family_name="Peacock",
         email="example@example.org",
     )
-    teacher.save()
+    teacher_peacock.save()
 
-    section = blackbaud.models.Class(
+    teacher_ryan = blackbaud.models.Teacher(
+        sis_id=uuid4().hex,
+        active=True,
+        given_name="Ryan",
+        family_name="Reynolds",
+        email="example@example.org",
+    )
+    teacher_ryan.save()
+
+    peacock_section_advising = blackbaud.models.Class(
         sis_id=uuid4().hex,
         active=True,
         title="Peacock advising",
         course=course,
         school=middle_school,
     )
-    section.save()
+    peacock_section_advising.save()
 
     blackbaud.models.TeacherEnrollment.objects.create(
         sis_id=uuid4().hex,
         active=True,
-        section=section,
-        teacher=teacher,
+        section=peacock_section_advising,
+        teacher=teacher_peacock,
         school=middle_school,
         begin_date=date.today() - timedelta(days=30),
         end_date=date.today() + timedelta(days=30),
@@ -92,8 +115,18 @@ def _make_samples():
     blackbaud.models.StudentEnrollment.objects.create(
         sis_id=uuid4().hex,
         active=True,
-        section=section,
-        student=student,
+        section=peacock_section_advising,
+        student=student_jimmy,
+        school=middle_school,
+        begin_date=date.today() - timedelta(days=30),
+        end_date=date.today() + timedelta(days=30),
+    )
+
+    blackbaud.models.StudentEnrollment.objects.create(
+        sis_id=uuid4().hex,
+        active=True,
+        section=peacock_section_advising,
+        student=student_peachick,
         school=middle_school,
         begin_date=date.today() - timedelta(days=30),
         end_date=date.today() + timedelta(days=30),
@@ -103,7 +136,7 @@ def _make_samples():
     blackbaud.models.AdvisorySchool.objects.create(school=middle_school)
 
     slot = Slot()
-    slot.date = date(2022, 10, 11)  # Tuesday
+    slot.date = date(2000, 1, 1)
     slot.editable_until = datetime(
         slot.date.year,
         slot.date.month,
@@ -116,12 +149,32 @@ def _make_samples():
     )
     slot.save()
 
-    option = Option()
-    option.start_date = date.today() - timedelta(days=7)
-    option.end_date = option.start_date + timedelta(days=365)
+    option_peacock = Option()
+    option_peacock.start_date = date(1999, 1, 1)
+    option_peacock.end_date = option_peacock.start_date + timedelta(days=3650)
+    option_peacock.teacher = teacher_peacock
+    option_peacock.save()
 
-    option.teacher = teacher
-    option.save()
+    option_reynolds = Option()
+    option_reynolds.start_date = date(1999, 1, 1)
+    option_reynolds.end_date = option_peacock.start_date + timedelta(days=3650)
+    option_reynolds.teacher = teacher_ryan
+    option_reynolds.location = "The MCU"
+    option_reynolds.save()
+
+    signup_jimmy = Signup()
+    signup_jimmy.slot = slot
+    signup_jimmy.option = option_reynolds
+    signup_jimmy.student = student_jimmy
+    signup_jimmy.admin_locked = False
+    signup_jimmy.save()
+
+    signup_peachick = Signup()
+    signup_peachick.slot = slot
+    signup_peachick.option = option_reynolds
+    signup_peachick.student = student_peachick
+    signup_peachick.admin_locked = False
+    signup_peachick.save()
 
     cfgs: list[EmailConfig] = []
 

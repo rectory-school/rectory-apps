@@ -32,13 +32,28 @@ OptionID = NewType("OptionID", int)
 
 class GridTeacher(NamedTuple):
     id: TeacherID
-    name: str
+    honorific: str
     last_name: str
     first_name: str
 
     @property
     def jsonable(self) -> dict:
         return {f: getattr(self, f) for f in self._fields}
+
+    @property
+    def formal_name(self) -> str:
+        if self.honorific:
+            return f"{self.honorific}. {self.last_name}"
+
+        return self.name
+
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def sort_key(self) -> tuple:
+        return self.last_name, self.first_name
 
 
 class GridSlot(NamedTuple):
@@ -104,13 +119,28 @@ class GridOption(NamedTuple):
         out["display"] = self.display
         return out
 
+    @property
+    def sort_key(self) -> tuple:
+        return self.teacher.sort_key
+
 
 class GridStudent(NamedTuple):
     id: StudentID
-    name: str
     last_name: str
     first_name: str
     nickname: str
+
+    @property
+    def name(self) -> str:
+        if self.nickname:
+            return f"{self.nickname} {self.last_name}"
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def sort_key(self) -> tuple:
+        if self.nickname:
+            return self.last_name, self.nickname
+        return self.last_name, self.first_name
 
 
 class CurrentSelection(NamedTuple):
@@ -159,7 +189,17 @@ class PivotedGridRow(NamedTuple):
     students: List[GridRowSlot]
 
 
-class SignupSpec(NamedTuple):
+class GridSignup(NamedTuple):
+    """Full signup information"""
+
+    slot: GridSlot
+    option: GridOption
+    student: GridStudent
+    admin_locked: bool
+    assignment_is_valid: bool
+
+
+class _RawSignup(NamedTuple):
     slot_id: SlotID
     student_id: StudentID
     option_id: OptionID
@@ -169,7 +209,7 @@ class SignupSpec(NamedTuple):
 class GridGenerator:
     def __init__(
         self,
-        user: User,
+        user: User | None,
         slots: List[Slot],
         students: List[Student],
     ):
@@ -179,14 +219,20 @@ class GridGenerator:
 
     @cached_property
     def _can_set_admin_locked(self) -> bool:
+        if not self._user:
+            return False
         return self._user.has_perm("enrichment.set_admin_locked")
 
     @cached_property
     def _edit_past_lockout(self) -> bool:
+        if not self._user:
+            return False
         return self._user.has_perm("enrichment.edit_past_lockout")
 
     @cached_property
     def _alow_admin_only(self) -> bool:
+        if not self._user:
+            return False
         return self._user.has_perm("enrichment.use_admin_only_options")
 
     @cached_property
@@ -203,7 +249,6 @@ class GridGenerator:
         def transform(obj: Student) -> GridStudent:
             return GridStudent(
                 id=StudentID(obj.pk),
-                name=obj.display_name,
                 last_name=obj.family_name,
                 first_name=obj.given_name,
                 nickname=obj.nickname,
@@ -219,7 +264,8 @@ class GridGenerator:
         return {obj.id: obj for obj in self.students}
 
     @cached_property
-    def signups(self) -> Set[SignupSpec]:
+    def _raw_signups(self) -> set[_RawSignup]:
+        """Raw signups to remove a recursion issue with options calling signups"""
         slot_ids = self.slots_by_id.keys()
         student_ids = self.students_by_id.keys()
 
@@ -228,20 +274,38 @@ class GridGenerator:
         ).values("slot_id", "option_id", "student_id", "admin_locked")
 
         return {
-            SignupSpec(
-                slot_id=SlotID(row["slot_id"]),
-                student_id=StudentID(row["student_id"]),
-                option_id=OptionID(row["option_id"]),
-                admin_locked=row["admin_locked"],
+            _RawSignup(
+                SlotID(row["slot_id"]),
+                StudentID(row["student_id"]),
+                OptionID(row["option_id"]),
+                row["admin_locked"],
             )
             for row in rows
         }
 
     @cached_property
+    def signups(self) -> Set[GridSignup]:
+        def get(row: _RawSignup) -> GridSignup:
+            slot = self.slots_by_id[row.slot_id]
+            option = self.options_by_id[row.option_id]
+            student = self.students_by_id[row.student_id]
+            admin_locked = row.admin_locked
+
+            return GridSignup(
+                slot=slot,
+                option=option,
+                student=student,
+                admin_locked=admin_locked,
+                assignment_is_valid=option in self.options_by_slot[slot],
+            )
+
+        return {get(row) for row in self._raw_signups}
+
+    @cached_property
     def all_options(self) -> Set[GridOption]:
         out: Set[GridOption] = set()
 
-        used_ids = {signup.option_id for signup in self.signups}
+        used_ids = {signup.option_id for signup in self._raw_signups}
         relevant_option_query = Q(pk__in=used_ids)
 
         if self.slots:
@@ -337,14 +401,14 @@ class GridGenerator:
     def grid_row_slots(self) -> Dict[Tuple[GridStudent, GridSlot], GridRowSlot]:
         out: Dict[Tuple[GridStudent, GridSlot], GridRowSlot] = {}
 
-        organized_signups = {(row[0], row[1]): row for row in self.signups}
+        organized_signups = {(row.slot.id, row.student.id): row for row in self.signups}
 
         def get_grid_row(student: GridStudent, slot: GridSlot) -> GridRowSlot:
             current_signup_data = organized_signups.get((slot.id, student.id))
             current_signup: Optional[CurrentSelection] = None
             if current_signup_data:
                 current_signup = CurrentSelection(
-                    self.options_by_id[current_signup_data.option_id],
+                    self.options_by_id[current_signup_data.option.id],
                     current_signup_data.admin_locked,
                 )
 
@@ -465,5 +529,5 @@ def _teacher_to_grid(obj: Teacher) -> GridTeacher:
         id=TeacherID(obj.pk),
         last_name=obj.family_name,
         first_name=obj.given_name,
-        name=obj.formal_name,
+        honorific=obj.honorific,
     )

@@ -7,14 +7,23 @@ from typing import Any, DefaultDict, Iterable, NamedTuple, Iterable
 from black import out
 
 from enrichment.models import (
+    Option,
     Slot,
     Signup,
     EmailConfig,
     RelatedAddress as DefaultAddress,
 )
-from enrichment.slots import SlotID, StudentID
+from enrichment.slots import (
+    GridGenerator,
+    GridOption,
+    GridSignup,
+    GridSlot,
+    GridStudent,
+    SlotID,
+    StudentID,
+)
 from stored_mail.models import OutgoingMessage, RelatedAddress
-from blackbaud.advising import get_advisees_by_advisors
+from blackbaud.advising import get_advisees_by_advisors, get_advisees
 from blackbaud.models import Student, Teacher
 from django.template.loader import render_to_string, TemplateDoesNotExist
 from django.utils import timezone
@@ -35,11 +44,10 @@ class OutgoingEmail(NamedTuple):
     template_name: str
     context: dict[str, Any]
     subject: str
-    from_address: AddressPair
-    to_addresses: set[AddressPair]
-    cc_addresses: set[AddressPair]
-    bcc_addresses: set[AddressPair]
-    reply_to_addresses: set[AddressPair]
+    to_addresses: set[AddressPair] = set()
+    cc_addresses: set[AddressPair] = set()
+    bcc_addresses: set[AddressPair] = set()
+    reply_to_addresses: set[AddressPair] = set()
 
     @property
     def message_text(self) -> str:
@@ -60,8 +68,8 @@ class OutgoingEmail(NamedTuple):
         since the to, cc, bcc, and reply-to objects are foreign keys"""
 
         outgoing_message = OutgoingMessage()
-        outgoing_message.from_name = self.from_address.name
-        outgoing_message.from_address = self.from_address.address
+        outgoing_message.from_name = self.cfg.from_name
+        outgoing_message.from_address = self.cfg.from_address
         outgoing_message.subject = self.subject
         outgoing_message.text = self.message_text
         outgoing_message.html = self.message_html or ""
@@ -171,11 +179,6 @@ def unassigned_admin(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEma
         template_name="unassigned_admin",
         context=context,
         subject=f"Unassigned advisee report: {len(unassigned_students)} total",
-        from_address=AddressPair(name=cfg.from_name, address=cfg.from_address),
-        to_addresses=set(),
-        cc_addresses=set(),
-        bcc_addresses=set(),
-        reply_to_addresses=set(),
     )
 
 
@@ -242,11 +245,50 @@ def _unassigned_for_advisor(
         template_name="unassigned_advisor",
         context=context,
         subject="You have unassigned advisees",
-        from_address=AddressPair(name=cfg.from_name, address=cfg.from_address),
         to_addresses={AddressPair(advisor.full_name, advisor.email)},
-        cc_addresses=set(),
-        bcc_addresses=set(),
-        reply_to_addresses=set(),
+    )
+
+
+def all_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
+    students_by_id: dict[int, Student] = {
+        pair.student.pk: pair.student for pair in get_advisees()
+    }
+
+    grid = GridGenerator(
+        None,
+        sorted(slots, key=lambda obj: obj.date),
+        sorted(students_by_id.values(), key=lambda obj: obj.pk),
+    )
+
+    by_slot_option: defaultdict[
+        tuple[GridSlot, GridOption], set[GridSignup]
+    ] = defaultdict(set)
+
+    for signup in grid.signups:
+        by_slot_option[(signup.slot, signup.option)].add(signup)
+
+    organized: list[tuple[GridSlot, list[tuple[GridOption, list[GridStudent]]]]] = []
+
+    for slot in sorted(grid.slots, key=lambda obj: obj.date):
+        organized_options: list[tuple[GridOption, list[GridStudent]]] = []
+
+        for option in sorted(grid.options_by_slot[slot], key=lambda obj: obj.sort_key):
+            signups = by_slot_option[(slot, option)]
+            students = sorted(
+                (obj.student for obj in signups), key=lambda obj: obj.sort_key
+            )
+
+            organized_options.append((option, students))
+
+        organized.append((slot, organized_options))
+
+    context = {"slots": organized}
+
+    yield OutgoingEmail(
+        cfg=cfg,
+        template_name="all_signups",
+        context=context,
+        subject="Enrichment signups",
     )
 
 
@@ -258,6 +300,7 @@ def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmai
     callable_map = {
         "unassigned_advisor": unassigned_advisor,
         "unassigned_admin": unassigned_admin,
+        "all_signups": all_signups,
     }
 
     func = callable_map[cfg.report]
