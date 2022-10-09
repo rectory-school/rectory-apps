@@ -26,7 +26,6 @@ WORKDIR /app
 COPY . ./
 
 RUN python manage.py collectstatic --no-input
-RUN rm -rf node_modules
 EXPOSE 8000
 
 CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--bind", ":8000", "core.asgi:application", "-k", "uvicorn.workers.UvicornWorker"]
