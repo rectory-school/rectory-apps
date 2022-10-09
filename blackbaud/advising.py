@@ -1,11 +1,20 @@
 """Advisory helper methods"""
 
-from collections import defaultdict
+from datetime import date
 from typing import Iterable, NamedTuple, Optional
 
-from blackbaud.models import School, Teacher, Student, Course, Class
+from blackbaud.models import (
+    School,
+    StudentEnrollment,
+    Teacher,
+    Student,
+    Course,
+    Class,
+    TeacherEnrollment,
+)
 
 from django.db.models import QuerySet
+from django.utils import timezone
 
 
 class AdviseePair(NamedTuple):
@@ -36,8 +45,12 @@ def get_advisory_schools() -> QuerySet[School]:
 def get_advisees(
     limit_teachers: Optional[Iterable[Teacher]] = None,
     limit_students: Optional[Iterable[Student]] = None,
+    as_of: Optional[date] = None,
 ) -> set[AdviseePair]:
     """Get the advisee/advisor pairs for a given set of students and/or teachers"""
+
+    if not as_of:
+        as_of = timezone.now().date()
 
     advisory_sections = get_advisory_sections().prefetch_related("students", "teachers")
 
@@ -53,14 +66,25 @@ def get_advisees(
     pairs: set[AdviseePair] = set()
 
     for section in advisory_sections:
-        for teacher in section.teachers.all():
-            for student in section.students.all():
-                pairs.add(
-                    AdviseePair(
-                        teacher=teacher,
-                        student=student,
-                    )
-                )
+        for teacher_enrollment in section.teacher_enrollments.all():
+            assert isinstance(teacher_enrollment, TeacherEnrollment)
+            if (
+                teacher_enrollment.begin_date <= as_of
+                and as_of <= teacher_enrollment.end_date
+            ):
+                for student_enrollment in section.student_enrollments.all():
+                    assert isinstance(student_enrollment, StudentEnrollment)
+
+                    if (
+                        student_enrollment.begin_date <= as_of
+                        and as_of <= student_enrollment.end_date
+                    ):
+                        pairs.add(
+                            AdviseePair(
+                                teacher=teacher_enrollment.teacher,
+                                student=student_enrollment.student,
+                            )
+                        )
 
     return pairs
 
