@@ -2,8 +2,10 @@ FROM python:3.10-buster as builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y nodejs npm
-RUN npm i -g yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt update
+RUN apt install -y yarn
 
 RUN pip install pip==22.2.2
 RUN pip install poetry==1.2.1
