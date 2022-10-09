@@ -22,6 +22,8 @@ FROM python:3.10-slim-buster as prod
 RUN apt-get update && apt-get install -y postgresql-client
 
 COPY --from=builder /app/.venv /app/.venv/
+COPY --from=builder /app/node_modules /app/node_modules
+
 ENV PATH /app/.venv/bin:$PATH
 
 WORKDIR /app
