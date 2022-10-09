@@ -112,6 +112,7 @@ INSTALLED_APPS = [
     "hijack",
     "hijack.contrib.admin",
     "fontawesomefree",
+    "django_node_assets",
 ]
 
 LOCAL_APPS = [
@@ -220,6 +221,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_ROOT = BASE_DIR / "scratch" / "media"
 MEDIA_URL = env.str("MEDIA_URL", "/media/")
 
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    "django_node_assets.finders.NodeModulesFinder",
+]
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATIC_ROOT = BASE_DIR / "scratch" / "static"
 STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -299,3 +306,6 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
+NODE_PACKAGE_JSON = BASE_DIR / "package.json"
+NODE_MODULES_ROOT = BASE_DIR / "node_modules"

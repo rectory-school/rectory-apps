@@ -270,6 +270,14 @@ python-versions = ">=3.6.2"
 Django = ">=2.2"
 
 [[package]]
+name = "django-node-assets"
+version = "0.9.11"
+description = "The Django application that allows install and serve assets via Node.js package manager infrastructure."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "django-quick-jobs"
 version = "0.3.0"
 description = "A method of quickly and simply running background jobs in a Django project"
@@ -1032,7 +1040,7 @@ brotli = ["Brotli"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "42ba62835b8b562e211198a9ffd9a25209a684c3f6afc8690b8a250ca8beb160"
+content-hash = "166f51490d1efc99ec4ff121f3f52e0b57b1e4d5f19be429f0652bf19a92982b"
 
 [metadata.files]
 appnope = [
@@ -1148,6 +1156,10 @@ django-ipware = [
 django-lb-health-check = [
     {file = "django-lb-health-check-1.0.1.tar.gz", hash = "sha256:44a93c37db22c3e27a0404c7e3881007d2b846a2f441626d22a96f28349b332e"},
     {file = "django_lb_health_check-1.0.1-py3-none-any.whl", hash = "sha256:6ef16e2965a302853eb644006e16e972fb6ff8399c6b468c59a534002bf533df"},
+]
+django-node-assets = [
+    {file = "django-node-assets-0.9.11.tar.gz", hash = "sha256:df6ca9aeb868aa9692cbf8f6265132b6159798866b15ac95d7d0d4dd5f3cb6da"},
+    {file = "django_node_assets-0.9.11-py3-none-any.whl", hash = "sha256:4d37659c07976dc4ebccb6704051c25204e3381aa5e4f98a4a76b57e33cb1776"},
 ]
 django-quick-jobs = [
     {file = "django-quick-jobs-0.3.0.tar.gz", hash = "sha256:673843f2ec0e0427dbb2698e968bc1149e027c726633a9d0c5fb5c1b2309e1f1"},

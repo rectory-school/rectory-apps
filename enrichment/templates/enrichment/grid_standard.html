@@ -14,8 +14,8 @@
     {% url 'enrichment:assign-save' as assign_url %}
     {{ assign_url|json_script:"assign-url" }}
 
-    <link href="{% static 'dist/select2-4.0.13/css/select2.min.css' %}" rel="stylesheet" />
-    <script src="{% static 'dist/select2-4.0.13/js/select2.min.js' %}"></script>
+    <link href="{% static 'select2/dist/css/select2.min.css' %}" rel="stylesheet" />
+    <script src="{% static 'select2/dist/js/select2.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
