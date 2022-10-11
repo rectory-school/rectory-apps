@@ -1,6 +1,7 @@
 """Tests for the email system"""
 
 from datetime import date, time, datetime, timedelta
+from typing import Sequence
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -15,6 +16,7 @@ from enrichment.emails import (
     unassigned_advisor,
     OutgoingEmail,
     AddressPair,
+    comma_format_list,
 )
 
 from enrichment.models import (
@@ -23,6 +25,12 @@ from enrichment.models import (
     Option,
     Slot,
     EMAIL_REPORT_CHOICES,
+)
+
+COMMA_LIST_EXPECTATIONS = (
+    ((1,), "1"),
+    ((1, 2), "1 and 2"),
+    ((1, 2, 3), "1, 2, and 3"),
 )
 
 
@@ -400,3 +408,10 @@ def _basic_setup():
     option.save()
 
     return teacher, student, slot
+
+
+@pytest.mark.parametrize(("input", "expected"), COMMA_LIST_EXPECTATIONS)
+def test_comma_list(input: Sequence[int], expected: str):
+    str_inputs = [str(val) for val in input]
+    actual = comma_format_list(str_inputs)
+    assert actual == expected

@@ -1,0 +1,17 @@
+<p>Dear {{ student.display_name }}:</p>
+
+{% for slot, current_selection in slots %}
+    <p>
+        {% if current_selection %}
+            Your assigned enrichment session on {{ slot.date | date:"l F, jS" }}
+            {% if slot.description %}
+                ({{ slot.description }})
+            {% endif %}
+            is in {{ current_selection.location }}
+            with {{ current_selection.teacher.formal_name }}
+        {% else %}
+            You were not assigned an enrichment session on {{ slot.date | date:"l F, jS" }}.
+            Please report to the education office during enrichment for further instructions
+        {% endif %}
+    </p>
+{% endfor %}

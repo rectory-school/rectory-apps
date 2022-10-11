@@ -2,12 +2,11 @@ from ast import Add
 from collections import defaultdict
 from datetime import date, timedelta
 
-from typing import Any, DefaultDict, Iterable, NamedTuple, Iterable
+from typing import Any, DefaultDict, Iterable, NamedTuple, Iterable, Optional
 
 from black import out
 
 from enrichment.models import (
-    Option,
     Slot,
     Signup,
     EmailConfig,
@@ -292,6 +291,44 @@ def all_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
     )
 
 
+def advisee_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
+    """Personalized emails to every advisee"""
+
+    ordered_slots = sorted(slots, key=lambda obj: obj.date)
+    advisees = set(pair.student for pair in get_advisees())
+
+    grid = GridGenerator(None, ordered_slots, list(advisees))
+
+    dates = sorted({obj.date for obj in slots})
+    subject_dates = comma_format_list([d.strftime("%A, %B %d") for d in dates])
+    subject = f"Enrichment assignment for {subject_dates}"
+
+    for advisee in advisees:
+        organized: list[tuple[GridSlot, Optional[GridOption]]] = []
+        grid_student = grid.students_by_id[StudentID(advisee.pk)]
+
+        for slot in ordered_slots:
+            grid_slot = grid.slots_by_id[SlotID(slot.pk)]
+            key = (grid_student, grid_slot)
+            signup = grid.grid_row_slots[key]
+            current_option: GridOption | None = None
+
+            if signup.currently_selected:
+                current_option = signup.currently_selected.current_option
+
+            organized.append((grid_slot, current_option))
+
+        to_pair = AddressPair(advisee.display_name, advisee.email)
+
+        yield OutgoingEmail(
+            cfg=cfg,
+            template_name="advisee_signups",
+            context={"student": advisee, "slots": organized},
+            subject=subject,
+            to_addresses={to_pair},
+        )
+
+
 def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmail]:
     start_date = date + timedelta(days=cfg.start)
     end_date = date + timedelta(days=cfg.end)
@@ -301,6 +338,7 @@ def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmai
         "unassigned_advisor": unassigned_advisor,
         "unassigned_admin": unassigned_admin,
         "all_signups": all_signups,
+        "advisee_signups": advisee_signups,
     }
 
     func = callable_map[cfg.report]
@@ -315,3 +353,17 @@ def execute_job(cfg: EmailConfig, date: date):
 
     cfg.last_sent = timezone.now()
     cfg.save()
+
+
+def comma_format_list(elems: list[str]) -> str:
+    if not elems:
+        return ""
+
+    if len(elems) == 1:
+        return elems[0]
+
+    if len(elems) == 2:
+        return f"{elems[0]} and {elems[1]}"
+
+    comma_parts = ", ".join(elems[0:-1])
+    return f"{comma_parts}, and {elems[-1]}"
