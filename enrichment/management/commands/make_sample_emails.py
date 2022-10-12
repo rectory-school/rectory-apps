@@ -221,4 +221,4 @@ def _make_samples():
                 ) as f_out:
                     f_out.write(msg.message_text)
         except KeyError:
-            print(f"Did not have backing keys for {cfg}")
+            print(f"Did not have backing keys for {cfg.report}")

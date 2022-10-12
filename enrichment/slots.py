@@ -144,8 +144,20 @@ class GridStudent(NamedTuple):
 
 
 class CurrentSelection(NamedTuple):
+    slot: GridSlot
     current_option: GridOption
     admin_locked: bool
+
+    @property
+    def location(self) -> str:
+        return self.current_option.location_on_slot(self.slot)
+
+    @property
+    def display(self) -> str:
+        if self.current_option.description:
+            return f"{self.current_option.description} with {self.current_option.teacher.formal_name} in {self.location}"
+
+        return f"{self.current_option.teacher.formal_name} in {self.location}"
 
 
 class GridRowSlot(NamedTuple):
@@ -408,6 +420,7 @@ class GridGenerator:
             current_signup: Optional[CurrentSelection] = None
             if current_signup_data:
                 current_signup = CurrentSelection(
+                    slot,
                     self.options_by_id[current_signup_data.option.id],
                     current_signup_data.admin_locked,
                 )
