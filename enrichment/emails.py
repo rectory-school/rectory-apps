@@ -13,11 +13,13 @@ from enrichment.models import (
     RelatedAddress as DefaultAddress,
 )
 from enrichment.slots import (
+    CurrentSelection,
     GridGenerator,
     GridOption,
     GridSignup,
     GridSlot,
     GridStudent,
+    GridTeacher,
     SlotID,
     StudentID,
 )
@@ -329,6 +331,54 @@ def advisee_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmai
         )
 
 
+def advisor_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
+    """Personalized emails to every advisor"""
+
+    ordered_slots = sorted(slots, key=lambda obj: obj.date)
+    advisees_by_advisors = get_advisees_by_advisors()
+    students: set[Student] = set()
+
+    for advisor_students in advisees_by_advisors.values():
+        students.update(advisor_students)
+
+    grid = GridGenerator(None, ordered_slots, list(students))
+
+    for pair in get_advisees():
+        advisor = pair.teacher
+        if not advisor in advisees_by_advisors:
+            advisees_by_advisors[advisor] = set()
+
+        advisees_by_advisors[advisor].add(pair.student)
+
+    dates = sorted({obj.date for obj in slots})
+    subject_dates = comma_format_list([d.strftime("%A, %B %d") for d in dates])
+    subject = f"Advisee enrichment assignment for {subject_dates}"
+
+    for advisor, advisor_students in advisees_by_advisors.items():
+        out: list[
+            tuple[GridSlot, list[tuple[GridStudent, Optional[CurrentSelection]]]]
+        ] = []
+
+        for grid_slot in grid.slots:
+            rows: list[tuple[GridStudent, Optional[CurrentSelection]]] = []
+            for advisee in advisor_students:
+                grid_student = grid.students_by_id[StudentID(advisee.pk)]
+                key = (grid_student, grid_slot)
+                signup = grid.grid_row_slots[key]
+                rows.append((grid_student, signup.currently_selected))
+            out.append((grid_slot, rows))
+
+        to_pair = AddressPair(advisor.full_name, advisor.email)
+
+        yield OutgoingEmail(
+            cfg=cfg,
+            template_name="advisor_signups",
+            context={"slots": out, "advisor": advisor},
+            subject=subject,
+            to_addresses={to_pair},
+        )
+
+
 def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmail]:
     start_date = date + timedelta(days=cfg.start)
     end_date = date + timedelta(days=cfg.end)
@@ -339,6 +389,7 @@ def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmai
         "unassigned_admin": unassigned_admin,
         "all_signups": all_signups,
         "advisee_signups": advisee_signups,
+        "advisor_signups": advisor_signups,
     }
 
     func = callable_map[cfg.report]

@@ -1,0 +1,7 @@
+Dear {{ advisor.full_name }}:
+
+Your advisee's assignments are as follows:
+{% for slot, students in slots %}
+{{ slot.date|date:"l F, jS" }}{% for student, current_selection in students %}
+- {{ student.name }}: {% if current_selection %}{{ current_selection.display }}{% else %}Unassigned. Please contact the education office.{% endif %}{% endfor %}
+{% endfor %}
