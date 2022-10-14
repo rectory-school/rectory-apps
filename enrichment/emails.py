@@ -459,6 +459,9 @@ def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmai
     end_date = date + timedelta(days=cfg.end)
     slots = set(Slot.objects.filter(date__gte=start_date, date__lte=end_date))
 
+    if not slots:
+        return
+
     callable_map = {
         "unassigned_advisor": unassigned_advisor,
         "unassigned_admin": unassigned_admin,
