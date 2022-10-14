@@ -53,6 +53,9 @@ SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=None)
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default=None)
 GOOGLE_HOSTED_DOMAINS = env.list("GOOGLE_HOSTED_DOMAINS", default=[])
 
+# The base URL to use when sending emails
+EMAIL_BASE_URL = env("EMAIL_BASE_URL", default="http://localhost")
+
 # These are allowed to be empty so that PR checks can run
 BLACKBAUD_TOKEN_URL = env("BLACKBAUD_TOKEN_URL", default=None)
 BLACKBAUD_API_BASE = env("BLACKBAUD_API_BASE", default=None)
@@ -76,8 +79,11 @@ ADMINS = tuple(parseaddr(email) for email in env.list("DJANGO_ADMINS", default=[
 MANAGERS = tuple(parseaddr(email) for email in env.list("DJANGO_MANAGERS", default=[]))
 
 EMAIL_BACKEND = env(
-    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.filebased.EmailBackend",
 )
+
+EMAIL_FILE_PATH = BASE_DIR / "scratch" / "emails"
 
 if MAILGUN_API_KEY and MAILGUN_SENDER_DOMAIN:
     ANYMAIL = {
@@ -102,6 +108,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "adminsortable2",
     "django_safemigrate",
     "bootstrap4",

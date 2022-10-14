@@ -6,7 +6,7 @@
     data-preferred-options="{{ data.preferred_option_ids | join:','}}"
     data-remaining-options="{{ data.remaining_option_ids | join:','}}"
     data-current-item-id="{% if data.currently_selected %}{{ data.currently_selected.current_option.id }}{% endif %}"
-    data-allow-locking="{% if perms.enrichment.change_signup %}1{% else %}0{% endif %}"
+    data-allow-locking="{% if perms.enrichment.set_admin_locked %}1{% else %}0{% endif %}"
     data-locked="{% if data.currently_selected and data.currently_selected.admin_locked%}1{% else %}0{% endif %}"
     >
     {% if data.editable %}

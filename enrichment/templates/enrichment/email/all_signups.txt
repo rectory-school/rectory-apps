@@ -1,0 +1,9 @@
+{% extends "enrichment/email/base.txt" %}
+
+{% block content %}Please note: This is an automated e-mail.
+{% for slot, options in slots %}
+--- Enrichment Assignments for {{ slot.date | date:"l, F jS"}} ---
+
+{% for option, students in options %}{% if students %}{{ option.teacher.name }}: {{ students | length }} student{% if students|length > 1 %}s{% endif %}{% if option.location %} in {{ option.location }}{% endif %}{% for student in students %}
+    - {{ student.name }}{% endfor %}{% else %}{{ option.teacher.name }}: No students assigned. Enrichment location is {{ option.location}}{% endif %}
+{% endfor %}{% endfor %}{% endblock %}

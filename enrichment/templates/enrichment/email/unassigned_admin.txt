@@ -1,0 +1,12 @@
+{% if count == 0 %}All advisees are assigned - it is a glorious day!{% elif count == 1 %}There is one advisee that needs to be assigned to an enrichment sessions.{% else %}There are {{ count }} advisees that need to be assigned to enrichment sessions.{% endif %}
+{% if count %}Assign unassigned advisees: {{base_url}}{% url 'enrichment:assign-unassigned' %}
+
+{% for slot, slotData in slots %}--- {{ slot.date | date:"l, F jS"}} ---
+{% if slotData %}
+{% for advisor, students in slotData %}{{ advisor.full_name }}
+{% for student in students %}- {{ student.display_name }}
+{% endfor %}
+{% endfor %}
+{% else %}All students are assigned{% endif %}
+{% endfor %}
+{% endif %}

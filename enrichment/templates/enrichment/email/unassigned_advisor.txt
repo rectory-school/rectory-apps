@@ -1,0 +1,16 @@
+{% extends "enrichment/email/base.txt" %}
+
+{% load humanize %}
+
+{% block content %}Dear {{ advisor.full_name }}:
+
+{% if count > 1 %}You have {{ count }} advisees that need to be assigned to enrichment sessions.{% else %}You have one advisee that needs to be assigned to an enrichment session.{% endif %}
+
+Please return to the enrichment system at {{base_url}}{% url 'enrichment:assign' %} by {{ deadline|naturalday:"F j"}} at {{ deadline|date:"P" }} in order to assign your advisees.
+
+{% for slot, students in slots %}{{ slot.date | date:"l, F jS"}}
+{% for student in students %}   - {{ student.display_name }}
+{% endfor %}
+{% endfor %}
+This is an automated e-mail. A reply is not necessary unless you have issues or questions with regard to your advisees' assignments.
+{% endblock %}

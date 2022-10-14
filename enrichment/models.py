@@ -1,9 +1,13 @@
+from datetime import date, datetime, timedelta
+from typing import Iterator, Sequence
+from zoneinfo import ZoneInfo
+
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from simple_history.models import HistoricalRecords
 
-from solo.models import SingletonModel
 from blackbaud.models import Teacher, Student
 
 WEEKDAY_CHOICES = (
@@ -15,6 +19,44 @@ WEEKDAY_CHOICES = (
     (5, "Saturday"),
     (6, "Sunday"),
 )
+
+EMAIL_REPORT_CHOICES = (
+    ("unassigned_advisor", "Unassigned advisees to advisors"),
+    ("unassigned_admin", "Unassigned advisees to admins"),
+    ("advisor_signups", "Advisee locations to advisors"),
+    ("advisee_signups", "Advisee locations to advisees"),
+    ("facilitator_signups", "Advisee locations to facilitators"),
+    ("all_signups", "Full signup report"),
+)
+
+# Originally this used get_available_timezones, but that caused an issue in
+# CI/CD checking for hanging migrations, since get_available_timezones() was
+# returning different values in GitHub actions
+TIMEZONE_CHOICES = tuple(
+    (s, s)
+    for s in (
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Phoenix",
+        "America/Los_Angeles",
+        "America/Anchorage",
+        "America/Adak",
+        "Pacific/Honolulu",
+        "UTC",
+    )
+)
+
+RELATED_ADDRESS_CHOICES = (
+    ("to", "To"),
+    ("cc", "Cc"),
+    ("bcc", "Bcc"),
+    ("reply-to", "Reply To"),
+)
+
+
+def _choice_length(opts: Sequence[tuple[str, str]]):
+    return max(len(p[0]) for p in opts)
 
 
 class Slot(models.Model):
@@ -116,8 +158,8 @@ class Signup(models.Model):
                 "Can edit enrichment signups past the lockout time",
             ),
             (
-                "ignore_admin_locked",
-                "Can edit enrichment signups regardless of admin lock",
+                "set_admin_locked",
+                "Can set/unset admin locked, as well as ignore the flag usage",
             ),
             (
                 "use_admin_only_options",
@@ -134,7 +176,6 @@ class Signup(models.Model):
 
 
 class EditConfig(models.Model):
-
     weekday = models.SmallIntegerField(
         choices=WEEKDAY_CHOICES,
         unique=True,
@@ -149,3 +190,157 @@ class EditConfig(models.Model):
 
     def __str__(self):
         return self.get_weekday_display()
+
+
+class EmailConfig(models.Model):
+    """General configs for email"""
+
+    from_name = models.CharField(
+        max_length=256,
+        help_text="The name this email should be sent from",
+    )
+
+    from_address = models.EmailField(
+        help_text="The address this email should be sent from",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    last_sent = models.DateTimeField(
+        help_text="The time this email was last sent",
+        null=True,
+    )
+
+    report = models.CharField(
+        choices=EMAIL_REPORT_CHOICES,
+        max_length=_choice_length(EMAIL_REPORT_CHOICES),
+    )
+
+    enabled = models.BooleanField(default=True)
+
+    start = models.PositiveSmallIntegerField(
+        help_text="How many days ahead we should start looking for slots",
+        default=0,
+    )
+
+    end = models.PositiveSmallIntegerField(
+        help_text="How many days ahead we should stop looking for slots",
+        default=0,
+    )
+
+    timezone = models.CharField(
+        choices=TIMEZONE_CHOICES,
+        max_length=_choice_length(TIMEZONE_CHOICES),
+        default=timezone.get_current_timezone_name,
+    )
+
+    time = models.TimeField()
+    monday = models.BooleanField()
+    tuesday = models.BooleanField()
+    wednesday = models.BooleanField()
+    thursday = models.BooleanField()
+    friday = models.BooleanField()
+    saturday = models.BooleanField()
+    sunday = models.BooleanField()
+
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return f"{self.get_report_display()}: {', '.join(self.weekday_labels)} at {self.time}"
+
+    @property
+    def weekday_flags(self) -> tuple[bool, bool, bool, bool, bool, bool, bool]:
+        """True/false flags for each day of the week, starting with Monday"""
+
+        return (
+            self.monday,
+            self.tuesday,
+            self.wednesday,
+            self.thursday,
+            self.friday,
+            self.saturday,
+            self.sunday,
+        )
+
+    @property
+    def weekday_labels(self) -> list[str]:
+        labels = [
+            _("Monday"),
+            _("Tuesday"),
+            _("Wednesday"),
+            _("Thursday"),
+            _("Friday"),
+            _("Saturday"),
+            _("Sunday"),
+        ]
+
+        return [str(l) for i, l in enumerate(labels) if self.weekday_flags[i]]
+
+    @property
+    def weekday_ints(self) -> set[int]:
+        """Set if weekday integers with Monday being 0"""
+
+        return {i for i in range(7) if self.weekday_flags[i]}
+
+    @property
+    def upcoming_send_times(self) -> Iterator[datetime]:
+        if self.weekday_flags == (False, False, False, False, False, False, False):
+            return
+
+        tzinfo = ZoneInfo(self.timezone)
+
+        today = date.today()
+        effective_last_sent: datetime = self.created_at
+        if self.last_sent:
+            effective_last_sent = self.last_sent
+
+        if not effective_last_sent:
+            return
+
+        dt = datetime(
+            effective_last_sent.year,
+            effective_last_sent.month,
+            effective_last_sent.day,
+            self.time.hour,
+            self.time.minute,
+            self.time.second,
+            tzinfo=tzinfo,
+        )
+
+        while True:
+            dt += timedelta(days=1)
+
+            if dt < effective_last_sent:
+                continue
+
+            if dt.weekday() in self.weekday_ints:
+                yield dt
+
+    @property
+    def next_run(self) -> datetime | None:
+        if not self.enabled:
+            return None
+
+        try:
+            return next(self.upcoming_send_times)
+        except StopIteration:
+            return None
+
+
+class RelatedAddress(models.Model):
+    """Related addresses for email configs"""
+
+    name = models.CharField(max_length=255)
+    address = models.EmailField()
+    message = models.ForeignKey(
+        EmailConfig,
+        on_delete=models.CASCADE,
+        related_name="addresses",
+    )
+    field = models.CharField(
+        choices=RELATED_ADDRESS_CHOICES,
+        max_length=_choice_length(RELATED_ADDRESS_CHOICES),
+    )
+
+    def __str__(self):
+        return f"{self.get_field_display()}: {self.address}"

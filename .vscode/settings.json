@@ -3,6 +3,7 @@
     "editor.formatOnSave": true,
     "python.formatting.provider": "black",
     "cSpell.words": [
+        "addrs",
         "adminsortable",
         "ANYMAIL",
         "asgi",
@@ -12,6 +13,7 @@
         "csrf",
         "csrftoken",
         "dotenv",
+        "falsey",
         "firstweekday",
         "frozendict",
         "fullmigrate",

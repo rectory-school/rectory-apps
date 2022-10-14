@@ -21,10 +21,6 @@ def add_permission(apps, schema_editor):
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
 
-    required_permissions = [
-        "change_signup",
-    ]
-
     group = Group.objects.get(name="Enrichment Managers")
 
     permission = Permission.objects.get(
@@ -40,10 +36,6 @@ def remove_permission(apps, schema_editor):
 
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
-
-    required_permissions = [
-        "change_signup",
-    ]
 
     group = Group.objects.get(name="Enrichment Managers")
 

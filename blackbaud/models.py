@@ -97,6 +97,15 @@ class Student(SISModel):
 
         return f"{self.given_name} {self.family_name}"
 
+    @property
+    def sort_key(self) -> tuple[str, str]:
+        """The key we should use while sorting students"""
+
+        if self.nickname:
+            return (self.family_name, self.nickname)
+
+        return (self.family_name, self.given_name)
+
     def __str__(self):
         return self.display_name
 

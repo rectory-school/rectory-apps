@@ -1,0 +1,18 @@
+<p>Dear {{ teacher.name }},</p>
+
+<p>The students coming to your enrichment sections are as follows:</p>
+
+{% for option, students in options %}
+    <h1>{{ option.slot.date | date:"l F, j" }}<sup style="font-size: smaller;">{{ option.slot.date | date:"S"}}</sup></h1>
+    <p>Location: {{ option.location }}</p>
+
+    {% if students %}
+        <ul>
+            {% for student in students %}
+                <li>{{ student.name }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No students have been signed up. Please stay in your assigned location as you may still get a student coming for extra help.</p>
+    {% endif %}
+{% endfor %}

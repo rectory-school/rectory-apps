@@ -1,0 +1,7 @@
+Dear {{ teacher.name }},
+
+The students coming to your enrichment sections are as follows:
+{% for option, students in options %}{{ option.slot.date | date:"l F, jS" }}
+Location: {{ option.location }}
+{% if students %}{% for student in students %}
+- {{ student.name }}{% endfor %}{% else %}No students have been signed up. Please stay in your assigned location as you may still get a student coming for extra help.{% endif %}{% endfor %}

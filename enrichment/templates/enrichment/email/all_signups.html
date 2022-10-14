@@ -1,0 +1,32 @@
+{% extends "enrichment/email/base.html" %}
+
+{% block title %}Enrichment Signups{% endblock %}
+
+{% block content %}
+  <p style="font-size: 16pt;"><em>Please note: This is an automated e-mail.</em></p>
+  
+  {% for slot, options in slots %}
+    <h1>Enrichment Assignments for {{ slot.date | date:"l, F j"}}<sup style="font-size: smaller;">{{ slot.date | date:"S"}}</sup></h1>
+      
+    {% for option, students in options %}
+      {% if students %}
+        <h2>{{ option.teacher.name }}:
+          {{ students | length }} student{% if students|length > 1 %}s{% endif %}
+          {% if option.location %}
+            in {{ option.location }}
+          {% endif %}</h2>
+        <ul>
+          {% for student in students %}
+            <li>{{ student.name }}</li>
+          {% endfor %}
+        </ul>
+		  {% else %}
+         <h2 style="color: grey">{{ option.teacher.name }}:
+            No students assigned.
+            {% if option.location %}
+              Enrichment location is {{ option.location}}.</h2>
+            {% endif %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+{% endblock %}

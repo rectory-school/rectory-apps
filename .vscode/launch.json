@@ -40,6 +40,15 @@
             "args": [
                 "show_permissions"
             ]
+        },
+        {
+            "name": "Make sample enrichment emails",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "make_sample_emails"
+            ]
         }
     ]
 }

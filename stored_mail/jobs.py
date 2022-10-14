@@ -41,16 +41,17 @@ def send_emails(env: RunEnv):
         )
 
         if not to_send:
-            log.info("No messages to send")
             # Once we don't have an email to send, return without
             # requesting an immediate rerun
             return
 
         try:
+            log.info("Sending message", message_id=to_send.pk)
             msg = to_send.get_django_email()
             msg.send()
             to_send.sent_at = timezone.now()
             to_send.last_send_attempt = None
+            log.info("Message sent", message_id=to_send.pk)
 
         # I always want to be able to store the last send attempt,
         # and if I throw an exception inside the transaction I can't do that.

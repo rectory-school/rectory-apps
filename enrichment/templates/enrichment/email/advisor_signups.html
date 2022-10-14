@@ -1,0 +1,20 @@
+<p>Dear {{ advisor.full_name }}:</p>
+
+Your advisee's assignments are as follows:
+
+{% for slot, students in slots %}
+    <p>{{ slot.date|date:"l F, j" }}<sup style="font-size: smaller;">{{ slot.date | date:"S"}}</sup></p>
+    <ul>
+        {% for student, current_selection in students %}
+            <li>
+                {{ student.name }}:
+            
+                {% if current_selection %}
+                    {{ current_selection.display }}
+                {% else %}
+                    <strong>Unassigned</strong>. Please contact the education office.
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endfor %}

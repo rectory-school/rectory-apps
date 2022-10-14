@@ -1,0 +1,59 @@
+{% extends "enrichment/email/base.html" %}
+
+{% load humanize %}
+
+{% block content %}
+  <table class="main" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="alert alert-warning">
+        {% if count > 1 %}
+          You have <strong>{{ count }} advisees</strong> that need to be assigned to enrichment sessions.
+        {% else %}
+          You have <strong>one advisee</strong> that needs to be assigned to an enrichment session.
+        {% endif %}
+
+      </td>
+    </tr>
+    <tr>
+      <td class="content-wrap">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td class="content-block">
+              Dear {{ advisor.full_name }}:
+            </td>
+          </tr>
+          
+          <tr>
+            <td class="content-block">
+              Please return to the enrichment system by {{ deadline|naturalday:"F j"}} at {{ deadline|date:"P" }} in order to assign your advisees.
+            </td>
+          </tr>
+          <tr>
+            <td class="content-block">
+              <a href="{{base_url}}{% url 'enrichment:assign' %}" class="btn-primary">Assign my advisees</a>
+            </td>
+          </tr>
+          
+          <tr>
+            <td class="content-block">
+              {% for slot, students in slots %}
+              <p>{{ slot.date | date:"l, F j"}}<sup style="font-size: smaller;">{{ slot.date | date:"S"}}</sup></p>
+              <ul>
+                {% for student in students %}
+                  <li>{{ student.display_name }}</li>
+                {% endfor %}
+              </ul>
+              {% endfor %}
+            </td>
+          </tr>
+          
+          <tr>
+            <td class="content-block">
+              <p><em>This is an automated e-mail. A reply is not necessary unless you have issues or questions with regard to your advisees' assignments.</em></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+{% endblock %}
