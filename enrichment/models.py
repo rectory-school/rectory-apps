@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 from typing import Iterator, Sequence
-from zoneinfo import available_timezones, ZoneInfo
+from zoneinfo import ZoneInfo
 
 from django.db import models
 from django.utils import timezone
@@ -29,7 +29,23 @@ EMAIL_REPORT_CHOICES = (
     ("all_signups", "Full signup report"),
 )
 
-TIMEZONE_CHOICES = tuple((s, s) for s in sorted(available_timezones()))
+# Originally this used get_available_timezones, but that caused an issue in
+# CI/CD checking for hanging migrations, since get_available_timezones() was
+# returning different values in GitHub actions
+TIMEZONE_CHOICES = tuple(
+    (s, s)
+    for s in (
+        "America/New_York",
+        "America/Chicago",
+        "America/Denver",
+        "America/Phoenix",
+        "America/Los_Angeles",
+        "America/Anchorage",
+        "America/Adak",
+        "Pacific/Honolulu",
+        "UTC",
+    )
+)
 
 RELATED_ADDRESS_CHOICES = (
     ("to", "To"),
