@@ -35,6 +35,7 @@ class GridTeacher(NamedTuple):
     honorific: str
     last_name: str
     first_name: str
+    email: str
 
     @property
     def jsonable(self) -> dict:
@@ -543,4 +544,5 @@ def _teacher_to_grid(obj: Teacher) -> GridTeacher:
         last_name=obj.family_name,
         first_name=obj.given_name,
         honorific=obj.honorific,
+        email=obj.email,
     )

@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.template import TemplateDoesNotExist
 
 import blackbaud.models
 
@@ -211,14 +212,22 @@ def _make_samples():
             msgs = get_outgoing_messages(cfg, slot.date)
 
             for i, msg in enumerate(msgs):
-                with open(
-                    f"scratch/email-sample/{msg.cfg.report}_{i}.html", "w"
-                ) as f_out:
-                    f_out.write(msg.message_html)
+                try:
+                    html = msg.message_html
+                    with open(
+                        f"scratch/email-sample/{msg.cfg.report}_{i}.html", "w"
+                    ) as f_out:
+                        f_out.write(html)
+                except TemplateDoesNotExist:
+                    print(f"Did not have html template for {cfg.report}")
 
-                with open(
-                    f"scratch/email-sample/{msg.cfg.report}_{i}.txt", "w"
-                ) as f_out:
-                    f_out.write(msg.message_text)
+                try:
+                    text = msg.message_text
+                    with open(
+                        f"scratch/email-sample/{msg.cfg.report}_{i}.txt", "w"
+                    ) as f_out:
+                        f_out.write(text)
+                except TemplateDoesNotExist:
+                    print(f"Did not have text template for {cfg.report}")
         except KeyError:
             print(f"Did not have backing keys for {cfg.report}")

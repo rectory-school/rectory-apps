@@ -379,6 +379,81 @@ def advisor_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmai
         )
 
 
+def facilitator_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
+    """Personalized emails to every facilitator"""
+
+    ordered_slots = sorted(slots, key=lambda obj: obj.date)
+    students = {pair.student for pair in get_advisees()}
+    grid = GridGenerator(None, ordered_slots, list(students))
+
+    dates = sorted({obj.date for obj in slots})
+    subject_dates = comma_format_list([d.strftime("%A, %B %d") for d in dates])
+    subject = f"Students coming for enrichment on {subject_dates}"
+
+    class ConcreteOption(NamedTuple):
+        slot: GridSlot
+        option: GridOption
+        location: str
+
+    signups_by_option: dict[ConcreteOption, set[GridStudent]] = {}
+
+    # Because a teacher will still get an email even if there are no signups,
+    # we are taking a walk through all the slots and options to make the scaffold
+    # and not jumping straight to iterating the signups
+    for slot in grid.slots:
+        for option in grid.options_by_slot[slot]:
+            concrete_option = ConcreteOption(
+                slot=slot,
+                option=option,
+                location=option.location_on_slot(slot),
+            )
+
+            signups_by_option[concrete_option] = set()
+
+    for signup in grid.signups:
+        option = signup.option
+        student = signup.student
+
+        concrete_option = ConcreteOption(
+            slot=slot,
+            option=option,
+            location=option.location_on_slot(slot),
+        )
+
+        signups_by_option[concrete_option].add(student)
+
+    options_by_teacher: dict[GridTeacher, set[ConcreteOption]] = {}
+    for concrete_option in signups_by_option:
+        teacher = concrete_option.option.teacher
+
+        if not teacher in options_by_teacher:
+            options_by_teacher[teacher] = set()
+
+        options_by_teacher[teacher].add(concrete_option)
+
+    for teacher, options in options_by_teacher.items():
+        organized: list[tuple[ConcreteOption, list[GridStudent]]] = []
+
+        for concrete_option in sorted(options, key=lambda obj: obj.slot):
+            organized.append(
+                (
+                    concrete_option,
+                    sorted(
+                        signups_by_option[concrete_option], key=lambda obj: obj.sort_key
+                    ),
+                )
+            )
+        context = {"teacher": teacher, "options": organized}
+
+        yield OutgoingEmail(
+            cfg=cfg,
+            template_name="facilitator_signups",
+            context=context,
+            subject=subject,
+            to_addresses={AddressPair(teacher.name, teacher.email)},
+        )
+
+
 def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmail]:
     start_date = date + timedelta(days=cfg.start)
     end_date = date + timedelta(days=cfg.end)
@@ -390,6 +465,7 @@ def get_outgoing_messages(cfg: EmailConfig, date: date) -> Iterable[OutgoingEmai
         "all_signups": all_signups,
         "advisee_signups": advisee_signups,
         "advisor_signups": advisor_signups,
+        "facilitator_signups": facilitator_signups,
     }
 
     func = callable_map[cfg.report]
