@@ -1,4 +1,3 @@
-from ast import Add
 from collections import defaultdict
 from datetime import date, timedelta
 
@@ -297,15 +296,22 @@ def advisee_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmai
     """Personalized emails to every advisee"""
 
     ordered_slots = sorted(slots, key=lambda obj: obj.date)
-    advisees = set(pair.student for pair in get_advisees())
+    advisee_pairs = get_advisees()
+    advisors_by_advisee: dict[Student, set[Teacher]] = {}
 
-    grid = GridGenerator(None, ordered_slots, list(advisees))
+    for pair in advisee_pairs:
+        if not pair.student in advisors_by_advisee:
+            advisors_by_advisee[pair.student] = set()
+
+        advisors_by_advisee[pair.student].add(pair.teacher)
+
+    grid = GridGenerator(None, ordered_slots, list(advisors_by_advisee.keys()))
 
     dates = sorted({obj.date for obj in slots})
     subject_dates = comma_format_list([d.strftime("%A, %B %d") for d in dates])
     subject = f"Enrichment assignment for {subject_dates}"
 
-    for advisee in advisees:
+    for advisee in advisors_by_advisee.keys():
         organized: list[tuple[GridSlot, Optional[GridOption]]] = []
         grid_student = grid.students_by_id[StudentID(advisee.pk)]
 
@@ -321,13 +327,16 @@ def advisee_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmai
             organized.append((grid_slot, current_option))
 
         to_pair = AddressPair(advisee.display_name, advisee.email)
-
+        reply_to_pairs = {
+            AddressPair(t.full_name, t.email) for t in advisors_by_advisee[advisee]
+        }
         yield OutgoingEmail(
             cfg=cfg,
             template_name="advisee_signups",
             context={"student": advisee, "slots": organized},
             subject=subject,
             to_addresses={to_pair},
+            reply_to_addresses=reply_to_pairs,
         )
 
 
