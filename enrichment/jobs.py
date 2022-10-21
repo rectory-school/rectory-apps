@@ -14,7 +14,7 @@ from .emails import execute_job
 log = structlog.get_logger()
 
 
-@register_job(300)
+@register_job(60)
 def tick_emails(env: RunEnv):
     log.debug("Beginning email tick")
     now = timezone.now()
