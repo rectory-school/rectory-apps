@@ -21,7 +21,7 @@ reportlab = "*"
 django-bootstrap-breadcrumbs = "*"
 django-anymail = {extras = ["mailgun"], version = "*"}
 django-lb-health-check = "^1.0"
-django-quick-jobs = "^0.3.0"
+django-quick-jobs = "^0.4.0"
 htmlBuilder = "^1.0.0"
 structlog = "^21.5.0"
 django-stubs-ext = "^0.4.0"
