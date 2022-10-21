@@ -19,8 +19,13 @@ from . import models
 log: BoundLogger = get_logger(__name__)
 
 
+@register_job(15)
 def send_emails(env: RunEnv):
     """Send all emails that have been scheduled"""
+
+    if not settings.STORED_MAIL_SEND_ENABLED:
+        log.debug("Aborting stored mail send")
+        return
 
     with transaction.atomic():
         # Wait at least an hour between attempts
@@ -63,7 +68,3 @@ def send_emails(env: RunEnv):
 
     # Keep running the job until we don't have any emails to send
     env.request_rerun()
-
-
-if settings.STORED_MAIL_SEND_ENABLED:
-    register_job(15)(send_emails)
