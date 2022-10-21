@@ -1,6 +1,5 @@
 """Periodic jobs for sending email"""
 
-import logging
 from typing import Optional
 
 from datetime import timedelta
@@ -11,6 +10,8 @@ from structlog.stdlib import BoundLogger
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
+from django.conf import settings
+
 from job_runner.registration import register_job
 from job_runner.environment import RunEnv
 from . import models
@@ -18,7 +19,6 @@ from . import models
 log: BoundLogger = get_logger(__name__)
 
 
-@register_job(15)
 def send_emails(env: RunEnv):
     """Send all emails that have been scheduled"""
 
@@ -63,3 +63,7 @@ def send_emails(env: RunEnv):
 
     # Keep running the job until we don't have any emails to send
     env.request_rerun()
+
+
+if settings.STORED_MAIL_SEND_ENABLED:
+    register_job(15)(send_emails)
