@@ -22,7 +22,7 @@ from enrichment.slots import (
     SlotID,
     StudentID,
 )
-from stored_mail.models import OutgoingMessage, RelatedAddress
+from stored_mail.models import OutgoingMessage, RelatedAddress, ExtraHeader
 from blackbaud.advising import get_advisees_by_advisors, get_advisees
 from blackbaud.models import Student, Teacher
 from django.template.loader import render_to_string, TemplateDoesNotExist
@@ -107,6 +107,9 @@ class OutgoingEmail(NamedTuple):
                 related_address.save()
                 del related_address
 
+        ExtraHeader.objects.create(
+            message=outgoing_message, key="X-Email-Config-Id", value=f"{self.cfg.pk}"
+        )
         return outgoing_message
 
 
