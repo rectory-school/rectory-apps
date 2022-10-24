@@ -7,6 +7,7 @@ from . import views
 app_name = "enrichment"
 urlpatterns = [
     path("", views.Index.as_view(), name="index"),
+    path("reports/weekly/", views.WeeklyReportView.as_view(), name="weekly-report"),
     path("assign/", views.AssignView.as_view(), name="assign"),
     path("assign/all/", views.AssignAllView.as_view(), name="assign-all"),
     path("advisees/", views.AdviseeListView.as_view(), name="advisee-list"),

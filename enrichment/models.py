@@ -169,6 +169,10 @@ class Signup(models.Model):
                 "assign_all_advisees",
                 "Can assign any advisees",
             ),
+            (
+                "view_reports",
+                "Can view enrichment reports",
+            ),
         )
 
     def __str__(self):

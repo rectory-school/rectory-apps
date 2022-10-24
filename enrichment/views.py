@@ -7,6 +7,7 @@ import urllib.parse
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.views import View
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import SuspiciousOperation
@@ -21,7 +22,39 @@ import accounts.models
 from blackbaud.models import Student, Teacher
 from blackbaud.advising import get_advisees
 from enrichment.models import Slot, Option, Signup
-from enrichment.slots import GridGenerator, SlotID, StudentID
+from enrichment.slots import (
+    GridGenerator,
+    GridOption,
+    GridRowSlot,
+    SlotID,
+    StudentID,
+    GridSlot,
+    GridStudent,
+    GridSignup,
+)
+from enrichment import slots
+
+
+class BaseDateMixin(View):
+    def get_base_date(self) -> date:
+        if val := self.request.GET.get("date"):
+            try:
+                return _parse_date(val)
+            except ValueError as exc:
+                raise SuspiciousOperation from exc
+
+        return get_monday()
+
+    @cached_property
+    def slots(self) -> List[Slot]:
+        base_date = self.get_base_date()
+
+        return sorted(
+            Slot.objects.filter(
+                date__gte=base_date, date__lt=(base_date + timedelta(days=7))
+            ),
+            key=lambda slot: slot.date,
+        )
 
 
 class AssignAllPermissionRequired(PermissionRequiredMixin):
@@ -32,7 +65,7 @@ class Index(LoginRequiredMixin, TemplateView):
     template_name = "enrichment/index.html"
 
 
-class AssignView(LoginRequiredMixin, TemplateView):
+class AssignView(LoginRequiredMixin, BaseDateMixin, TemplateView):
     """Default assignment view, which is for the user's advisees"""
 
     template_name = "enrichment/grid_standard.html"
@@ -62,17 +95,6 @@ class AssignView(LoginRequiredMixin, TemplateView):
                 student.nickname,
                 student.given_name,
             ),
-        )
-
-    @cached_property
-    def slots(self) -> List[Slot]:
-        base_date = self.get_base_date()
-
-        return sorted(
-            Slot.objects.filter(
-                date__gte=base_date, date__lt=(base_date + timedelta(days=7))
-            ),
-            key=lambda slot: slot.date,
         )
 
     def get_base_date(self) -> date:
@@ -247,6 +269,88 @@ class AssignByStudentView(AssignAllView):
 
         slots = Slot.objects.filter(date_q).order_by("date")
         return list(slots)
+
+
+class WeeklyReportView(PermissionRequiredMixin, BaseDateMixin, TemplateView):
+    permission_required = "enrichment.view_reports"
+    template_name = "enrichment/weekly_report.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        students = {pair.student for pair in get_advisees()}
+        sorted_students = sorted(students, key=lambda obj: obj.sort_key)
+
+        assert isinstance(self.request.user, accounts.models.User)
+        grid = GridGenerator(
+            self.request.user,
+            self.slots,
+            sorted_students,
+        )
+
+        grid_students = set(grid.students)
+
+        by_student: dict[GridSlot, dict[GridStudent, Optional[GridSignup]]] = {}
+        by_option: dict[GridSlot, dict[GridOption, set[GridSignup]]] = {}
+
+        signups_by_slot: defaultdict[GridSlot, set[GridSignup]] = defaultdict(set)
+        for signup in grid.signups:
+            signups_by_slot[signup.slot].add(signup)
+
+        for slot in grid.slots:
+            options = grid.options_by_slot[slot]
+            signups = signups_by_slot[slot]
+            by_student[slot] = {}
+            by_option[slot] = {}
+
+            for student in sorted_students:
+                grid_student = grid.students_by_id[StudentID(student.pk)]
+                by_student[slot][grid_student] = None
+
+            for option in options:
+                by_option[slot][option] = set()
+
+            for signup in signups:
+                by_option[slot][signup.option].add(signup)
+                by_student[slot][signup.student] = signup
+
+        out_by_student: list[tuple[GridSlot, list[GridRowSlot]]] = []
+        for grid_slot in grid.slots:
+            rows = [
+                grid.grid_row_slots[(grid_student, grid_slot)]
+                for grid_student in grid.students
+            ]
+
+            out_by_student.append((grid_slot, rows))
+
+        out_by_option: list[
+            tuple[
+                GridSlot,
+                list[tuple[GridOption, list[GridRowSlot]]],
+                list[GridStudent],
+            ]
+        ] = []
+
+        for grid_slot in grid.slots:
+            by_option_rows: list[tuple[GridOption, list[GridRowSlot]]] = []
+            assigned_students: set[GridStudent] = set()
+
+            for grid_option in grid.options_by_slot[grid_slot]:
+                signups_for_option = by_option[grid_slot][grid_option]
+                students_for_option = {obj.student for obj in signups_for_option}
+                assigned_students |= students_for_option
+
+                grid_row_slots_for_option = [
+                    grid.grid_row_slots[(grid_student, grid_slot)]
+                    for grid_student in students_for_option
+                ]
+                grid_row_slots_for_option.sort(key=lambda obj: obj.student.sort_key)
+                by_option_rows.append((grid_option, grid_row_slots_for_option))
+
+            unassigned_students = sorted(
+                grid_students - assigned_students, key=lambda obj: obj.sort_key
+            )
+            out_by_option.append((grid_slot, by_option_rows, unassigned_students))
+
+        return {"by_student": out_by_student, "by_option": out_by_option}
 
 
 def get_monday(d: Optional[date] = None):
