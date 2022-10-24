@@ -17,7 +17,7 @@ jobs:
         run: |
           python -m ensurepip
           python -m pip install --upgrade pip
-          python -m pip install poetry
+          python -m pip install poetry==1.2.2
       
       - name: Set up dependencies
         run: python -m poetry install

@@ -8,7 +8,7 @@ RUN apt update
 RUN apt install -y yarn
 
 RUN pip install pip==22.2.2
-RUN pip install poetry==1.2.1
+RUN pip install poetry==1.2.2
 
 COPY poetry.lock pyproject.toml /app/
 
