@@ -52,7 +52,14 @@ def get_advisees(
     if not as_of:
         as_of = timezone.now().date()
 
-    advisory_sections = get_advisory_sections().prefetch_related("students", "teachers")
+    advisory_sections = get_advisory_sections().prefetch_related(
+        "students",
+        "teachers",
+        "student_enrollments",
+        "teacher_enrollments",
+        "student_enrollments__student",
+        "teacher_enrollments__teacher",
+    )
 
     school_students = Student.objects.filter(schools__in=get_advisory_schools())
     advisory_sections = advisory_sections.filter(students__in=school_students)
