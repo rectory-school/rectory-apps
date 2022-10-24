@@ -35,6 +35,7 @@ django-hijack = "^3.2.1"
 fontawesomefree = "^6.2.0"
 frozendict = "^2.3.4"
 django-node-assets = "^0.9.11"
+premailer = "^3.10.0"
 
 [tool.poetry.dev-dependencies]
 rope = "*"

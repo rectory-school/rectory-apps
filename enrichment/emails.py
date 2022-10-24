@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from typing import Any, DefaultDict, Iterable, NamedTuple, Iterable, Optional
 
-from black import out
+import premailer
 
 from enrichment.models import (
     Slot,
@@ -58,7 +58,9 @@ class OutgoingEmail(NamedTuple):
     def message_html(self) -> str | None:
         full_template_name = f"enrichment/email/{self.template_name}.html"
         try:
-            return render_to_string(full_template_name, self.context)
+            rendered = render_to_string(full_template_name, self.context)
+            transformed = premailer.transform(rendered)
+            return transformed
         except TemplateDoesNotExist:
             return None
 
