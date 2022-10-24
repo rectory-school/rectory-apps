@@ -113,7 +113,7 @@ class RelatedAddress(models.Model):
         return email.utils.formataddr((self.name, self.address))
 
     class Meta:
-        unique_together = (("address", "message"),)
+        unique_together = (("address", "message", "field"),)
 
     @property
     def addr_obj(self) -> Address:
