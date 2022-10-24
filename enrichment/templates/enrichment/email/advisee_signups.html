@@ -5,7 +5,7 @@
         {% if current_selection %}
             Your assigned enrichment session on 
             {{ slot.date | date:"l F, j" }}<sup style="font-size: smaller;">{{ slot.date | date:"S"}}</sup>
-            is {{ current_selection.display }}
+            is with {{ current_selection.teacher.name }} in {{current_selection.location}}
         {% else %}
             You were not assigned an enrichment session on {{ slot.date | date:"l F, jS" }}.
             Please report to the education office during enrichment for further instructions

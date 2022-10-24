@@ -1,4 +1,4 @@
 Dear {{ student.display_name }}:
 
-{% for slot, current_selection in slots %}{% if current_selection %}Your assigned enrichment session on {{ slot.date | date:"l F, jS" }}{{ current_selection.display }}{% else %}You were not assigned an enrichment session on {{ slot.date | date:"l F, jS" }}. Please report to the education office during enrichment for further instructions{% endif %}
+{% for slot, current_selection in slots %}{% if current_selection %}Your assigned enrichment session on {{ slot.date | date:"l F, jS" }} is with {{ current_selection.teacher.name }} in {{ current_selection.location}}{% else %}You were not assigned an enrichment session on {{ slot.date | date:"l F, jS" }}. Please report to the education office during enrichment for further instructions{% endif %}
 {% endfor %}
