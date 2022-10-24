@@ -1,0 +1,85 @@
+{% extends "enrichment/base.html" %}
+
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title %}Enrichment Signups{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb "Weekly Report" "enrichment:weekly-report" %}
+{% endblock %}
+
+{% block content %}
+    <h1 id="by-student">By Student</h1>
+
+    {% for slot, grid_rows in by_student %}
+        <h2 id="by-student-{{ slot.id }}">{{ slot.date }}</h2>
+        {% if slot.description %}
+            <p>{{ slot.description }}</p>
+        {% endif %}
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Destination</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grid_row in grid_rows %}
+                    <tr>
+                        <th title="{{ slot.date }}">{{ grid_row.student.name }}</th>
+                        <td>
+                            {% if grid_row.currently_selected %}
+                                {{ grid_row.currently_selected.display }}
+                            {% else %}
+                                <strong>Unassigned</strong>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+
+    <h1>By Enrichment Location</h1>
+
+    {% for slot, options, unassigned in by_option %}
+        <h2 id="by-option-{{ slot.id }}">{{ slot.date }}</h2>
+        {% if slot.description %}
+            <p>{{ slot.description }}</p>
+        {% endif %}
+
+        <h3 title="{{ slot.date }}">Unassigned students</h3>
+        {% if unassigned %}
+            <ul>
+                {% for student in unassigned %}
+                    <li>{{ student.name }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>All students are assigned</p>
+        {% endif %}
+
+        {% for option, grid_rows in options %}
+            <h3 title="{{ slot.date }}" id="by-option-{{ slot.id }}-{{ option.id }}">{{ option.teacher.name }}</h3>
+            <p>{{ slot.date }}</p>
+            <p>{{ option.location }}</p>
+            {% if option.description %}
+                <p>{{ option.description }}</p>
+            {% endif %}
+
+            {% if grid_rows %}
+                <ul>
+                    {% for grid_row in grid_rows %}
+                        <li>{{ grid_row.student.name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No students assigned</p>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+{% endblock %}
+        
