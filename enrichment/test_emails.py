@@ -17,6 +17,7 @@ from enrichment.emails import (
     OutgoingEmail,
     AddressPair,
     comma_format_list,
+    deduplicate_address_pairs,
 )
 
 from enrichment.models import (
@@ -31,6 +32,27 @@ COMMA_LIST_EXPECTATIONS = (
     ((1,), "1"),
     ((1, 2), "1 and 2"),
     ((1, 2, 3), "1, 2, and 3"),
+)
+
+DEDUPLICATED_PAIR_EXPECTATIONS = (
+    (
+        [
+            AddressPair("Adam", "adam@example.org"),
+            AddressPair("Adam 2", "adam@example.org"),
+            AddressPair("Adam 3", "ADAM@example.org"),
+        ],
+        {
+            "adam@example.org",
+        },
+    ),
+    (
+        [
+            AddressPair("Adam", "adam@example.org"),
+            AddressPair("Adam 2", "adam2@example.org"),
+            AddressPair("Adam 3", "adam@example.org"),
+        ],
+        {"adam@example.org", "adam2@example.org"},
+    ),
 )
 
 
@@ -415,3 +437,9 @@ def test_comma_list(input: Sequence[int], expected: str):
     str_inputs = [str(val) for val in input]
     actual = comma_format_list(str_inputs)
     assert actual == expected
+
+
+@pytest.mark.parametrize(("input", "expected"), DEDUPLICATED_PAIR_EXPECTATIONS)
+def test_deduplicated_addresses(input: list[AddressPair], expected: set[str]):
+    actual = deduplicate_address_pairs(input)
+    assert len(actual) == len(expected)

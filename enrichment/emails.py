@@ -96,7 +96,7 @@ class OutgoingEmail(NamedTuple):
             )
 
         for field, address_pairs in pair_types.items():
-            for pair in address_pairs:
+            for pair in deduplicate_address_pairs(address_pairs):
                 related_address = RelatedAddress()
                 related_address.message = outgoing_message
                 related_address.field = field
@@ -506,3 +506,17 @@ def comma_format_list(elems: list[str]) -> str:
 
     comma_parts = ", ".join(elems[0:-1])
     return f"{comma_parts}, and {elems[-1]}"
+
+
+def deduplicate_address_pairs(pairs: Iterable[AddressPair]) -> set[AddressPair]:
+    seen: set[str] = set()
+    out: set[AddressPair] = set()
+
+    for pair in pairs:
+        if pair.address.lower() in seen:
+            continue
+
+        out.add(pair)
+        seen.add(pair.address.lower())
+
+    return out
