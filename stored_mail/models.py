@@ -90,6 +90,11 @@ class OutgoingMessage(models.Model):
         else:
             msg = EmailMessage(**kwargs)
 
+        msg.extra_headers["X-Stored-Message-UUID"] = self.unique_id
+        for header in self.extra_headers.all():
+            assert isinstance(header, ExtraHeader)
+            msg.extra_headers[header.key] = header.value
+
         return msg
 
     def __str__(self):
@@ -128,3 +133,19 @@ class RelatedAddress(models.Model):
         """An encoded address"""
 
         return email.utils.formataddr((self.name, self.address))
+
+
+class ExtraHeader(models.Model):
+    """An additional header to include on an outgoing email"""
+
+    message = models.ForeignKey(
+        OutgoingMessage, on_delete=models.CASCADE, related_name="extra_headers"
+    )
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=4096)
+
+    class Meta:
+        unique_together = (("message", "key"),)
+
+    def __str__(self):
+        return self.key

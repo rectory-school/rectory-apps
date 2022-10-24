@@ -38,6 +38,12 @@ class RelatedAddressInline(admin.TabularInline):
     model = models.RelatedAddress
 
 
+class ExtraHeaderInline(admin.TabularInline):
+    """Inline for extra headers"""
+
+    model = models.ExtraHeader
+
+
 class OutgoingMailAdminSentStatus(admin.SimpleListFilter):
     """Basic filter for outgoing mail status"""
 
@@ -70,7 +76,7 @@ class OutgoingMailAdminSentStatus(admin.SimpleListFilter):
 class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     """Admin for outgoing mail"""
 
-    inlines = [RelatedAddressInline]
+    inlines = [RelatedAddressInline, ExtraHeaderInline]
     list_filter = [OutgoingMailAdminSentStatus, "sent_at", "created_at"]
     list_display = ["pk", "subject", "created_at", "sent_at", "last_send_attempt"]
 
@@ -92,3 +98,5 @@ class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
 
         if obj:
             return str(obj.get_django_email().message())
+
+        return ""
