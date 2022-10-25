@@ -14,7 +14,13 @@ from . import models
 
 @admin.register(models.SyncConfig)
 class SyncConfigAdmin(SingletonModelAdmin):
-    fields = ["sync_enabled", "sync_asap", "last_sync_attempt", "get_sync_delay"]
+    fields = [
+        "sync_enabled",
+        "sync_asap",
+        "teacher_group",
+        "last_sync_attempt",
+        "get_sync_delay",
+    ]
     readonly_fields = ["last_sync_attempt", "get_sync_delay"]
 
     @admin.display(description="Time until next sync")

@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
+import django.contrib.auth.models
 
 from simple_history.models import HistoricalRecords
 
@@ -15,6 +16,14 @@ class SyncConfig(SingletonModel):
     last_sync_attempt = models.DateTimeField(null=True)
     sync_enabled = models.BooleanField(default=True)
     sync_asap = models.BooleanField(default=False, verbose_name="Sync ASAP")
+    teacher_group = models.ForeignKey(
+        django.contrib.auth.models.Group,
+        related_name="+",
+        help_text="The group to put all teachers in",
+        on_delete=models.DO_NOTHING,
+        blank=True,
+        null=True,
+    )
 
     @property
     def next_sync(self) -> datetime:
