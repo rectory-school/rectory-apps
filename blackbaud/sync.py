@@ -18,10 +18,14 @@ from django.utils.translation import gettext as _
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+import django.contrib.auth.models
+from django.contrib.auth import get_user_model
 
 from blackbaud import models
 
 Model = TypeVar("Model", bound=models.SISModel)
+
+UserModel = get_user_model()
 
 
 class SyncNotReady(Exception):
@@ -156,10 +160,10 @@ def auto_sync(force=False):
         config.save()
 
         with transaction.atomic():
-            _sync()
+            _sync(config)
 
 
-def _sync():
+def _sync(config: models.SyncConfig):
     log.info("Beginning Blackbaud sync")
 
     api = API()
@@ -192,6 +196,9 @@ def _sync():
         _get_transform_teachers(schools),
     )
 
+    if config.teacher_group:
+        _reconcile_teacher_group(teachers.values(), config.teacher_group)
+
     students = _auto_sync(
         api,
         models.Student,
@@ -202,6 +209,33 @@ def _sync():
     _sync_enrollments(api, schools, teachers, students, classes)
 
     log.info("Blackbaud sync finished")
+
+
+def _reconcile_teacher_group(
+    teachers: set[models.Teacher],
+    group: django.contrib.auth.models.Group,
+):
+    """Fix up the teacher group"""
+
+    sis_teachers_by_email = {obj.email: obj for obj in teachers}
+    users_by_email: dict[str, UserModel] = {
+        obj.email: obj
+        for obj in UserModel.objects.filter(email__in=sis_teachers_by_email.keys())
+    }
+
+    # Ensure all users exist
+    to_add = sis_teachers_by_email.keys() - users_by_email.keys()
+
+    for email in to_add:
+        users_by_email[email] = UserModel.objects.create(
+            email=email,
+        )
+
+    desired_group_users = {
+        users_by_email[email] for email in sis_teachers_by_email.keys()
+    }
+
+    group.user_set.set(desired_group_users)
 
 
 def _auto_sync(
