@@ -27,6 +27,8 @@
                 <li class="list-group-item">
                     <a href="{% url 'enrichment:advisee-list' %}">Advisee list</a>
                 </li>
+            {% endif %}
+            {% if perms.enrichment.assign_all_advisees or perms.enrichment.assign_other_advisees %}
                 <li class="list-group-item">
                     <a href="{% url 'enrichment:advisor-list' %}">Advisor list</a>
                 </li>

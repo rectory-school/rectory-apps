@@ -15,6 +15,7 @@ from django.http import HttpRequest, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.urls import reverse
+from braces.views import MultiplePermissionsRequiredMixin
 
 from pydantic import BaseModel, ValidationError, validator
 
@@ -59,6 +60,15 @@ class BaseDateMixin(View):
 
 class AssignAllPermissionRequired(PermissionRequiredMixin):
     permission_required = ["enrichment.assign_all_advisees"]
+
+
+class AssignOtherAdviseePermissionRequired(MultiplePermissionsRequiredMixin):
+    permissions = {
+        "any": (
+            "enrichment.assign_all_advisees",
+            "enrichment.assign_other_advisees",
+        )
+    }
 
 
 class Index(LoginRequiredMixin, TemplateView):
@@ -162,7 +172,7 @@ class AssignAllView(AssignAllPermissionRequired, AssignView):
         )
 
 
-class AssignForAdvisorView(AssignAllPermissionRequired, AssignView):
+class AssignForAdvisorView(AssignOtherAdviseePermissionRequired, AssignView):
     """Assign the advisees for a specific advisor"""
 
     def get_title(self) -> str:
@@ -226,7 +236,7 @@ class AdviseeListView(AssignAllPermissionRequired, TemplateView):
         return context
 
 
-class AdvisorListView(AssignAllPermissionRequired, TemplateView):
+class AdvisorListView(AssignOtherAdviseePermissionRequired, TemplateView):
     template_name = "enrichment/advisor_list.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:

@@ -36,6 +36,7 @@ fontawesomefree = "^6.2.0"
 frozendict = "^2.3.4"
 django-node-assets = "^0.9.11"
 premailer = "^3.10.0"
+django-braces = "^1.15.0"
 
 [tool.poetry.group.dev.dependencies]
 rope = "*"
