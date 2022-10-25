@@ -261,7 +261,13 @@ def _inner_sync(
     for source_id in to_add:
         row = sis_data[source_id]
 
-        desired_attrs = get_desired_attrs(row)
+        try:
+            desired_attrs = get_desired_attrs(row)
+        except KeyError:
+            log.exception(
+                "exception raised when calculating user's attributes, skipping", row=row
+            )
+            continue
 
         desired_scalar_attrs = {
             k: v for k, v in desired_attrs.items() if k not in many_to_many_fields
@@ -290,7 +296,13 @@ def _inner_sync(
         row = sis_data[source_id]
         obj = objs_by_id[source_id]
 
-        desired_attrs = get_desired_attrs(row)
+        try:
+            desired_attrs = get_desired_attrs(row)
+        except KeyError:
+            log.exception(
+                "exception raised when calculating user's attributes, skipping", row=row
+            )
+            continue
 
         desired_scalar_attrs = {
             k: v for k, v in desired_attrs.items() if k not in many_to_many_fields
