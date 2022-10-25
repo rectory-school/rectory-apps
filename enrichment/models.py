@@ -170,6 +170,10 @@ class Signup(models.Model):
                 "Can assign any advisees",
             ),
             (
+                "assign_other_advisees",
+                "Can assign advisees for other advisors",
+            ),
+            (
                 "view_reports",
                 "Can view enrichment reports",
             ),
