@@ -78,6 +78,7 @@ def get_advisees(
             if (
                 teacher_enrollment.begin_date <= as_of
                 and as_of <= teacher_enrollment.end_date
+                and teacher_enrollment.active
             ):
                 for student_enrollment in section.student_enrollments.all():
                     assert isinstance(student_enrollment, StudentEnrollment)
@@ -85,6 +86,7 @@ def get_advisees(
                     if (
                         student_enrollment.begin_date <= as_of
                         and as_of <= student_enrollment.end_date
+                        and student_enrollment.active
                     ):
                         pairs.add(
                             AdviseePair(
