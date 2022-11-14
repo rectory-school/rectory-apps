@@ -149,12 +149,44 @@ class OptionAdmin(admin.ModelAdmin):
         queryset.update(end_date=None)
 
 
+class SignupDateFilter(admin.SimpleListFilter):
+    title = _("date")
+    parameter_name = "date"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("future", _("Future")),
+            ("past", _("Past")),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "future":
+            return queryset.filter(slot__date__gte=date.today())
+
+        if self.value() == "past":
+            return queryset.filter(slot__date__lt=date.today())
+
+        return queryset
+
+
 @admin.register(models.Signup)
 class SignupAdmin(admin.ModelAdmin):
     """Signup admin"""
 
+    list_filter = (SignupDateFilter, "option__teacher")
+    search_fields = (
+        "option__teacher__family_name",
+        "option__teacher__given_name",
+        "student__given_name",
+        "student__family_name",
+    )
+
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("slot", "student", "option")
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("slot", "student", "option", "option__teacher")
+        )
 
 
 @admin.register(models.EditConfig)
