@@ -6,7 +6,7 @@ from django import forms
 from django.utils import timezone
 
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Q
+from django.db.models import Q, Count
 from django import forms
 from enrichment import models
 
@@ -103,6 +103,7 @@ class OptionAvailableFilter(admin.SimpleListFilter):
 class OptionAdmin(admin.ModelAdmin):
     """Admin for slot options"""
 
+    list_display = ["__str__", "disp_signup_count"]
     actions = ["disable_today", "remove_end_date"]
     list_filter = [OptionAvailableFilter, "end_date"]
     save_on_top = True
@@ -138,7 +139,10 @@ class OptionAdmin(admin.ModelAdmin):
     )
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("teacher")
+        qs = super().get_queryset(request).select_related("teacher")
+        qs = qs.annotate(signup_count=Count("signup"))
+
+        return qs
 
     @admin.action(description=_("Set end date to today"))
     def disable_today(self, request, queryset):
@@ -149,10 +153,15 @@ class OptionAdmin(admin.ModelAdmin):
         queryset.update(end_date=None)
 
     def has_delete_permission(self, request, obj=None) -> bool:
-        if obj and models.Signup.objects.filter(option=obj).exists():
+        # signup_count is added to the queryset in the admin model
+        if obj and obj.signup_count > 0:
             return False
 
         return super().has_delete_permission(request, obj)
+
+    @admin.decorators.display(description="All time signups", ordering="signup_count")
+    def disp_signup_count(self, obj):
+        return obj.signup_count
 
 
 class SignupDateFilter(admin.SimpleListFilter):
