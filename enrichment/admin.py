@@ -148,6 +148,12 @@ class OptionAdmin(admin.ModelAdmin):
     def remove_end_date(self, request, queryset):
         queryset.update(end_date=None)
 
+    def has_delete_permission(self, request, obj=None) -> bool:
+        if obj and models.Signup.objects.filter(option=obj).exists():
+            return False
+
+        return super().has_delete_permission(request, obj)
+
 
 class SignupDateFilter(admin.SimpleListFilter):
     title = _("date")
