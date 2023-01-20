@@ -445,6 +445,14 @@ def assign(request: HttpRequest) -> JsonResponse:
     slot = data.get_slot()
     option = data.get_option()
 
+    if not _user_can_assign_student(request.user, student):
+        return JsonResponse(
+            {
+                "success": False,
+                "code": "advisor-authentication-failed",
+            }
+        )
+
     assert isinstance(request.user, accounts.models.User)
     generator = GridGenerator(request.user, [slot], [student])
 
@@ -506,3 +514,32 @@ def _parse_date(s: str) -> date:
     year, month, day = map(int, parts)
 
     return date(year, month, day)
+
+
+def _user_can_assign_student(user, student: Student) -> bool:
+    """Check if a user can assign a given student"""
+
+    assign_any_perms = (
+        "enrichment.assign_all_advisees",
+        "enrichment.assign_other_advisees",
+    )
+
+    for perm in assign_any_perms:
+        if user.has_perm(perm):
+            return True
+
+    if user.is_anonymous:
+        return False
+
+    if not user.email:
+        return False
+
+    teachers = Teacher.objects.filter(email=user.email)
+
+    pairs = get_advisees(teachers, [student])
+
+    for teacher in teachers:
+        if (student, teacher) in pairs:
+            return True
+
+    return False
