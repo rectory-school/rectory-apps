@@ -1,0 +1,22 @@
+{% extends "evaluations/base.html" %}
+
+{% load django_bootstrap_breadcrumbs bootstrap4 %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+
+    {% breadcrumb evaluation.name "evaluations.complete" pk=evaluation.pk %}
+{% endblock %}
+
+
+{% block title%}{{ evaluation.name }}{% endblock %}
+
+{% block content %}
+    <h1>{{ evaluation.name }}</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <input type="submit" value="Submit evaluation">
+    </form>
+{% endblock %}

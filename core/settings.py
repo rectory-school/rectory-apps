@@ -130,6 +130,7 @@ LOCAL_APPS = [
     "stored_mail",
     "blackbaud",
     "enrichment",
+    "evaluations",
 ]
 
 INSTALLED_APPS += LOCAL_APPS
@@ -146,6 +147,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hijack.middleware.HijackUserMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
+    "blackbaud.middleware.AcademicRequestMiddleware",
 ]
 
 if DEBUG:
