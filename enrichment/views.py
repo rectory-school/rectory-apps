@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from functools import cache, cached_property
 import json
+import structlog
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple
 import urllib.parse
 
@@ -34,6 +35,8 @@ from enrichment.slots import (
     GridSignup,
 )
 from enrichment import slots
+
+log = structlog.get_logger()
 
 
 class BaseDateMixin(View):
@@ -288,7 +291,6 @@ class WeeklyReportView(PermissionRequiredMixin, BaseDateMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         students = {pair.student for pair in get_advisees()}
         sorted_students = sorted(students, key=lambda obj: obj.sort_key)
-
         assert isinstance(self.request.user, accounts.models.User)
         grid = GridGenerator(
             self.request.user,
@@ -300,6 +302,7 @@ class WeeklyReportView(PermissionRequiredMixin, BaseDateMixin, TemplateView):
 
         by_student: dict[GridSlot, dict[GridStudent, Optional[GridSignup]]] = {}
         by_option: dict[GridSlot, dict[GridOption, set[GridSignup]]] = {}
+        badly_assigned: dict[GridSlot, set[GridSignup]] = {}
 
         signups_by_slot: defaultdict[GridSlot, set[GridSignup]] = defaultdict(set)
         for signup in grid.signups:
@@ -319,8 +322,31 @@ class WeeklyReportView(PermissionRequiredMixin, BaseDateMixin, TemplateView):
                 by_option[slot][option] = set()
 
             for signup in signups:
-                by_option[slot][signup.option].add(signup)
-                by_student[slot][signup.student] = signup
+                try:
+                    by_option[slot][signup.option].add(signup)
+                except KeyError:
+                    log.warn(
+                        "Missing slot option for signed up student",
+                        slot=slot,
+                        signup=signup,
+                        option=signup.option,
+                    )
+
+                    if not slot in badly_assigned:
+                        badly_assigned[slot] = set()
+
+                    badly_assigned[slot].add(signup)
+
+        out_badly_assigned: list[tuple[GridSlot, list[GridSignup]]] = []
+        for grid_slot in sorted(badly_assigned, key=lambda gs: (gs.date, gs.id)):
+            out_badly_assigned.append(
+                (
+                    grid_slot,
+                    sorted(
+                        badly_assigned[grid_slot], key=lambda gs: gs.student.sort_key
+                    ),
+                )
+            )
 
         out_by_student: list[tuple[GridSlot, list[GridRowSlot]]] = []
         for grid_slot in grid.slots:
@@ -360,7 +386,11 @@ class WeeklyReportView(PermissionRequiredMixin, BaseDateMixin, TemplateView):
             )
             out_by_option.append((grid_slot, by_option_rows, unassigned_students))
 
-        return {"by_student": out_by_student, "by_option": out_by_option}
+        return {
+            "by_student": out_by_student,
+            "by_option": out_by_option,
+            "badly_assigned": out_badly_assigned,
+        }
 
 
 def get_monday(d: Optional[date] = None):

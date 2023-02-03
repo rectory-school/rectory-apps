@@ -11,6 +11,32 @@
 {% endblock %}
 
 {% block content %}
+    {% if badly_assigned %}
+        <div class="alert alert-danger" role="alert">
+            There are students signed up this week for options that are no longer available.
+            This can happen if a student is assigned to an option on a slot, and then the option is made unavailable -
+            either through an explicit exclusion or the end date being set.
+
+
+        </div>
+        
+        <h1>Signup issues</h1>
+        {% for slot, signups in badly_assigned %}
+            <h2>{{ slot.date }}</h2>
+            {% if slot.description %}
+                <p>{{ slot.description }}</p>
+            {% endif %}
+            
+            <ul>
+                {% for signup in signups %}
+                    <li>{{ signup.student.name }} with {{ signup.option.display }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% endif %}
+
+
+
     <h1 id="by-student">By Student</h1>
 
     {% for slot, grid_rows in by_student %}
