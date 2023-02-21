@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from django.contrib import admin
@@ -10,6 +11,8 @@ from adminsortable2.admin import SortableInlineAdminMixin
 from simple_history.models import HistoricalRecords
 
 from . import models
+
+log = logging.getLogger(__name__)
 
 
 @admin.register(models.QuestionSet)
@@ -175,7 +178,8 @@ def get_all_tags() -> list[admin.SimpleListFilter]:
     try:
         for category in models.TagCategory.objects.all():
             out.extend(get_tags_for_category(category))
-    except django.db.utils.OperationalError:
+    except (django.db.utils.OperationalError, django.db.utils.ProgrammingError):
+        log.exception("Could not generate admin tags")
         return []
 
     return out
