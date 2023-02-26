@@ -49,6 +49,7 @@ class Command(BaseCommand):
         self.freeform_questions = _existing_freeform_questions()
         self.multiple_choice_questions = _existing_multiple_choice_questions()
         self.multiple_choice_answers = _existing_multiple_choice_answers()
+        self.question_sets_by_id: dict[int, models.QuestionSet] = {}
 
     def add_arguments(self, parser) -> None:
         parser.add_argument("input_file")
