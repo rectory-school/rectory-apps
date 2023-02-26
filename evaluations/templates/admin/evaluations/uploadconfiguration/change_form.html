@@ -1,21 +1,39 @@
 {% extends "admin/change_form.html" %}
 
-{% load i18n %}
+{% load i18n static %}
 
 {% block object-tools %}
     <ul class="object-tools">
         
     </ul>
 
-    Hello, where am I?!
-
     <ul class="object-tools">
         <li><a href="history/" class="historylink">{% trans "History" %}</a></li>
-        <li>
-            <a href="#">Upload</a>
-        </li>
+        <li><a id="uploadconfig-upload-button" href="#">Upload</a></li>
+        <li><a href="{% url "admin:evaluations_uploadconfiguration_download_template" pk=object_id %}">Download Template</a></li>
         {% if has_absolute_url %}<li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
     </ul>
 
     {% comment %} {{ block.super }} {% endcomment %}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static "evaluations/admin/uploadconfiguraiton_upload.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+
+    <form 
+        id="uploadconfig-upload-form"
+        method="POST"
+        action="{% url "admin:evaluations_uploadconfiguration_upload_template" pk=object_id %}"
+        enctype="multipart/form-data"
+        style="display: none"
+        >
+        {% csrf_token %}
+        <input id="uploadconfig-upload-form-file" type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
 {% endblock %}

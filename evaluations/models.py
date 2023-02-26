@@ -245,6 +245,7 @@ class UploadConfigurationTagCategory(models.Model):
     upload_configuration = models.ForeignKey(
         UploadConfiguration,
         on_delete=models.CASCADE,
+        related_name="tag_categories",
     )
     category = models.ForeignKey(
         TagCategory,
