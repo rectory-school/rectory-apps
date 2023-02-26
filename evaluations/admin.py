@@ -1,9 +1,15 @@
 import logging
 from typing import Optional
+from tempfile import NamedTemporaryFile
 
-from django.contrib import admin
+from openpyxl import Workbook
+
+from django.contrib import admin, messages
 from django.http import HttpRequest, HttpResponse
 from django.utils.translation import gettext_lazy as _
+from django.urls import URLPattern, path
+from django.shortcuts import get_object_or_404, redirect
+
 import django.db.utils
 
 from adminsortable2.admin import SortableInlineAdminMixin
@@ -130,7 +136,7 @@ def get_tag_category_filter(category: models.TagCategory) -> admin.SimpleListFil
 
             return queryset
 
-    return Inner
+    return Inner  # type: ignore
 
 
 def get_tag_filter(tag: models.Tag) -> admin.SimpleListFilter:
@@ -155,7 +161,7 @@ def get_tag_filter(tag: models.Tag) -> admin.SimpleListFilter:
 
             return queryset
 
-    return Inner
+    return Inner  # type: ignore
 
 
 def get_tags_for_category(category: models.TagCategory) -> list[admin.SimpleListFilter]:
@@ -166,7 +172,7 @@ def get_tags_for_category(category: models.TagCategory) -> list[admin.SimpleList
     ]
 
     if category.admin_filter_breakout_values:
-        for tag in category.tags.all():
+        for tag in category.tags.all():  # type: ignore
             out.append(get_tag_filter(tag))
 
     return out
@@ -192,7 +198,14 @@ class EvaluationAdmin(admin.ModelAdmin):
     autocomplete_fields = ["tags", "student", "question_set"]
     search_fields = ["student__given_name", "student__family_name"]
     list_display = ["__str__", "student", "completed_at"]
-    list_filter = ("question_set", "created_at", "completed_at", *get_all_tags())
+
+    list_filter = (
+        "question_set",
+        "created_at",
+        "completed_at",
+        *get_all_tags(),  # type: ignore
+    )
+
     actions = [
         "clear_answers",
         "send_reminder_emails",
@@ -271,3 +284,62 @@ class UploadConfigurationTagInline(admin.TabularInline):
 @admin.register(models.UploadConfiguration)
 class UploadConfigurationAdmin(admin.ModelAdmin):
     inlines = [UploadConfigurationTagInline]
+
+    def get_urls(self) -> list[URLPattern]:
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:pk>/download",
+                self.download_template,
+                name="evaluations_uploadconfiguration_download_template",
+            ),
+            path(
+                "<int:pk>/upload",
+                self.upload_template,
+                name="evaluations_uploadconfiguration_upload_template",
+            ),
+        ]
+
+        return urls + custom_urls
+
+    def upload_template(self, request: HttpRequest, pk: int) -> HttpResponse:
+        messages.success(request, "Upload successful")
+
+        return redirect("admin:evaluations_uploadconfiguration_change", pk)
+
+    def download_template(self, request: HttpRequest, pk: int) -> HttpResponse:
+        """Generate and download the template for uploading"""
+
+        obj = get_object_or_404(models.UploadConfiguration, pk=pk)
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Template"
+
+        headers = ["Evaluation Identifier", "Student Email", "Evaluation Title"]
+
+        for tag_category in obj.tag_categories.order_by("category__name"):
+            headers.append(tag_category.category.name)
+
+        for i, header in enumerate(headers):
+            ws.cell(row=1, column=i + 1, value=header)
+
+        with NamedTemporaryFile() as tmp:
+            wb.save(tmp.name)
+            tmp.seek(0)
+            stream = tmp.read()
+
+        resp = HttpResponse(
+            stream,
+            headers={
+                "Content-Type": (
+                    "application/vnd."
+                    "openxmlformats-officedocument."
+                    "spreadsheetml."
+                    "sheet"
+                ),
+                "Content-Disposition": f"attachment; filename={obj.name}.xlsx",
+            },
+        )
+
+        return resp
