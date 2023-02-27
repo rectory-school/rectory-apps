@@ -302,12 +302,12 @@ class UploadConfigurationAdmin(admin.ModelAdmin):
         custom_urls = [
             path(
                 "<int:pk>/download",
-                self.download_template,
+                self.admin_site.admin_view(self.download_template),
                 name="evaluations_uploadconfiguration_download_template",
             ),
             path(
                 "<int:pk>/upload",
-                self.upload_template,
+                self.admin_site.admin_view(self.upload_template),
                 name="evaluations_uploadconfiguration_upload_template",
             ),
         ]
