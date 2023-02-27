@@ -7,14 +7,16 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('evaluations', '0011_auto_20230226_1414'),
+        ("evaluations", "0011_auto_20230226_1414"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tag',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="tag",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
     ]

@@ -7,13 +7,17 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('evaluations', '0009_uploadconfiguration_uploadconfigurationtagcategory'),
+        ("evaluations", "0009_uploadconfiguration_uploadconfigurationtagcategory"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='uploadconfigurationtagcategory',
-            name='upload_configuration',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tag_categories', to='evaluations.uploadconfiguration'),
+            model_name="uploadconfigurationtagcategory",
+            name="upload_configuration",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="tag_categories",
+                to="evaluations.uploadconfiguration",
+            ),
         ),
     ]
