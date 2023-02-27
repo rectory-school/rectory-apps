@@ -1,20 +1,24 @@
 import logging
 from typing import Optional
 from tempfile import NamedTemporaryFile
+from uuid import uuid4
 
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 
 from django.contrib import admin, messages
 from django.http import HttpRequest, HttpResponse
 from django.utils.translation import gettext_lazy as _
 from django.urls import URLPattern, path
 from django.shortcuts import get_object_or_404, redirect
+from django.db import transaction
 
 import django.db.utils
 
 from adminsortable2.admin import SortableInlineAdminMixin
 
 from simple_history.models import HistoricalRecords
+
+from blackbaud.models import Student
 
 from . import models
 
@@ -310,9 +314,127 @@ class UploadConfigurationAdmin(admin.ModelAdmin):
 
         return urls + custom_urls
 
+    @transaction.atomic
     def upload_template(self, request: HttpRequest, pk: int) -> HttpResponse:
-        messages.success(request, "Upload successful")
+        upload_obj = get_object_or_404(models.UploadConfiguration, pk=pk)
+        excel_data = load_workbook(
+            request.FILES["file"],
+            data_only=True,
+            read_only=True,
+        )
+        ws = excel_data.active
 
+        rows = ws.rows
+        header_row = next(rows)
+
+        headers_by_index = {cell.value: i for i, cell in enumerate(header_row)}
+        expected_headers = {"Student Email", "Evaluation Title"}
+        tag_category_by_column: dict[models.TagCategory, int] = {}
+
+        for tag_category in upload_obj.tag_categories.all():
+            expected_headers.add(tag_category.category.name)
+            column = headers_by_index.get(tag_category.category.name, None)
+            if column is not None:
+                tag_category_by_column[tag_category.category] = column
+
+        extra_headers = headers_by_index.keys() - expected_headers
+        missing_headers = expected_headers - headers_by_index.keys()
+
+        for header in extra_headers:
+            messages.warning(
+                request,
+                f'The header "{header}" was not configured and thus ignored',
+            )
+
+        for header in missing_headers:
+            messages.error(
+                request,
+                f'The header "{header}" was missing',
+            )
+
+        if missing_headers:
+            # Bail early
+            return redirect("admin:evaluations_uploadconfiguration_change", pk)
+
+        # Grab all the students by email
+        student_email_rows = ws.rows
+        next(student_email_rows)  # Throw out the first row
+
+        student_email_header_pos = headers_by_index["Student Email"]
+        student_emails: set[str] = set()
+        for row in student_email_rows:
+            student_email = row[student_email_header_pos].value
+            student_emails.add(student_email.strip())
+
+        students_by_email = {
+            obj.email: obj for obj in Student.objects.filter(email__in=student_emails)
+        }
+
+        tags_by_category: dict[models.TagCategory, dict[str, models.Tag]] = {}
+        for category in tag_category_by_column:
+            tags_by_category[category] = {}
+            for tag in category.tags.all():
+                tags_by_category[category][tag.value.lower()] = tag
+
+        # Create the relevant tags
+        tag_rows = ws.rows
+        next(tag_rows)  # Skip the first row
+        for row in tag_rows:
+            for category, column in tag_category_by_column.items():
+                row_value = row[column].value
+                if not row_value:
+                    continue
+                normalized_value = str(row_value).strip().lower()
+                if normalized_value not in tags_by_category[category]:
+                    tag = models.Tag.objects.create(
+                        category=category,
+                        value=str(row_value).strip(),
+                    )
+                    tags_by_category[category][normalized_value] = tag
+                    messages.info(request, f"Created tag {category.name}/{tag.value}")
+
+        upload_id = uuid4()
+        upload_tag = models.Tag.objects.create(
+            category=models.TagCategory.objects.get(name="Upload ID"),
+            value=str(upload_id),
+        )
+
+        # Finally - create the actual evaluations
+        rows = ws.rows
+        next(rows)
+
+        for i, row in enumerate(rows):
+            student_email = row[headers_by_index["Student Email"]].value
+            try:
+                student = students_by_email[student_email]
+            except KeyError:
+                messages.error(
+                    request,
+                    f"Student with email {student_email} could not be found",
+                )
+                continue
+
+            title = row[headers_by_index["Evaluation Title"]].value
+            if not title:
+                messages.error(request, f"Evaluation title was missing on row {i+2}")
+                continue
+
+            tags: set[models.Tag] = set()
+
+            for category in tags_by_category:
+                value = row[tag_category_by_column[category]].value
+                if value:
+                    tags.add(tags_by_category[category][str(value).lower().strip()])
+
+            evaluation = models.Evaluation.objects.create(
+                name=title,
+                student=student,
+                question_set=upload_obj.question_set,
+            )
+            for tag in tags:
+                evaluation.tags.add(tag)
+
+        messages.success(request, f"Upload successful, upload ID is {upload_id}")
         return redirect("admin:evaluations_uploadconfiguration_change", pk)
 
     def download_template(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -324,7 +446,7 @@ class UploadConfigurationAdmin(admin.ModelAdmin):
         ws = wb.active
         ws.title = "Template"
 
-        headers = ["Evaluation Identifier", "Student Email", "Evaluation Title"]
+        headers = ["Student Email", "Evaluation Title"]
 
         for tag_category in obj.tag_categories.order_by("category__name"):
             headers.append(tag_category.category.name)
