@@ -73,6 +73,12 @@ class TagCategoryAdmin(admin.ModelAdmin):
 
     inlines = [TagInline]
     readonly_fields = ["system_managed"]
+    list_display = [
+        "__str__",
+        "system_managed",
+        "admin_filter_display_values",
+        "admin_filter_breakout_values",
+    ]
 
     def has_change_permission(
         self, request, obj: Optional[models.TagCategory] = None
@@ -94,6 +100,8 @@ class TagCategoryAdmin(admin.ModelAdmin):
 @admin.register(models.Tag)
 class TagAdmin(admin.ModelAdmin):
     search_fields = ["category__name", "name"]
+    list_display = ["__str__", "category", "created_at"]
+    list_filter = ["category"]
 
     def has_add_permission(self, *args, **kwargs) -> bool:
         return False

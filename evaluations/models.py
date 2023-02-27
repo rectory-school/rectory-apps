@@ -113,6 +113,7 @@ class Tag(models.Model):
         related_name="tags",
     )
     value = models.CharField(max_length=256, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     objects = TagManager()
 
