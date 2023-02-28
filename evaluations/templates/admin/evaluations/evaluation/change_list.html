@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+
+{% block result_list %}
+
+<p>{{ available_complete }} out of {{ available }} {% if available %}({{ available_complete_pct|floatformat }}%) {% endif %}available evaluations have been completed</p>
+<p>{{ unavailable_complete }} out of {{ unavailable }} {% if unavailable %}({{ unavailable_complete_pct|floatformat }}%) {% endif %}closed evaluations have been completed</p>
+
+{{ block.super }}
+{% endblock %}

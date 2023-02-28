@@ -11,6 +11,8 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import URLPattern, path
 from django.shortcuts import get_object_or_404, redirect
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 
 import django.db.utils
 
@@ -221,8 +223,6 @@ class EvaluationAdmin(admin.ModelAdmin):
     actions = [
         "clear_answers",
         "send_reminder_emails",
-        "generate_results_report",
-        "generate_status_report",
     ]
 
     history = HistoricalRecords()
@@ -244,36 +244,79 @@ class EvaluationAdmin(admin.ModelAdmin):
     def send_reminder_emails(self, request, objs):
         """Send a reminder email to the students with incomplete evaluations"""
 
-        # TODO: Implement
+        raise NotImplementedError()
 
-    @admin.action(description="Generate results")
-    def generate_results_report(self, request, objs):
-        """Generate the reports for this evaluation set"""
+    def changelist_view(
+        self,
+        request: HttpRequest,
+        extra_context: Optional[dict] = None,
+    ):
+        extra_context = extra_context or {}
+        # Get the querysets for the various counts
+        qs = self.get_queryset(request)
+        q_starting_available = Q(available_starting_at__isnull=True)
+        q_starting_available |= Q(available_starting_at__gte=timezone.now())
 
-        # TODO: Implement
+        q_available_until = Q(available_until__isnull=True)
+        q_available_until |= Q(available_until__lte=timezone.now())
+        q_complete = Q(completed_at__isnull=False)
 
-    @admin.action(description="Generate status report")
-    def generate_status_report(self, request, objs):
-        """Generate the status reports for this evaluation set"""
+        qs_available = qs.filter(q_starting_available & q_available_until)
+        qs_completed_available = qs_available.filter(q_complete)
 
-        total = objs.count()
-        complete = objs.filter(completed_at__isnull=False).count()
-        incomplete = objs.filter(completed_at__isnull=True).count()
+        qs_unavailable = qs.filter(~q_starting_available | ~q_available_until)
+        qs_unavailable_complete = qs_unavailable.filter(q_complete)
 
-        complete_percent = complete / total * 100
-        incomplete_percent = incomplete / total * 100
+        available = qs_available.count()
+        available_complete = qs_completed_available.count()
 
-        lines = [
-            f"Total evaluations: {total}",
-            f"Complete evaluations: {complete} ({complete_percent:.0f}%)",
-            f"Incomplete evaluations: {incomplete} ({incomplete_percent:.0f}%)",
+        unavailable = qs_unavailable.count()
+        unavailable_complete = qs_unavailable_complete.count()
+
+        extra_context["available"] = available
+        extra_context["available_complete"] = available_complete
+        if available:
+            extra_context["available_complete_pct"] = (
+                available_complete / available * 100
+            )
+
+        extra_context["unavailable"] = unavailable
+        extra_context["unavailable_complete"] = unavailable_complete
+        if unavailable:
+            extra_context["unavailable_complete_pct"] = (
+                unavailable_complete / unavailable
+            )
+
+        return super().changelist_view(request, extra_context)
+
+    def clear_answer_view(self, request, pk: int):
+        """Do the needful"""
+
+        with transaction.atomic():
+            evaluation = get_object_or_404(models.Evaluation, pk=pk)
+            models.EvaluationMultipleChoiceAnswer.objects.filter(
+                evaluation=evaluation
+            ).delete()
+            models.EvaluationFreeformAnswer.objects.filter(
+                evaluation=evaluation
+            ).delete()
+            evaluation.completed_at = None
+            evaluation.save()
+
+        messages.success(request, "Selected evaluation answers have been cleared")
+        return redirect("admin:evaluations_evaluation_change", evaluation.pk)
+
+    def get_urls(self) -> list[URLPattern]:
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:pk>/clear/",
+                self.admin_site.admin_view(self.clear_answer_view),
+                name="evaluations_clear_answers",
+            )
         ]
 
-        out = "\n".join(lines)
-
-        resp = HttpResponse(content=out)
-        resp["content-type"] = "text/plain"
-        return resp
+        return custom_urls + urls
 
 
 class ReportCategorizerCategoryInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -433,6 +476,7 @@ class UploadConfigurationAdmin(admin.ModelAdmin):
             )
             for tag in tags:
                 evaluation.tags.add(tag)
+            evaluation.tags.add(upload_tag)
 
         messages.success(request, f"Upload successful, upload ID is {upload_id}")
         return redirect("admin:evaluations_uploadconfiguration_change", pk)
