@@ -77,20 +77,9 @@ class TagCategory(models.Model):
     name = models.CharField(max_length=256, unique=True)
     system_managed = models.BooleanField(default=False)
 
-    admin_filter_display_values = models.BooleanField(
+    show_as_filter = models.BooleanField(
         default=False,
-        help_text=(
-            "If the individual values for this tag category "
-            "should be listed on the admin filter"
-        ),
-    )
-
-    admin_filter_breakout_values = models.BooleanField(
-        default=False,
-        help_text=(
-            "If the individual values for this tag category "
-            "should be broken out on the admin filter"
-        ),
+        help_text=("Show this tag category as an admin evaluation filter"),
     )
 
     def __str__(self):
