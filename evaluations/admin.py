@@ -221,7 +221,6 @@ class EvaluationAdmin(admin.ModelAdmin):
     )
 
     actions = [
-        "clear_answers",
         "send_reminder_emails",
     ]
 
@@ -231,14 +230,6 @@ class EvaluationAdmin(admin.ModelAdmin):
         base_filters = super().get_list_filter(request)
 
         return base_filters
-
-    @admin.action(description="Clear answers")
-    def clear_answers(self, request, objs):
-        models.EvaluationMultipleChoiceAnswer.objects.filter(
-            evaluation__in=objs
-        ).delete()
-        models.EvaluationFreeformAnswer.objects.filter(evaluation__in=objs).delete()
-        objs.update(completed_at=None)
 
     @admin.action(description="Send reminder emails")
     def send_reminder_emails(self, request, objs):
