@@ -7,14 +7,12 @@ from openpyxl import Workbook, load_workbook
 
 from django.contrib import admin, messages
 from django.http import HttpRequest, HttpResponse
-from django.utils.translation import gettext_lazy as _
 from django.urls import URLPattern, path
 from django.shortcuts import get_object_or_404, redirect
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 
-import django.db.utils
 
 from adminsortable2.admin import SortableInlineAdminMixin
 
@@ -82,8 +80,7 @@ class TagCategoryAdmin(admin.ModelAdmin):
     list_display = [
         "__str__",
         "system_managed",
-        "admin_filter_display_values",
-        "admin_filter_breakout_values",
+        "show_as_filter",
     ]
 
     def has_change_permission(
@@ -119,92 +116,6 @@ class TagAdmin(admin.ModelAdmin):
         return False
 
 
-def get_tag_category_filter(category: models.TagCategory) -> admin.SimpleListFilter:
-    """Get the filter for a tag category"""
-
-    class Inner(admin.SimpleListFilter):
-        title = category.name
-        parameter_name = f"tag_category_{category.pk}"
-
-        def lookups(self, request, model_admin):
-            out = [
-                ("exists", _("Has tag")),
-                ("missing", _("Does not have tag")),
-            ]
-
-            if category.admin_filter_display_values:
-                for tag in category.tags.all():
-                    out.append((str(tag.pk), tag.value))
-
-            return out
-
-        def queryset(self, request, queryset):
-            if self.value() == "exists":
-                return queryset.filter(tags__category=category).distinct()
-
-            if self.value() == "missing":
-                return queryset.exclude(tags__category=category).distinct()
-
-            if self.value():
-                return queryset.filter(tags__pk=self.value())
-
-            return queryset
-
-    return Inner  # type: ignore
-
-
-def get_tag_filter(tag: models.Tag) -> admin.SimpleListFilter:
-    """Get a yes/no value for a given tag"""
-
-    class Inner(admin.SimpleListFilter):
-        title = f"{tag.category.name}: {tag.value}"
-        parameter_name = f"tag_{tag.pk}"
-
-        def lookups(self, request, model_admin):
-            return (
-                ("yes", _("Has tag")),
-                ("no", _("Does not have tag")),
-            )
-
-        def queryset(self, request, queryset):
-            if self.value() == "yes":
-                return queryset.filter(tags=tag)
-
-            if self.value() == "no":
-                return queryset.exclude(tags=tag)
-
-            return queryset
-
-    return Inner  # type: ignore
-
-
-def get_tags_for_category(category: models.TagCategory) -> list[admin.SimpleListFilter]:
-    """Get a bunch of admin filters for tags"""
-
-    out = [
-        get_tag_category_filter(category),
-    ]
-
-    if category.admin_filter_breakout_values:
-        for tag in category.tags.all():  # type: ignore
-            out.append(get_tag_filter(tag))
-
-    return out
-
-
-def get_all_tags() -> list[admin.SimpleListFilter]:
-    out = []
-
-    try:
-        for category in models.TagCategory.objects.all():
-            out.extend(get_tags_for_category(category))
-    except (django.db.utils.OperationalError, django.db.utils.ProgrammingError):
-        log.exception("Could not generate admin tags")
-        return []
-
-    return out
-
-
 @admin.register(models.Evaluation)
 class EvaluationAdmin(admin.ModelAdmin):
     """Admin for individual evaluations"""
@@ -214,10 +125,9 @@ class EvaluationAdmin(admin.ModelAdmin):
     list_display = ["__str__", "student", "completed_at"]
 
     list_filter = (
-        "question_set",
+        ("question_set", admin.RelatedOnlyFieldListFilter),
         "created_at",
         "completed_at",
-        *get_all_tags(),  # type: ignore
     )
 
     actions = [
@@ -227,7 +137,10 @@ class EvaluationAdmin(admin.ModelAdmin):
     history = HistoricalRecords()
 
     def get_list_filter(self, request: HttpRequest):
-        base_filters = super().get_list_filter(request)
+        base_filters = list(super().get_list_filter(request))
+
+        for category in models.TagCategory.objects.filter(show_as_filter=True):
+            base_filters.append(get_filter_for_tag_category_selection(category))
 
         return base_filters
 
@@ -509,3 +422,58 @@ class UploadConfigurationAdmin(admin.ModelAdmin):
         )
 
         return resp
+
+
+def get_filter_for_tag_category_selection(category: models.TagCategory):
+    """Get a single tag category filter"""
+
+    class TagCategoryFilter(admin.SimpleListFilter):
+        """A filter that will include a tag category
+        with all the relevant tags available"""
+
+        title = category.name
+        parameter_name = f"tag_category_{category.pk}"
+
+        def lookups(self, request, model_admin):
+            qs = model_admin.get_queryset(request)
+
+            # This breaks if other tag category filters are enabled
+            non_tag_query_attrs = dict(
+                [
+                    (param, val)
+                    for param, val in request.GET.items()
+                    if not param.startswith("tag_category_")
+                ]
+            )
+
+            qs = qs.filter(**non_tag_query_attrs)
+
+            tag_query_attrs = dict(
+                [
+                    (param, val)
+                    for param, val in request.GET.items()
+                    if param.startswith("tag_category_")
+                ]
+            )
+
+            for val in tag_query_attrs.values():
+                tag = models.Tag.objects.get(pk=val)
+                qs = qs.filter(tags=tag)
+
+            # Simple return
+            tags = models.Tag.objects.filter(category=category)
+            tags = tags.filter(evaluation__in=qs)
+            tags = tags.annotate(evaluation_count=Count("evaluation"))
+            tags = tags.filter(evaluation_count__gt=0)
+            return [(tag.pk, tag.value) for tag in tags]
+
+        def queryset(self, request, queryset):
+            value = self.value()
+
+            if value:
+                tag = models.Tag.objects.filter(category=category, pk=self.value())
+                queryset = queryset.filter(tags__in=tag)
+
+            return queryset
+
+    return TagCategoryFilter
