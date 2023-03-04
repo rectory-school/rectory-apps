@@ -252,8 +252,9 @@ class EvaluationAdmin(admin.ModelAdmin):
         extra_context: Optional[dict] = None,
     ):
         extra_context = extra_context or {}
-        # Get the querysets for the various counts
-        qs = self.get_queryset(request)
+
+        changelist = self.get_changelist_instance(request)
+        qs = changelist.get_queryset(request)
         q_starting_available = Q(available_starting_at__isnull=True)
         q_starting_available |= Q(available_starting_at__gte=timezone.now())
 
