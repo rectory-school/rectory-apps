@@ -100,6 +100,8 @@ if HOSTED_ENVIRONMENT:
 
 AUTH_USER_MODEL = "accounts.User"
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
 # The direct to config settings are to bypass the default_app_config RemovedInDjango41Warning warnings
 INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
