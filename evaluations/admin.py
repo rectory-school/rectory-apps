@@ -442,7 +442,7 @@ def get_filter_for_tag_category_selection(category: models.TagCategory):
                 [
                     (param, val)
                     for param, val in request.GET.items()
-                    if not param.startswith("tag_category_")
+                    if not param.startswith("tag_category_") and not param == "q"
                 ]
             )
 
