@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import date, timedelta
-from functools import cache, cached_property
+from functools import cached_property
 import json
 import structlog
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple
@@ -34,7 +34,6 @@ from enrichment.slots import (
     GridStudent,
     GridSignup,
 )
-from enrichment import slots
 
 log = structlog.get_logger()
 
@@ -332,7 +331,7 @@ class WeeklyReportView(PermissionRequiredMixin, BaseDateMixin, TemplateView):
                         option=signup.option,
                     )
 
-                    if not slot in badly_assigned:
+                    if slot not in badly_assigned:
                         badly_assigned[slot] = set()
 
                     badly_assigned[slot].add(signup)
@@ -506,7 +505,7 @@ def assign(request: HttpRequest) -> JsonResponse:
     all_options = config.preferred_options + config.remaining_options
     all_option_ids = [int(obj.id) for obj in all_options]
 
-    if not option.pk in all_option_ids:
+    if option.pk not in all_option_ids:
         return JsonResponse(
             {
                 "success": False,
