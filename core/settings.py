@@ -102,7 +102,8 @@ AUTH_USER_MODEL = "accounts.User"
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
-# The direct to config settings are to bypass the default_app_config RemovedInDjango41Warning warnings
+# The direct to config settings are to bypass the
+# default_app_config RemovedInDjango41Warning warnings
 INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.admin",
@@ -192,7 +193,10 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",

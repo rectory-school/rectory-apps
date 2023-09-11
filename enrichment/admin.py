@@ -1,5 +1,4 @@
 from datetime import date, datetime, time, timedelta
-from typing import Optional
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime
 from django import forms
@@ -7,7 +6,6 @@ from django.utils import timezone
 
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q, Count
-from django import forms
 from enrichment import models
 
 

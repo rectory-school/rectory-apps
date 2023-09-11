@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import date, timedelta
-from functools import cache, cached_property
+from functools import cached_property
 import json
 import structlog
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple
@@ -21,7 +21,7 @@ from braces.views import MultiplePermissionsRequiredMixin
 from pydantic import BaseModel, ValidationError, validator
 
 import accounts.models
-from blackbaud.models import Student, Teacher
+from blackbaud.models import Student, Teacher, AdvisoryCourse, AdvisorySchool
 from blackbaud.advising import get_advisees
 from enrichment.models import Slot, Option, Signup
 from enrichment.slots import (
@@ -34,7 +34,6 @@ from enrichment.slots import (
     GridStudent,
     GridSignup,
 )
-from enrichment import slots
 
 log = structlog.get_logger()
 
@@ -76,6 +75,16 @@ class AssignOtherAdviseePermissionRequired(MultiplePermissionsRequiredMixin):
 
 class Index(LoginRequiredMixin, TemplateView):
     template_name = "enrichment/index.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        active_advisory_courses = AdvisoryCourse.objects.filter(course__active=True)
+        active_advisory_schools = AdvisorySchool.objects.filter(school__active=True)
+
+        return {
+            "active_advisory_courses": active_advisory_courses.exists(),
+            "active_advisory_schools": active_advisory_schools.exists(),
+            **super().get_context_data(**kwargs),
+        }
 
 
 class AssignView(LoginRequiredMixin, BaseDateMixin, TemplateView):
@@ -332,7 +341,7 @@ class WeeklyReportView(PermissionRequiredMixin, BaseDateMixin, TemplateView):
                         option=signup.option,
                     )
 
-                    if not slot in badly_assigned:
+                    if slot not in badly_assigned:
                         badly_assigned[slot] = set()
 
                     badly_assigned[slot].add(signup)
@@ -506,7 +515,7 @@ def assign(request: HttpRequest) -> JsonResponse:
     all_options = config.preferred_options + config.remaining_options
     all_option_ids = [int(obj.id) for obj in all_options]
 
-    if not option.pk in all_option_ids:
+    if option.pk not in all_option_ids:
         return JsonResponse(
             {
                 "success": False,

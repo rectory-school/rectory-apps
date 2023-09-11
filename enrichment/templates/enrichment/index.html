@@ -10,6 +10,24 @@
 {% block content %}
     {% is_advisor as user_is_advisor %}
     <h1>Rectory Enrichment</h1>
+    {% if not active_advisory_courses %}
+        <div class="alert alert-danger" role="alert">
+            The enrichment system is not currently functional as there are no active advisory courses.
+            {% if user.is_staff and perms.blackbaud.change_advisorycourse %}
+                Please add a new advisory course in the <a href="{% url 'admin:blackbaud_advisorycourse_changelist' %}">system admin</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if not active_advisory_schools %}
+        <div class="alert alert-danger" role="alert">
+            The enrichment system is not currently functional as there are no active advisory schools.
+            {% if user.is_staff and perms.blackbaud.change_advisorycourse %}
+                Please add a new advisory school in the <a href="{% url 'admin:blackbaud_advisoryschool_changelist' %}">system admin</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
     <p>
         <ul class="list-group">
             {% if user_is_advisor %}

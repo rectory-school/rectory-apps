@@ -1,4 +1,5 @@
 from typing import Set
+from django.http.request import HttpRequest
 
 import humanize
 
@@ -176,9 +177,24 @@ class AdvisoryClassAdmin(admin.ModelAdmin):
     """Advisory class admin"""
 
     autocomplete_fields = ["course"]
+    list_display = ["__str__", "course_active"]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("course")
+
+    def has_change_permission(  # type: ignore
+        self,
+        request: HttpRequest,
+        obj: models.AdvisoryCourse | None = None,
+    ) -> bool:
+        if obj and not obj.course.active:
+            return False
+
+        return super().has_change_permission(request, obj)
+
+    @admin.decorators.display(description="Course active", boolean=True)
+    def course_active(self, obj: models.AdvisoryCourse) -> bool:
+        return obj.course.active
 
 
 @admin.register(models.AdvisorySchool)
@@ -186,3 +202,18 @@ class AdvisorySchoolAdmin(admin.ModelAdmin):
     """Advisory school admin"""
 
     autocomplete_fields = ["school"]
+    list_display = ["__str__", "school_active"]
+
+    def has_change_permission(  # type: ignore
+        self,
+        request: HttpRequest,
+        obj: models.AdvisorySchool | None = None,
+    ) -> bool:
+        if obj and not obj.school.active:
+            return False
+
+        return super().has_change_permission(request, obj)
+
+    @admin.decorators.display(description="School active", boolean=True)
+    def school_active(self, obj: models.AdvisorySchool) -> bool:
+        return obj.school.active

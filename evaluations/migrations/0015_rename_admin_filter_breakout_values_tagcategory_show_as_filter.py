@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('evaluations', '0014_alter_tagcategory_admin_filter_breakout_values'),
+        ("evaluations", "0014_alter_tagcategory_admin_filter_breakout_values"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='tagcategory',
-            old_name='admin_filter_breakout_values',
-            new_name='show_as_filter',
+            model_name="tagcategory",
+            old_name="admin_filter_breakout_values",
+            new_name="show_as_filter",
         ),
     ]
