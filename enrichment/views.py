@@ -21,7 +21,7 @@ from braces.views import MultiplePermissionsRequiredMixin
 from pydantic import BaseModel, ValidationError, validator
 
 import accounts.models
-from blackbaud.models import Student, Teacher
+from blackbaud.models import Student, Teacher, AdvisoryCourse, AdvisorySchool
 from blackbaud.advising import get_advisees
 from enrichment.models import Slot, Option, Signup
 from enrichment.slots import (
@@ -75,6 +75,16 @@ class AssignOtherAdviseePermissionRequired(MultiplePermissionsRequiredMixin):
 
 class Index(LoginRequiredMixin, TemplateView):
     template_name = "enrichment/index.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        active_advisory_courses = AdvisoryCourse.objects.filter(course__active=True)
+        active_advisory_schools = AdvisorySchool.objects.filter(school__active=True)
+
+        return {
+            "active_advisory_courses": active_advisory_courses.exists(),
+            "active_advisory_schools": active_advisory_schools.exists(),
+            **super().get_context_data(**kwargs),
+        }
 
 
 class AssignView(LoginRequiredMixin, BaseDateMixin, TemplateView):
