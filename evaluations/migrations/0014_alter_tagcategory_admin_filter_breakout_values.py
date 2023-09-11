@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('evaluations', '0013_remove_tagcategory_admin_filter_display_values'),
+        ("evaluations", "0013_remove_tagcategory_admin_filter_display_values"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='tagcategory',
-            name='admin_filter_breakout_values',
-            field=models.BooleanField(default=False, help_text='Show this tag category as an admin evaluation filter'),
+            model_name="tagcategory",
+            name="admin_filter_breakout_values",
+            field=models.BooleanField(
+                default=False,
+                help_text="Show this tag category as an admin evaluation filter",
+            ),
         ),
     ]
