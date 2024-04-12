@@ -1,4 +1,5 @@
 """Tests for sync utilities"""
+
 from base64 import encode
 import pytest
 

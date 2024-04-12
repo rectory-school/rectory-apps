@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django import forms
 
-from adminsortable2.admin import SortableInlineAdminMixin
+from adminsortable2.admin import SortableInlineAdminMixin, SortableAdminBase
 
 
 from . import models
@@ -66,7 +66,7 @@ class ResetDayAdmin(admin.TabularInline):
 
 
 @admin.register(models.Calendar)
-class CalendarAdmin(admin.ModelAdmin):
+class CalendarAdmin(SortableAdminBase, admin.ModelAdmin):
     """Admin for a calendar"""
 
     inlines = [DayInline, SkipDateInline, ResetDayAdmin, DateLabelInline]

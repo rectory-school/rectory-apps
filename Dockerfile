@@ -1,4 +1,4 @@
-FROM python:3.10-buster as python-builder
+FROM python:3.12-bookworm AS python-builder
 
 WORKDIR /app
 
@@ -15,20 +15,20 @@ COPY pyproject.toml pdm.lock /app/
 RUN python -m venv --copies /app/.venv
 RUN . /app/.venv/bin/activate && pdm install
 
-FROM node:latest as node-builder
+FROM node:latest AS node-builder
 
 WORKDIR /app
 
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM python:3.10-slim-buster as prod
+FROM python:3.12-slim-bookworm AS prod
 RUN apt-get update && apt-get install -y postgresql-client
 
 COPY --from=python-builder /app/.venv /app/.venv/
 COPY --from=node-builder /app/node_modules /app/node_modules
 
-ENV PATH /app/.venv/bin:$PATH
+ENV PATH=/app/.venv/bin:$PATH
 
 WORKDIR /app
 COPY . ./

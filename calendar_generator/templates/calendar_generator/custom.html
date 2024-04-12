@@ -1,38 +1,31 @@
 {% extends "calendar_generator/calendar_base.html" %}
 {% load static bootstrap4 django_bootstrap_breadcrumbs %}
-
 {% block breadcrumbs %}
-{{ block.super }}
-
-{% breadcrumb "Custom calendar Generation" 'calendar_generator:custom' %}
-{% endblock %}
-
+    {{ block.super }}
+    {% breadcrumb "Custom calendar Generation" 'calendar_generator:custom' %}
+{% endblock breadcrumbs %}
 {% block content %}
-<h1>Custom calendar generation: <em>{{calendar.title}}</em></h1>
-<p>{{ calendar.start_date }} to {{ calendar.end_date }}</p>
-<form method="GET">
-    {% bootstrap_form form %}
-    {% buttons %}
-    <button type="submit" class="btn btn-primary">
-        Generate calendar
-    </button>
+    <h1>
+        Custom calendar generation: <em>{{ calendar.title }}</em>
+    </h1>
+    <p>{{ calendar.start_date }} to {{ calendar.end_date }}</p>
+    <form method="get">
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Generate calendar</button>
     {% endbuttons %}
 </form>
-
 {% include "calendar_generator/partial/calendar.html" with title=title grid=grid %}
-
 <h2>Generate a PDF</h2>
-
 <div class="noprint">
     {% for color_set in color_sets %}
-        <p><strong>{{ color_set.name }}</strong>:
+        <p>
+            <strong>{{ color_set.name }}</strong>:
             {% for layout in layouts %}
-                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk color_set_id=color_set.pk layout_id=layout.pk start_year=start_date.year start_month=start_date.month start_day=start_date.day end_year=end_date.year end_month=end_date.month end_day=end_date.day %}?title={{ title|urlencode}}">{{ layout }}</a>
-
-                {% if not forloop.last %}&bullet;{% endif %}
+                <a href="{% url 'calendar_generator:pdf-single-grid' calendar_id=calendar.pk color_set_id=color_set.pk layout_id=layout.pk start_year=start_date.year start_month=start_date.month start_day=start_date.day end_year=end_date.year end_month=end_date.month end_day=end_date.day %}?title={{ title|urlencode }}">{{ layout }}</a>
+                {% if not forloop.last %}•{% endif %}
             {% endfor %}
         </p>
     {% endfor %}
 </div>
-
-{% endblock %}
+{% endblock body %}
