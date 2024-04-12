@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+
 from typing import Dict
 import django_stubs_ext
 
@@ -240,7 +241,7 @@ MEDIA_URL = env.str("MEDIA_URL", "/media/")
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "django_node_assets.finders.NodeModulesFinder",
+    "core.node_module_finder.NodeModulesFinder",
 ]
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
