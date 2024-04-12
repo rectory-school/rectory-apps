@@ -114,6 +114,10 @@ class GridOption(NamedTuple):
             val = getattr(self, field)
             if isinstance(val, (set, frozenset)):
                 val = list(val)
+
+            if isinstance(val, frozendict):
+                val = dict(val)
+
             out[field] = val
 
         out["teacher"] = self.teacher.jsonable
@@ -353,9 +357,9 @@ class GridGenerator:
                 only_available_on_ids.add(SlotID(db_slot.pk))
 
             for db_override in obj.location_overrides.all():
-                location_overrides_by_id[
-                    SlotID(db_override.slot_id)
-                ] = db_override.location
+                location_overrides_by_id[SlotID(db_override.slot_id)] = (
+                    db_override.location
+                )
 
             teacher = _teacher_to_grid(obj.teacher)
             exclude_from = {
