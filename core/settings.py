@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from typing import Dict
-import django_stubs_ext
 
 from pathlib import Path
 from email.utils import parseaddr
@@ -21,8 +20,12 @@ import environ
 
 import structlog
 
+try:
+    import django_stubs_ext
 
-django_stubs_ext.monkeypatch()  # This is for nicer typing
+    django_stubs_ext.monkeypatch()  # This is for nicer typing
+except ImportError:
+    ...
 
 env = environ.Env()
 
@@ -123,7 +126,6 @@ INSTALLED_APPS = [
     "simple_history",
     "hijack",
     "hijack.contrib.admin",
-    "fontawesomefree",
     "django_node_assets",
 ]
 
