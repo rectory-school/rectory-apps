@@ -38,7 +38,6 @@ dependencies = [
     "premailer<4.0.0,>=3.10.0",
     "django-braces<2.0.0,>=1.15.0",
     "openpyxl<4.0.0,>=3.1.1",
-    "uvicorn>=0.29.0",
 ]
 
 [tool.pdm.dev-dependencies]
