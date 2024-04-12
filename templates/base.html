@@ -33,8 +33,9 @@
     
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    {% bootstrap_css %}
-    {% bootstrap_javascript jquery='full' %}
+    <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
 
     <link rel="stylesheet" href="{% static 'css/base.css'%}">
     {{ csrf_token | stringformat:"s" | json_script:"csrf-token"}}
