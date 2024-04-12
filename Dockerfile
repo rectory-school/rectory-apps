@@ -1,4 +1,4 @@
-FROM python:3.10-buster as builder
+FROM python:3.10-buster as python-builder
 
 WORKDIR /app
 
@@ -7,13 +7,17 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources
 RUN apt update
 RUN apt install -y yarn
 
-RUN pip install pip==22.2.2
-RUN pip install poetry==1.2.2
+RUN pip install pip==24.0
+RUN pip install pdm==2.14.0
 
-COPY poetry.lock pyproject.toml /app/
+COPY pyproject.toml pdm.lock /app/
 
 RUN python -m venv --copies /app/.venv
-RUN . /app/.venv/bin/activate && poetry install
+RUN . /app/.venv/bin/activate && pdm install
+
+FROM node:latest as node-builder
+
+WORKDIR /app
 
 COPY package.json yarn.lock /app/
 RUN yarn install
@@ -21,8 +25,8 @@ RUN yarn install
 FROM python:3.10-slim-buster as prod
 RUN apt-get update && apt-get install -y postgresql-client
 
-COPY --from=builder /app/.venv /app/.venv/
-COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=python-builder /app/.venv /app/.venv/
+COPY --from=node-builder /app/node_modules /app/node_modules
 
 ENV PATH /app/.venv/bin:$PATH
 

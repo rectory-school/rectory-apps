@@ -1,60 +1,69 @@
-[tool.poetry]
+[project]
 name = "rectory-apps"
 version = "0.0.0"
 description = ""
-authors = ["Adam Peacock <adam@thepeacock.net>"]
+authors = [{ name = "Adam Peacock", email = "adam@thepeacock.net" }]
+requires-python = "<3.11,>=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = [
+    "django~=3.2",
+    "django-environ",
+    "django-admin-sortable2",
+    "psycopg2",
+    "whitenoise",
+    "gunicorn",
+    "django-safemigrate",
+    "django-bootstrap4",
+    "google-auth",
+    "requests",
+    "reportlab",
+    "django-bootstrap-breadcrumbs",
+    "django-anymail[mailgun]",
+    "django-lb-health-check<2.0,>=1.0",
+    "django-quick-jobs<1.0.0,>=0.4.0",
+    "htmlBuilder<2.0.0,>=1.0.0",
+    "structlog<22.0.0,>=21.5.0",
+    "django-stubs-ext<1.0.0,>=0.4.0",
+    "django-solo<3.0.0,>=2.0.0",
+    "types-requests<3.0.0,>=2.28.10",
+    "django-structlog<4.0.0,>=3.0.1",
+    "humanize<5.0.0,>=4.3.0",
+    "django-simple-history<4.0.0,>=3.1.1",
+    "pydantic<2.0.0,>=1.10.2",
+    "django-hijack<4.0.0,>=3.2.1",
+    "fontawesomefree<7.0.0,>=6.2.0",
+    "frozendict<3.0.0,>=2.3.4",
+    "django-node-assets<1.0.0,>=0.9.11",
+    "premailer<4.0.0,>=3.10.0",
+    "django-braces<2.0.0,>=1.15.0",
+    "openpyxl<4.0.0,>=3.1.1",
+    "uvicorn>=0.29.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-django = "~=3.2"
-django-environ = "*"
-django-admin-sortable2 = "*"
-psycopg2 = "*"
-whitenoise = "*"
-uvicorn = "*"
-gunicorn = "*"
-django-safemigrate = "*"
-django-bootstrap4 = "*"
-google-auth = "*"
-requests = "*"
-reportlab = "*"
-django-bootstrap-breadcrumbs = "*"
-django-anymail = {extras = ["mailgun"], version = "*"}
-django-lb-health-check = "^1.0"
-django-quick-jobs = "^0.4.0"
-htmlBuilder = "^1.0.0"
-structlog = "^21.5.0"
-django-stubs-ext = "^0.4.0"
-django-solo = "^2.0.0"
-types-requests = "^2.28.10"
-django-structlog = "^3.0.1"
-humanize = "^4.3.0"
-django-simple-history = "^3.1.1"
-pydantic = "^1.10.2"
-django-hijack = "^3.2.1"
-fontawesomefree = "^6.2.0"
-frozendict = "^2.3.4"
-django-node-assets = "^0.9.11"
-premailer = "^3.10.0"
-django-braces = "^1.15.0"
-openpyxl = "^3.1.1"
+[tool.pdm.dev-dependencies]
+dev = [
+    "rope",
+    "pytest",
+    "pytest-django",
+    "django-debug-toolbar",
+    "ipython",
+    "mypy<1.0,>=0.950",
+    "black<23.0.0,>=22.3.0",
+    "django-stubs<2.0.0,>=1.11.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-rope = "*"
-pytest = "*"
-pytest-django = "*"
-django-debug-toolbar = "*"
-ipython = "*"
-mypy = "^0.950"
-black = "^22.3.0"
-django-stubs = "^1.11.0"
+[tool.pdm]
+distribution = false
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
 
-[tool.mypy]
-plugins = ["mypy_django_plugin.main"]
+[tool.pdm.build]
+includes = []
+
 
 [tool.django-stubs]
 django_settings_module = "core.settings"
+
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
