@@ -134,7 +134,6 @@ LOCAL_APPS = [
     "stored_mail",
     "blackbaud",
     "enrichment",
-    "evaluations",
 ]
 
 INSTALLED_APPS += LOCAL_APPS
