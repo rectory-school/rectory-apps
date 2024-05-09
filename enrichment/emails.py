@@ -5,6 +5,10 @@ from typing import Any, DefaultDict, Iterable, NamedTuple, Iterable, Optional
 
 import premailer
 
+import structlog
+
+log: structlog.stdlib.BoundLogger = structlog.get_logger()
+
 from enrichment.models import (
     Slot,
     Signup,
@@ -212,7 +216,6 @@ def _unassigned_for_advisor(
     slots: set[Slot],
     all_signups: _SignupIDs,
 ) -> OutgoingEmail | None:
-
     unassigned_students: set[Student] = set()
     context_dict: DefaultDict[Slot, set[Student]] = defaultdict(set)
 
@@ -396,6 +399,15 @@ def advisor_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmai
 def facilitator_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
     """Personalized emails to every facilitator"""
 
+    # If the job hasn't run in a while for any reason, we want to make sure we are not
+    # sending old garbage e-mails. Suppress slots that were in the past.
+
+    slots = {slot for slot in slots if slot.date >= timezone.now().date()}
+
+    if not slots:
+        log.warning("got a facilitator signup call with no valid slots")
+        return
+
     ordered_slots = sorted(slots, key=lambda obj: obj.date)
     students = {pair.student for pair in get_advisees()}
     grid = GridGenerator(None, ordered_slots, list(students))
@@ -434,13 +446,21 @@ def facilitator_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[Outgoing
             location=option.location_on_slot(slot),
         )
 
-        signups_by_option[concrete_option].add(student)
+        try:
+            signups_by_option[concrete_option].add(student)
+        except KeyError as exc:
+            log.error(
+                "concrete option for signup missing",
+                concrete_option=concrete_option,
+                student=student,
+            )
+            raise exc
 
     options_by_teacher: dict[GridTeacher, set[ConcreteOption]] = {}
     for concrete_option in signups_by_option:
         teacher = concrete_option.option.teacher
 
-        if not teacher in options_by_teacher:
+        if teacher not in options_by_teacher:
             options_by_teacher[teacher] = set()
 
         options_by_teacher[teacher].add(concrete_option)
