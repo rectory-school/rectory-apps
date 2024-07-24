@@ -5,7 +5,7 @@ from datetime import date
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from . import models
 
@@ -21,7 +21,6 @@ class CustomCalendarForm(forms.Form):
         self, *args, calendar: models.Calendar, initial: Optional[Dict] = None, **kwargs
     ):
         self._calendar = calendar
-
         super().__init__(*args, initial=initial, **kwargs)
 
     def clean_start_date(self):

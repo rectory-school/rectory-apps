@@ -36,12 +36,12 @@ def teachers_for_students(
 
     teachers_by_id = {obj.pk: obj for obj in teachers}
 
-    teacher_enrollments_by_section_id: DefaultDict[
-        int, Set[TeacherEnrollment]
-    ] = defaultdict(set)
-    student_enrollments_by_section_id: DefaultDict[
-        int, Set[StudentEnrollment]
-    ] = defaultdict(set)
+    teacher_enrollments_by_section_id: DefaultDict[int, Set[TeacherEnrollment]] = (
+        defaultdict(set)
+    )
+    student_enrollments_by_section_id: DefaultDict[int, Set[StudentEnrollment]] = (
+        defaultdict(set)
+    )
 
     for e_teacher in teacher_enrollments:
         teacher_enrollments_by_section_id[e_teacher.section_id].add(e_teacher)

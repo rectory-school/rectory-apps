@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from typing import Dict
-import django_stubs_ext
 
 from pathlib import Path
 from email.utils import parseaddr
@@ -21,8 +20,12 @@ import environ
 
 import structlog
 
+try:
+    import django_stubs_ext
 
-django_stubs_ext.monkeypatch()  # This is for nicer typing
+    django_stubs_ext.monkeypatch()  # This is for nicer typing
+except ImportError:
+    ...
 
 env = environ.Env()
 
@@ -66,9 +69,17 @@ BLACKBAUD_OAUTH_SECRET = env("BLACKBAUD_OAUTH_SECRET", default=None)
 
 SIS_SYNC_INTERVAL = env.int("SIS_SYNC_INTERVAL", default=3600)
 
-DEFAULT_FILE_STORAGE = env(
-    "DEFAULT_FILE_STORAGE", default="django.core.files.storage.FileSystemStorage"
-)
+STORAGES = {
+    "default": {
+        "BACKEND": env(
+            "DEFAULT_FILE_STORAGE",
+            default="django.core.files.storage.FileSystemStorage",
+        )
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}
 
 # Mail configuration
 MAILGUN_API_KEY = env("MAILGUN_API_KEY", default=None)
@@ -123,7 +134,6 @@ INSTALLED_APPS = [
     "simple_history",
     "hijack",
     "hijack.contrib.admin",
-    "fontawesomefree",
     "django_node_assets",
 ]
 
@@ -219,8 +229,6 @@ TIME_ZONE = "US/Eastern"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
 
 
@@ -243,7 +251,6 @@ STATICFILES_FINDERS = [
     "core.node_module_finder.NodeModulesFinder",
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATIC_ROOT = BASE_DIR / "scratch" / "static"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 

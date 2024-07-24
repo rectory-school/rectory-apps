@@ -268,9 +268,9 @@ def all_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmail]:
         sorted(students_by_id.values(), key=lambda obj: obj.pk),
     )
 
-    by_slot_option: defaultdict[
-        tuple[GridSlot, GridOption], set[GridSignup]
-    ] = defaultdict(set)
+    by_slot_option: defaultdict[tuple[GridSlot, GridOption], set[GridSignup]] = (
+        defaultdict(set)
+    )
 
     for signup in grid.signups:
         by_slot_option[(signup.slot, signup.option)].add(signup)
