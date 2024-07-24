@@ -1,82 +1,84 @@
 {% load static bootstrap4 django_bootstrap_breadcrumbs %}
 {% block breadcrumbs %}
-    {% clear_breadcrumbs %}
-    {% breadcrumb "Home" 'home' %}
+      {% clear_breadcrumbs %}
+      {% breadcrumb "Home" 'home' %}
 {% endblock breadcrumbs %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>
-            {% block title %}Rectory Apps{% endblock title %}
-        </title>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport"
-              content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link href="{% static 'fontawesomefree/css/fontawesome.css' %}"
-              rel="stylesheet"
-              type="text/css">
-        <link href="{% static 'fontawesomefree/css/brands.css' %}"
-              rel="stylesheet"
-              type="text/css">
-        <link href="{% static 'fontawesomefree/css/solid.css' %}"
-              rel="stylesheet"
-              type="text/css">
-        <link rel="apple-touch-icon"
-              sizes="180x180"
-              href="{% static 'img/icons/apple-touch-icon.png' %}">
-        <link rel="icon"
-              type="image/png"
-              sizes="32x32"
-              href="{% static 'img/icons/favicon-32x32.png' %}">
-        <link rel="icon"
-              type="image/png"
-              sizes="16x16"
-              href="{% static 'img/icons/favicon-16x16.png' %}">
-        <link rel="manifest" href={% static 'img/icons/site.webmanifest' %}>
-        <link rel="mask-icon"
-              href="{% static 'img/icons/safari-pinned-tab.svg' %}"
-              color="#e5782f">
-        <link rel="shortcut icon" href={% static 'img/icons/favicon.ico' %}>
-        <meta name="apple-mobile-web-app-title" content="Rectory Apps">
-        <meta name="application-name" content="Rectory Apps">
-        <meta name="msapplication-TileColor" content="#603cba">
-        <meta name="msapplication-config"
-              content="{% static 'img/icons/browserconfig.xml' %}">
-        <meta name="theme-color" content="#ffffff">
-        <meta name="referrer" content="strict-origin-when-cross-origin">
-        <script src="https://accounts.google.com/gsi/client" async defer></script>
-        <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}"
-              rel="stylesheet"
-              type="text/css">
-        <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-        <script src="{% static 'bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
-        <link rel="stylesheet" href="{% static 'css/base.css' %}">
-        {{ csrf_token | stringformat:"s" | json_script:"csrf-token" }}
-        <script src="{% static 'js/base.js' %}"></script>
-        {% block headextra %}{% endblock %}
-    </head>
-    <body>
-        {% csrf_token %}
-        {% include "nav/nav.html" %}
-        {% if request.user.is_hijacked %}
-            <div class="alert alert-warning">You are working on behalf of {{ request.user }}</div>
-        {% endif %}
-        <div class="container main">
-            {% render_breadcrumbs "django_bootstrap_breadcrumbs/bootstrap4.html" %}
-            {% bootstrap_messages %}
-            {% block content %}
-            {% endblock content %}
-        </div>
-        <div id="g_id_onload"
-             data-client_id="{{ google_oauth_client_id }}"
-             data-context="signin"
-             data-ux_mode="popup"
-             data-auto_select="true"
-             data-itp_support="true"
-             {% if disable_auto_login %}data-auto_prompt="false"{% endif %}
-             data-login_uri="{{ google_login_url }}?{{ redirect_field_name }}={{ google_redirect_to }}"
-             data-csrfmiddlewaretoken="{{ csrf_token }}"
-             {% if not disable_auto_login %}data-from_auto="true"{% endif %}>
-        </body>
-    </html>
+      <head>
+            <title>
+                  {% block title %}
+                        Rectory Apps
+                  {% endblock title %}
+            </title>
+            <!-- Required meta tags -->
+            <meta charset="utf-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <link href="{% static 'fontawesome-free/css/fontawesome.css' %}"
+                  rel="stylesheet"
+                  type="text/css">
+            <link href="{% static 'fontawesome-free/css/brands.css' %}"
+                  rel="stylesheet"
+                  type="text/css">
+            <link href="{% static 'fontawesome-free/css/solid.css' %}"
+                  rel="stylesheet"
+                  type="text/css">
+            <link rel="apple-touch-icon"
+                  sizes="180x180"
+                  href="{% static 'img/icons/apple-touch-icon.png' %}">
+            <link rel="icon"
+                  type="image/png"
+                  sizes="32x32"
+                  href="{% static 'img/icons/favicon-32x32.png' %}">
+            <link rel="icon"
+                  type="image/png"
+                  sizes="16x16"
+                  href="{% static 'img/icons/favicon-16x16.png' %}">
+            <link rel="manifest" href={% static 'img/icons/site.webmanifest' %}>
+            <link rel="mask-icon"
+                  href="{% static 'img/icons/safari-pinned-tab.svg' %}"
+                  color="#e5782f">
+            <link rel="shortcut icon" href={% static 'img/icons/favicon.ico' %}>
+            <meta name="apple-mobile-web-app-title" content="Rectory Apps">
+            <meta name="application-name" content="Rectory Apps">
+            <meta name="msapplication-TileColor" content="#603cba">
+            <meta name="msapplication-config"
+                  content="{% static 'img/icons/browserconfig.xml' %}">
+            <meta name="theme-color" content="#ffffff">
+            <meta name="referrer" content="strict-origin-when-cross-origin">
+            <script src="https://accounts.google.com/gsi/client" async defer></script>
+            <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}"
+                  rel="stylesheet"
+                  type="text/css">
+            <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+            <script src="{% static 'bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+            <link rel="stylesheet" href="{% static 'css/base.css' %}">
+            {{ csrf_token | stringformat:"s" | json_script:"csrf-token" }}
+            <script src="{% static 'js/base.js' %}"></script>
+            {% block headextra %}{% endblock %}
+      </head>
+      <body>
+            {% csrf_token %}
+            {% include "nav/nav.html" %}
+            {% if request.user.is_hijacked %}
+                  <div class="alert alert-warning">You are working on behalf of {{ request.user }}</div>
+            {% endif %}
+            <div class="container main">
+                  {% render_breadcrumbs "django_bootstrap_breadcrumbs/bootstrap4.html" %}
+                  {% bootstrap_messages %}
+                  {% block content %}
+                  {% endblock content %}
+            </div>
+            <div id="g_id_onload"
+                 data-client_id="{{ google_oauth_client_id }}"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-auto_select="true"
+                 data-itp_support="true"
+                 {% if disable_auto_login %}data-auto_prompt="false"{% endif %}
+                 data-login_uri="{{ google_login_url }}?{{ redirect_field_name }}={{ google_redirect_to }}"
+                 data-csrfmiddlewaretoken="{{ csrf_token }}"
+                 {% if not disable_auto_login %}data-from_auto="true"{% endif %}>
+            </body>
+      </html>
