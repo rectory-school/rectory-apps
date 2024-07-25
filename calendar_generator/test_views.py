@@ -56,4 +56,4 @@ def test_custom_calendar_landing_render(client: Client, superuser: User, static_
     url = reverse("calendar_generator:custom", kwargs={"calendar_id": calendar.pk})
     resp = client.get(url)
     assert isinstance(resp, TemplateResponse)
-    assert resp.template_name == ["calendar_generator/custom.html"]
+    assert resp.template_name == "calendar_generator/custom.html"

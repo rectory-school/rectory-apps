@@ -16,8 +16,9 @@ from django.views.generic import DetailView, ListView
 from django.http import FileResponse, HttpRequest
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.decorators import permission_required
+from django.template.response import TemplateResponse
 
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 
 from reportlab.pdfgen import canvas
 
@@ -183,7 +184,7 @@ def custom_preview(request, calendar_id: int):
         context["title"] = title
         context["grid"] = grid
 
-    return render(request, "calendar_generator/custom.html", context)
+    return TemplateResponse(request, "calendar_generator/custom.html", context)
 
 
 @permission_required(VIEW_CALENDAR_PERMISSION)
