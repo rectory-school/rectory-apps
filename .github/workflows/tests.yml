@@ -19,6 +19,8 @@ jobs:
       
       - name: Set up dependencies
         run: pdm install -d
+      - name: Install frontend dependencies
+        run: yarn install
       - name: Run tests
         run: pdm run pytest
   
