@@ -81,10 +81,14 @@ class RGBColorAdmin(admin.ModelAdmin):
 class ColorSetAdmin(admin.ModelAdmin):
     """Color set admin"""
 
+    save_as = True
+
 
 @admin.register(models.Layout)
 class LayoutAdmin(admin.ModelAdmin):
     """Layout admin"""
+
+    save_as = True
 
 
 @admin.register(models.MonthlyDisplaySet)
