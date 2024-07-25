@@ -1,13 +1,11 @@
 from collections import defaultdict
 from datetime import date, timedelta
 
-from typing import Any, DefaultDict, Iterable, NamedTuple, Iterable, Optional
+from typing import Any, DefaultDict, Iterable, NamedTuple, Optional
 
 import premailer
 
 import structlog
-
-log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 from enrichment.models import (
     Slot,
@@ -36,6 +34,8 @@ from django.conf import settings
 BASE_URL: str = settings.EMAIL_BASE_URL
 
 _SignupIDs = set[tuple[SlotID, StudentID]]
+
+log: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
 class AddressPair(NamedTuple):
@@ -127,7 +127,7 @@ def unassigned_admin(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEma
 
     for advisor, advisees in advisees_by_advisor.items():
         for student in advisees:
-            if not student in advisors_by_advisees:
+            if student not in advisors_by_advisees:
                 advisors_by_advisees[student] = set()
 
             advisors_by_advisees[student].add(advisor)
@@ -308,7 +308,7 @@ def advisee_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmai
     advisors_by_advisee: dict[Student, set[Teacher]] = {}
 
     for pair in advisee_pairs:
-        if not pair.student in advisors_by_advisee:
+        if pair.student not in advisors_by_advisee:
             advisors_by_advisee[pair.student] = set()
 
         advisors_by_advisee[pair.student].add(pair.teacher)
@@ -362,7 +362,7 @@ def advisor_signups(cfg: EmailConfig, slots: set[Slot]) -> Iterable[OutgoingEmai
 
     for pair in get_advisees():
         advisor = pair.teacher
-        if not advisor in advisees_by_advisors:
+        if advisor not in advisees_by_advisors:
             advisees_by_advisors[advisor] = set()
 
         advisees_by_advisors[advisor].add(pair.student)

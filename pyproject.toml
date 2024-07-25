@@ -32,7 +32,6 @@ dependencies = [
     "django-node-assets<1.0.0,>=0.9.13",
     "premailer<4.0.0,>=3.10.0",
     "django-braces<2.0.0,>=1.15.0",
-    "openpyxl<4.0.0,>=3.1.1",
     "psycopg>=3.1.18",
     "django-bootstrap-breadcrumbs @ git+https://github.com/Hovercross/bootstrap-breadcrumbs.git",
 ]
