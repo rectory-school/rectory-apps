@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load bootstrap4 django_bootstrap_breadcrumbs %}
+{% block title %}
+    Log in via e-mail link
+{% endblock title %}
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb "Log in" "accounts.login_email" %}
+{% endblock breadcrumbs %}
+{% block content %}
+    <h1>Rectory Apps E-mail Login</h1>
+    {% if next %}
+        {% if user.is_authenticated %}
+            <p>Your account doesn't have access to this page. To proceed, please log in with an account that has access.</p>
+        {% else %}
+            <p>Please log in to see this page.</p>
+        {% endif %}
+    {% endif %}
+    <form method="post" class="form">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    {% endbuttons %}
+</form>
+{% endblock content %}

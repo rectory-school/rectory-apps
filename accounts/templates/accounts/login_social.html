@@ -1,46 +1,50 @@
 {% extends "base.html" %}
 {% load bootstrap4 static django_bootstrap_breadcrumbs %}
-
-{% block title %}Log in{% endblock %}
-
+{% block title %}
+    Log in
+{% endblock title %}
 {% block breadcrumbs %}
     {{ block.super }}
-
     {% breadcrumb "Log in with Google" "accounts.login" %}
-{% endblock %}
-
+{% endblock breadcrumbs %}
 {% block content %}
-
-<h1>Rectory Apps Login</h1>
-
-{% if next %}
-    {% if user.is_authenticated %}
-        <p>Your account ({{ request.user }}) doesn't have access to this page. To proceed, please log in with an account that has access.</p>
+    <h1>Rectory Apps Login</h1>
+    {% if next %}
+        {% if user.is_authenticated %}
+            <p>
+                Your account ({{ request.user }}) doesn't have access to this page. To proceed, please log in with an account that has access.
+            </p>
+        {% endif %}
+    {% else %}
+        {% if user.is_authenticated %}<p>You are logged in as {{ request.user }}</p>{% endif %}
     {% endif %}
-{% else %}
-    {% if user.is_authenticated %}
-        <p>You are logged in as {{ request.user }}</p>
+    {% if show_google_login %}
+        <div class="row">
+            <div class="col-12">
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="filled_blue"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left"></div>
+            </div>
+        </div>
     {% endif %}
-{% endif %}
-
-<div class="row">
-    <div class="col-12">
-        <div class="g_id_signin"
-            data-type="standard"
-            data-shape="rectangular"
-            data-theme="filled_blue"
-            data-text="signin_with"
-            data-size="large"
-            data-logo_alignment="left">
+    {% if show_email_login %}
+        <div class="row">
+            <div class="col-12">
+                <a href="{% url 'accounts:login-email' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
+                    Log in via email
+                </a>
+            </div>
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
+                Administrative Login (use only as directed)
+            </a>
         </div>
     </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <a href="{% url 'accounts:login-native' %}{% if next %}?{{ redirect_field_name }}={{ next }}{% endif %}">
-            Administrative Login (use only as directed)
-        </a>
-    </div>
-</div>
-{% endblock %}
+{% endblock content %}
