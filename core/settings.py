@@ -332,3 +332,5 @@ structlog.configure(
 
 NODE_PACKAGE_JSON = BASE_DIR / "package.json"
 NODE_MODULES_ROOT = BASE_DIR / "node_modules"
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
