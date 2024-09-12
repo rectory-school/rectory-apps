@@ -58,7 +58,7 @@ GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default=None)
 GOOGLE_HOSTED_DOMAINS = env.list("GOOGLE_HOSTED_DOMAINS", default=[])
 
 # The base URL to use when sending emails
-EMAIL_BASE_URL = env("EMAIL_BASE_URL", default="http://localhost")
+EMAIL_BASE_URL = env("EMAIL_BASE_URL", default="http://localhost:8000")
 STORED_MAIL_SEND_ENABLED = env.bool("STORED_MAIL_SEND_ENABLED", default=True)
 
 # These are allowed to be empty so that PR checks can run

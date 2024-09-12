@@ -1,9 +1,16 @@
 """Models for accounts"""
 
 from typing import List
+from string import ascii_letters, digits
+from random import choice
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+from solo.models import SingletonModel
+
+CODE_CHARACTERS = ascii_letters + digits
 
 
 class UserManager(BaseUserManager):
@@ -70,3 +77,21 @@ class User(AbstractUser):
             return f"{self.first_name} {self.last_name}"
 
         return self.email
+
+
+def _random_code() -> str:
+    return "".join(choice(CODE_CHARACTERS) for _ in range(48))
+
+
+class TemporaryLoginCode(models.Model):
+    """A temporary login authorization based on a link"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=48, unique=True, default=_random_code)
+    expiration = models.DateTimeField()
+    used_at = models.DateTimeField(blank=True, null=True)
+
+
+class LoginConfiguration(SingletonModel):
+    enable_google_login = models.BooleanField(default=True)
+    enable_email_login = models.BooleanField(default=False)

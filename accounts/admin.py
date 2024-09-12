@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from django import forms
 from django.http import HttpRequest
 
+from solo.admin import SingletonModelAdmin
+
 from . import models
 
 
@@ -79,3 +81,22 @@ class UserAdmin(DjangoUserAdmin):
             queryset = queryset.exclude(pk=request.user.pk)
 
         queryset.update(password="")
+
+
+@admin.register(models.LoginConfiguration)
+class LoginConfigurationAdmin(SingletonModelAdmin):
+    """Singleton admin for login configuration"""
+
+
+@admin.register(models.TemporaryLoginCode)
+class TemporaryCodeAdmin(admin.ModelAdmin):
+    """Admin for user temporary codes"""
+
+    fields = ["user", "expiration", "used_at"]
+    readonly_fields = ["user", "expiration", "used_at"]
+
+    def has_add_permission(self, request: HttpRequest):
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj=None):
+        return False
