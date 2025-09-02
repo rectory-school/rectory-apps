@@ -130,11 +130,13 @@ class StudentAdmin(ChangeOnly, admin.ModelAdmin):
 @admin.register(models.Course)
 class CourseAdmin(ReadOnly, admin.ModelAdmin):
     search_fields = ["title"]
+    list_display = ["title", "sis_id", "active"]
+    list_filter = ["active"]
 
 
 @admin.register(models.Class)
 class ClassAdmin(ReadOnly, admin.ModelAdmin):
-    search_fields = ["title", "course"]
+    search_fields = ["title", "course__sis_id", "course__title"]
     list_filter = ["course"]
 
 
@@ -177,7 +179,8 @@ class AdvisoryClassAdmin(admin.ModelAdmin):
     """Advisory class admin"""
 
     autocomplete_fields = ["course"]
-    list_display = ["__str__", "course_active"]
+    list_display = ["__str__", "course_active", "course_sis_id"]
+    raw_id_fields = ["course"]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("course")
@@ -195,6 +198,10 @@ class AdvisoryClassAdmin(admin.ModelAdmin):
     @admin.decorators.display(description="Course active", boolean=True)
     def course_active(self, obj: models.AdvisoryCourse) -> bool:
         return obj.course.active
+
+    @admin.decorators.display(description="Course ID")
+    def course_sis_id(self, obj: models.AdvisoryCourse) -> str:
+        return obj.course.sis_id
 
 
 @admin.register(models.AdvisorySchool)
