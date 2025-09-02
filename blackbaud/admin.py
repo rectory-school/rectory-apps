@@ -1,4 +1,6 @@
+from collections.abc import Iterable
 from typing import Set
+from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 
 import humanize
@@ -127,11 +129,54 @@ class StudentAdmin(ChangeOnly, admin.ModelAdmin):
     list_filter = ["active", "schools"]
 
 
+class UsedForAdvisoryFilter(admin.SimpleListFilter):
+    title = _("Used for advisory")
+    parameter_name = "advisory"
+
+    _true = "1"
+    _false = "0"
+
+    def lookups(
+        self,
+        request: HttpRequest,
+        queryset: QuerySet[models.Course],
+    ) -> Iterable[tuple[str, str]] | None:
+        del request
+        del queryset
+        return (
+            (UsedForAdvisoryFilter._true, _("Advisory")),
+            (UsedForAdvisoryFilter._false, _("Not advisory")),
+        )
+
+    def queryset(
+        self,
+        request: HttpRequest,
+        queryset: QuerySet[models.Course],
+    ) -> QuerySet[models.Course]:
+        if self.value() == self._true:
+            return queryset.filter(advisory_course__isnull=False)
+        if self.value() == self._false:
+            return queryset.filter(advisory_course__isnull=True)
+
+        raise ValueError("Unknown filter parameter")
+
+
 @admin.register(models.Course)
 class CourseAdmin(ReadOnly, admin.ModelAdmin):
     search_fields = ["title"]
-    list_display = ["title", "sis_id", "active"]
-    list_filter = ["active"]
+    list_display = ["title", "sis_id", "used_for_advisory", "active"]
+    list_filter = [
+        UsedForAdvisoryFilter,
+        "active",
+    ]
+
+    @admin.display(description="Used for advisory", boolean=True)
+    def used_for_advisory(self, obj: models.Course):
+        try:
+            _ = obj.advisory_course
+            return True
+        except models.AdvisoryCourse.DoesNotExist:
+            return False
 
 
 @admin.register(models.Class)
@@ -179,7 +224,7 @@ class AdvisoryClassAdmin(admin.ModelAdmin):
     """Advisory class admin"""
 
     autocomplete_fields = ["course"]
-    list_display = ["__str__", "course_active", "course_sis_id"]
+    list_display = ["course_sis_id", "course_title", "course_active"]
     raw_id_fields = ["course"]
 
     def get_queryset(self, request):
@@ -202,6 +247,10 @@ class AdvisoryClassAdmin(admin.ModelAdmin):
     @admin.decorators.display(description="Course ID")
     def course_sis_id(self, obj: models.AdvisoryCourse) -> str:
         return obj.course.sis_id
+
+    @admin.decorators.display(description="Course Name")
+    def course_title(self, obj: models.AdvisoryCourse) -> str:
+        return obj.course.title
 
 
 @admin.register(models.AdvisorySchool)

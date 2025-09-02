@@ -126,7 +126,7 @@ class Course(SISModel):
         ordering = ["title"]
 
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.sis_id})"
 
 
 class Class(SISModel):
