@@ -158,7 +158,7 @@ class UsedForAdvisoryFilter(admin.SimpleListFilter):
         if self.value() == self._false:
             return queryset.filter(advisory_course__isnull=True)
 
-        raise ValueError("Unknown filter parameter")
+        return queryset
 
 
 @admin.register(models.Course)
