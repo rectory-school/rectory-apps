@@ -36,32 +36,24 @@ dependencies = [
     "django-bootstrap-breadcrumbs @ git+https://github.com/Hovercross/bootstrap-breadcrumbs.git",
 ]
 
-[tool.pdm.dev-dependencies]
-dev = [
-    "rope>=1.13.0",
-    "pytest>=8.1.1",
-    "pytest-django>=4.8.0",
-    "django-debug-toolbar>=4.3.0",
-    "ipython>=8.23.0",
-    "mypy<1.0,>=0.950",
-    "black>=24.8.0",
-    "django-stubs>=1.11.0",
-    "django-stubs-ext>=0.8.0",
-    "types-requests>=2.31.0.20240406",
-    "djLint>=1.34.1",
-]
-
-[tool.pdm]
-distribution = false
-
-
-[tool.pdm.build]
-includes = []
-
-
 [tool.django-stubs]
 django_settings_module = "core.settings"
 
 
 [tool.mypy]
 plugins = ["mypy_django_plugin.main"]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "django-debug-toolbar>=6.0.0",
+    "django-stubs>=5.2.2",
+    "django-stubs-ext>=5.2.2",
+    "djlint>=1.36.4",
+    "ipython>=9.5.0",
+    "mypy>=1.17.1",
+    "pytest>=8.4.1",
+    "pytest-django>=4.11.1",
+    "rope>=1.14.0",
+    "types-requests>=2.32.4.20250809",
+]
