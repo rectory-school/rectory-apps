@@ -7,13 +7,13 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources
 RUN apt update
 RUN apt install -y yarn
 
-RUN pip install pip==24.0
-RUN pip install pdm==2.14.0
+RUN pip install pip==25.2
+RUN pip install uv==0.8.14
 
-COPY pyproject.toml pdm.lock /app/
+COPY pyproject.toml uv.lock /app/
 
 RUN python -m venv --copies /app/.venv
-RUN . /app/.venv/bin/activate && pdm install
+RUN . /app/.venv/bin/activate && uv sync --locked
 
 FROM node:latest AS node-builder
 
