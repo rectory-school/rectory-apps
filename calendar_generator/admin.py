@@ -46,10 +46,11 @@ class ResetDayAdminInlineForm(forms.ModelForm):
     def __init__(self, *args, parent_object: models.Calendar, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Restrict the days to those in this calendar
-        self.fields["day"].choices = (
-            (obj.pk, obj.letter) for obj in parent_object.days.all()
-        )
+        if parent_object.pk:
+            # Restrict the days to those in this calendar
+            self.fields["day"].choices = (
+                (obj.pk, obj.letter) for obj in parent_object.days.all()
+            )
 
     class Meta:
         model = models.ResetDay
