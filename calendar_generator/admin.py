@@ -4,6 +4,7 @@ from django.contrib import admin
 from django import forms
 
 from adminsortable2.admin import SortableInlineAdminMixin, SortableAdminBase
+from django.http.request import HttpRequest
 
 
 from . import models
@@ -70,7 +71,11 @@ class ResetDayAdmin(admin.TabularInline):
 class CalendarAdmin(SortableAdminBase, admin.ModelAdmin):
     """Admin for a calendar"""
 
-    inlines = [DayInline, SkipDateInline, ResetDayAdmin, DateLabelInline]
+    def get_inlines(self, request: HttpRequest, obj: models.Calendar | None):
+        if not obj or not obj.pk:
+            return [DayInline]
+
+        return [DayInline, SkipDateInline, ResetDayAdmin, DateLabelInline]
 
 
 @admin.register(models.Color)
