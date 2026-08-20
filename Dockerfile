@@ -2,18 +2,13 @@ FROM python:3.14-bookworm AS python-builder
 
 WORKDIR /app
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt update
-RUN apt install -y yarn
-
-RUN pip install pip==25.2
-RUN pip install uv==0.8.14
+RUN pip install pip==26.2.1
+RUN pip install uv==0.12.5
 
 COPY pyproject.toml uv.lock /app/
 
 RUN python -m venv --copies /app/.venv
-RUN . /app/.venv/bin/activate && uv sync --locked
+RUN . /app/.venv/bin/activate && uv sync --locked --no-dev
 
 FROM node:26-bookworm-slim AS node-builder
 
