@@ -3,7 +3,7 @@ name = "rectory-apps"
 version = "0.0.0"
 description = ""
 authors = [{ name = "Adam Peacock", email = "adam@thepeacock.net" }]
-requires-python = "<3.13,>=3.12"
+requires-python = "<3.15,>=3.14"
 readme = "README.md"
 license = { text = "MIT" }
 dependencies = [
