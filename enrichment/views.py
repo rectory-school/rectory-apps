@@ -18,7 +18,7 @@ from django.db.models import Q
 from django.urls import reverse
 from braces.views import MultiplePermissionsRequiredMixin
 
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError, field_validator
 
 import accounts.models
 from blackbaud.models import Student, Teacher, AdvisoryCourse, AdvisorySchool
@@ -415,27 +415,30 @@ def get_monday(d: Optional[date] = None):
 class AssignInput(BaseModel):
     slot_id: int
     student_id: int
-    option_id: int | None
+    option_id: int | None = None
     admin_lock: bool = False
 
     # Todo: These validators are inefficient, they should use some sort
     # of computed property. Right now the table gets queried twice
 
-    @validator("slot_id")
+    @field_validator("slot_id")
+    @classmethod
     def slot_must_exist(cls, v):
         if not Slot.objects.filter(pk=v).exists():
             raise ValueError("Slot does not exist")
 
         return v
 
-    @validator("student_id")
+    @field_validator("student_id")
+    @classmethod
     def student_must_exist(cls, v):
         if not Student.objects.filter(pk=v).exists():
             raise ValueError("Student does not exist")
 
         return v
 
-    @validator("option_id")
+    @field_validator("option_id")
+    @classmethod
     def option_must_exist(cls, v):
         if not v:
             return v
@@ -469,7 +472,10 @@ def assign(request: HttpRequest) -> JsonResponse:
             {
                 "success": False,
                 "code": "validation-failed",
-                "errors": exc.errors(),
+                # Pydantic's errors() embeds the original exception object in
+                # "ctx", which isn't JSON serializable. Going through json()
+                # gets us the same errors in a serializable form.
+                "errors": json.loads(exc.json()),
             }
         )
     except json.JSONDecodeError:

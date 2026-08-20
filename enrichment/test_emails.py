@@ -57,7 +57,7 @@ DEDUPLICATED_PAIR_EXPECTATIONS = (
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("report_name", (choice[0] for choice in EMAIL_REPORT_CHOICES))
+@pytest.mark.parametrize("report_name", [choice[0] for choice in EMAIL_REPORT_CHOICES])
 def test_generate_email_html(report_name: str):
     middle_school = blackbaud.models.School(
         sis_id=uuid4().hex,
@@ -170,7 +170,7 @@ def test_generate_email_html(report_name: str):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("report_name", (choice[0] for choice in EMAIL_REPORT_CHOICES))
+@pytest.mark.parametrize("report_name", [choice[0] for choice in EMAIL_REPORT_CHOICES])
 def test_generate_email_text(report_name: str):
     middle_school = blackbaud.models.School(
         sis_id=uuid4().hex,

@@ -93,7 +93,7 @@ class OutgoingMailAdmin(ViewOnlyAdminMixin, admin.ModelAdmin):
     readonly_fields = ["encoded"]
 
     @admin.display(description="Encoded Message")
-    def encoded(self, obj: models.OutgoingMessage = None) -> str:
+    def encoded(self, obj: models.OutgoingMessage | None = None) -> str:
         """Encoded display helper"""
 
         if obj:

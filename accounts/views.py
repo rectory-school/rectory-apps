@@ -95,12 +95,14 @@ class SocialLoginView(TemplateView):
                 return HttpResponseRedirect(redirect_to)
 
             if len(allowed_domains) == 1:
-                msg = _("Login is only allowed from ")
+                msg = str(_("Login is only allowed from "))
                 msg += allowed_domains[0]
             else:
-                msg = _("Login is only allowed from one of the following domains: ")
+                msg = str(
+                    _("Login is only allowed from one of the following domains: ")
+                )
                 msg += ", ".join(allowed_domains)
-                msg += " " + _("domains")
+                msg += " " + str(_("domains"))
 
             messages.add_message(request, messages.ERROR, msg)
 
