@@ -39,7 +39,9 @@ def auth_button(context):
 
 
 @register.simple_tag(takes_context=True)
-def nav_item(context, title: str, url_name: str, required_permission: str = None):
+def nav_item(
+    context, title: str, url_name: str, required_permission: Optional[str] = None
+):
     """Determine if the active URL is the current URL"""
 
     request = context["request"]

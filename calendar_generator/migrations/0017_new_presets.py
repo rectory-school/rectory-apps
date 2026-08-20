@@ -2,7 +2,6 @@
 
 from django.db import migrations
 
-
 inch = 72.0
 cm = inch / 2.54
 mm = cm * 0.1

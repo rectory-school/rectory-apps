@@ -4,8 +4,8 @@ INCLUDE_PATTERNS = {"*.map"}
 
 
 class NodeModulesFinder(django_node_assets.finders.NodeModulesFinder):
-    ignore_patterns = [
+    default_ignore_patterns = [
         item
-        for item in django_node_assets.finders.NodeModulesFinder.ignore_patterns
+        for item in django_node_assets.finders.NodeModulesFinder.default_ignore_patterns
         if item not in INCLUDE_PATTERNS
     ]

@@ -63,7 +63,7 @@ class UserAdmin(DjangoUserAdmin):
     ordering = ("email",)
 
     @admin.display(boolean=True)
-    def has_password(self, obj: models.User = None):
+    def has_password(self, obj: models.User | None = None):
         """Determine if the user can log in directly"""
 
         if obj:

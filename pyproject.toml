@@ -3,36 +3,35 @@ name = "rectory-apps"
 version = "0.0.0"
 description = ""
 authors = [{ name = "Adam Peacock", email = "adam@thepeacock.net" }]
-requires-python = "<3.13,>=3.12"
+requires-python = "<3.15,>=3.14"
 readme = "README.md"
 license = { text = "MIT" }
 dependencies = [
-    "django~=4.2.11",
-    "django-environ~=0.11.2",
-    "django-admin-sortable2~=2.1.10",
-    "whitenoise~=6.6.0",
-    "gunicorn~=21.2.0",
-    "django-safemigrate~=4.3",
-    "django-bootstrap4~=24.1",
-    "google-auth~=2.29.0",
-    "requests~=2.31.0",
-    "reportlab~=4.1.0",
-    "django-anymail[mailgun]~=10.3",
+    "django~=5.2.17",
+    "django-environ~=0.14.0",
+    "django-admin-sortable2~=2.3.1",
+    "whitenoise~=6.12.0",
+    "gunicorn~=26.1.0",
+    "django-safemigrate~=6.0",
+    "django-bootstrap4~=26.1",
+    "google-auth~=2.56.3",
+    "requests~=2.34.2",
+    "reportlab~=5.0.1",
+    "django-anymail[mailgun]~=15.1",
     "django-lb-health-check<2.0,>=1.0",
     "django-quick-jobs>=0.4.0",
     "htmlBuilder<2.0.0,>=1.0.0",
-    "structlog>=24.1.0",
-    "django-solo~=2.2.0",
-    "django-structlog~=8.0.0",
-    "humanize~=4.9.0",
-    "django-simple-history~=3.5.0",
-    "pydantic<2.0.0,>=1.10.2",
-    "django-hijack~=3.4.5",
-    "frozendict~=2.4.1",
-    "django-node-assets<1.0.0,>=0.9.13",
+    "structlog>=26.1.0",
+    "django-solo~=2.5.1",
+    "django-structlog~=10.1.0",
+    "humanize~=4.16.0",
+    "django-simple-history~=3.13.0",
+    "pydantic~=2.13.4",
+    "django-hijack~=3.7.8",
+    "frozendict~=2.4.7",
+    "django-node-assets<1.0.0,>=0.9.16",
     "premailer<4.0.0,>=3.10.0",
-    "django-braces<2.0.0,>=1.15.0",
-    "psycopg>=3.1.18",
+    "psycopg>=3.3.4",
     "django-bootstrap-breadcrumbs @ git+https://github.com/Hovercross/bootstrap-breadcrumbs.git",
 ]
 
