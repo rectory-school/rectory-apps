@@ -361,18 +361,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-braces"
-version = "1.17.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8a/c0/eb3e27e817eb4ba39d9c66fbd53139cb4db7073f5e6e71c28ce4d8b706da/django_braces-1.17.0.tar.gz", hash = "sha256:3a6fe630d3d91fef0711bfe1088d14af00c245559f79f6298040ed2b2f757337", size = 54227, upload-time = "2025-03-18T02:03:02.354Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/34/966fd4a68cbe7a80e29868bcb9d43e6ba5d562120e272e27e61ab795eea9/django_braces-1.17.0-py3-none-any.whl", hash = "sha256:18c9fe889bc673bddee6110f23a8c57fefe99663c8c683a7c2ac4f8f8743674d", size = 15330, upload-time = "2025-03-18T02:03:01.217Z" },
-]
-
-[[package]]
 name = "django-debug-toolbar"
 version = "7.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1152,7 +1140,6 @@ dependencies = [
     { name = "django-anymail" },
     { name = "django-bootstrap-breadcrumbs" },
     { name = "django-bootstrap4" },
-    { name = "django-braces" },
     { name = "django-environ" },
     { name = "django-hijack" },
     { name = "django-lb-health-check" },
@@ -1198,7 +1185,6 @@ requires-dist = [
     { name = "django-anymail", extras = ["mailgun"], specifier = "~=15.1" },
     { name = "django-bootstrap-breadcrumbs", git = "https://github.com/Hovercross/bootstrap-breadcrumbs.git" },
     { name = "django-bootstrap4", specifier = "~=26.1" },
-    { name = "django-braces", specifier = ">=1.17.0,<2.0.0" },
     { name = "django-environ", specifier = "~=0.14.0" },
     { name = "django-hijack", specifier = "~=3.7.8" },
     { name = "django-lb-health-check", specifier = ">=1.0,<2.0" },

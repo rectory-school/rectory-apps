@@ -31,7 +31,6 @@ dependencies = [
     "frozendict~=2.4.7",
     "django-node-assets<1.0.0,>=0.9.16",
     "premailer<4.0.0,>=3.10.0",
-    "django-braces<2.0.0,>=1.17.0",
     "psycopg>=3.3.4",
     "django-bootstrap-breadcrumbs @ git+https://github.com/Hovercross/bootstrap-breadcrumbs.git",
 ]

@@ -16,7 +16,6 @@ from django.http import HttpRequest, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.urls import reverse
-from braces.views import MultiplePermissionsRequiredMixin
 
 from pydantic import BaseModel, ValidationError, field_validator
 
@@ -64,13 +63,24 @@ class AssignAllPermissionRequired(PermissionRequiredMixin):
     permission_required = ["enrichment.assign_all_advisees"]
 
 
-class AssignOtherAdviseePermissionRequired(MultiplePermissionsRequiredMixin):
-    permissions = {
-        "any": (
-            "enrichment.assign_all_advisees",
-            "enrichment.assign_other_advisees",
-        )
-    }
+class AnyPermissionRequiredMixin(PermissionRequiredMixin):
+    """Require any one of the listed permissions, rather than all of them.
+
+    Django's PermissionRequiredMixin requires every permission in
+    `permission_required`; this only requires one of them.
+    """
+
+    def has_permission(self) -> bool:
+        user = self.request.user
+
+        return any(user.has_perm(perm) for perm in self.get_permission_required())
+
+
+class AssignOtherAdviseePermissionRequired(AnyPermissionRequiredMixin):
+    permission_required = (
+        "enrichment.assign_all_advisees",
+        "enrichment.assign_other_advisees",
+    )
 
 
 class Index(LoginRequiredMixin, TemplateView):
